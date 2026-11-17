@@ -704,11 +704,12 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // The small dock is the whole bottom of the screen, as in couch-tv: the other apps wait below it.
         if (dockBand != null && AppAdapter.smallDock) dockBand.setGapBelow(Math.round(160 * density));
         // CleanMySaluteTV: the small dock ends with a gear (the launcher's settings menu) and "…" (every app), as
-        // couch-tv's does, in the band. With every app in the dock (single_row) only the gear: there is no "other".
+        // couch-tv's does, in the band. "…" stays with every app in the dock (single_row) too: the owner wants it there,
+        // and it is the way to the apps that are not on Home.
         if (AppAdapter.smallDock && dockRow) {
             Runnable lastApp = () -> focusTile(Math.max(0, dockAppCount() - 1));
             Runnable up = () -> barAnchor(findViewById(R.id.btnSettings)).requestFocus();
-            if (appLibraryEnabled && !singleRow) {
+            if (appLibraryEnabled) {
                 moreTile = MoreTile.create(this, density, root, R.drawable.ic_cp_more, R.string.cp_all_apps, () -> {
                             onLibraryRequested();
                             libraryFromMoreTile = true;   // closing it goes back to "…", not to the pill after the last row

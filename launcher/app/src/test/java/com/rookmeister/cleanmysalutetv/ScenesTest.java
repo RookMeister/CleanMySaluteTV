@@ -94,9 +94,9 @@ public class ScenesTest {
     }
 
     @Test
-    public void placementFollowsTheChoiceOrTheScene() {
+    public void placementFollowsTheChoiceElseTheMiddle() {
         Scenes.Scene fog = Scenes.byId("fog"), night = Scenes.byId("night");
-        assertEquals("left", Scenes.placement(fog, "auto"));
+        assertEquals("center", Scenes.placement(fog, "auto"));   // CleanMySaluteTV: one place in every scene
         assertEquals("center", Scenes.placement(night, "auto"));
         assertEquals("right", Scenes.placement(fog, "right"));
         assertEquals("center", Scenes.placement(fog, "center"));

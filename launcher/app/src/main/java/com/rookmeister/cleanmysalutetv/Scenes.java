@@ -159,7 +159,8 @@ final class Scenes {
     /** "left", "center" or "right" for this scene: {@code position} unless it is auto or unknown. */
     static String placement(Scene s, String position) {
         if (POS_LEFT.equals(position) || POS_CENTER.equals(position) || POS_RIGHT.equals(position)) return position;
-        return s.left > 0f ? POS_LEFT : POS_CENTER;
+        // CleanMySaluteTV: auto is the middle in every scene, so the clock never moves when the scene changes.
+        return POS_CENTER;
     }
 
     static String nextPosition(String position) {
