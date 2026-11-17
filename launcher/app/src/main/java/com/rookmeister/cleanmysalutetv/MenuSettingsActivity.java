@@ -227,6 +227,11 @@ public final class MenuSettingsActivity extends Activity {
         int[] clockNames = {R.string.menu_clock_system, R.string.menu_clock_12, R.string.menu_clock_24};
         row(getString(R.string.menu_clock), null, getString(clockNames[clock]), null, null,
                 () -> choices.edit().putString(Config.CLOCK_FORMAT_KEY, CLOCKS[(clock + 1) % CLOCKS.length]).apply());
+        int[] positionNames = {R.string.menu_pos_auto, R.string.menu_pos_left, R.string.menu_pos_center, R.string.menu_pos_right};
+        int pos = Math.max(0, java.util.Arrays.asList(Scenes.POSITIONS).indexOf(sc.position));
+        row(getString(R.string.menu_clock_position), getString(R.string.menu_clock_position_sub),
+                getString(positionNames[pos]), null, null,
+                () -> choices.edit().putString(OnTvChoices.CLOCK_POSITION, Scenes.nextPosition(sc.position)).apply());
     }
 
     private void weather() {

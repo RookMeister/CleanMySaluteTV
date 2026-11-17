@@ -88,6 +88,24 @@ public class ScenesTest {
         assertEquals(0f, night.left, 0f);
     }
 
+    @Test
+    public void placementFollowsTheChoiceOrTheScene() {
+        Scenes.Scene fog = Scenes.byId("fog"), night = Scenes.byId("night");
+        assertEquals("left", Scenes.placement(fog, "auto"));
+        assertEquals("center", Scenes.placement(night, "auto"));
+        assertEquals("right", Scenes.placement(fog, "right"));
+        assertEquals("center", Scenes.placement(fog, "center"));
+        assertEquals("center", Scenes.placement(night, "bogus"));
+    }
+
+    @Test
+    public void positionsCycle() {
+        assertEquals("left", Scenes.nextPosition("auto"));
+        assertEquals("right", Scenes.nextPosition("center"));
+        assertEquals("auto", Scenes.nextPosition("right"));
+        assertEquals("left", Scenes.nextPosition("whatever"));
+    }
+
     private static List<String> ids(List<Scenes.Scene> scenes) {
         String[] out = new String[scenes.size()];
         for (int i = 0; i < out.length; i++) out[i] = scenes.get(i).id;

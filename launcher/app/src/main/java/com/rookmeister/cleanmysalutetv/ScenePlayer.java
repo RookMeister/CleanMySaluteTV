@@ -36,6 +36,7 @@ final class ScenePlayer {
     private final ImageView back, front;
     private final List<Scenes.Scene> scenes;
     private final long turnMs;
+    private final String clockPosition;
     private final boolean fade;
     private final boolean enabled;
     private final SceneRenderer renderer;
@@ -81,6 +82,7 @@ final class ScenePlayer {
         enabled = set.on;
         scenes = Scenes.select(set.ids);
         turnMs = Scenes.seconds(set.seconds) * 1000L;
+        clockPosition = set.position;
         fade = !calm;
         preferences = context.getSharedPreferences("scenes", Context.MODE_PRIVATE);
         index = Math.max(0, Math.min(scenes.size() - 1, preferences.getInt("index", 0)));
@@ -108,9 +110,11 @@ final class ScenePlayer {
         final boolean on;
         final int seconds;
         final List<String> ids;
+        /** Scenes.POS_*: the clock's place, "auto" for each scene's own. */
+        final String position;
 
-        private Settings(boolean on, int seconds, List<String> ids) {
-            this.on = on; this.seconds = seconds; this.ids = ids;
+        private Settings(boolean on, int seconds, List<String> ids, String position) {
+            this.on = on; this.seconds = seconds; this.ids = ids; this.position = position;
         }
 
         static Settings load(Context context) {
@@ -118,6 +122,7 @@ final class ScenePlayer {
             boolean on = res.getBoolean(R.bool.scenes);
             int seconds = res.getInteger(R.integer.scene_seconds);
             List<String> ids = new ArrayList<>();
+            String position = Scenes.POS_AUTO;
             JSONObject json = Config.overlay(context);
             if (json != null) {
                 Object v = json.opt("scenes");
@@ -126,6 +131,7 @@ final class ScenePlayer {
                 if (v instanceof Number) seconds = ((Number) v).intValue();
                 JSONArray list = json.optJSONArray("scene_list");
                 if (list != null) for (int i = 0; i < list.length(); i++) ids.add(list.optString(i, ""));
+                position = json.optString("clock_position", position);
             }
             SharedPreferences tv = OnTvChoices.prefs(context);
             if (tv.contains(OnTvChoices.SCENES)) on = tv.getBoolean(OnTvChoices.SCENES, on);
@@ -134,7 +140,8 @@ final class ScenePlayer {
                 ids.clear();
                 ids.addAll(OnTvChoices.splitList(tv.getString(OnTvChoices.SCENE_LIST, "")));
             }
-            return new Settings(on, Scenes.seconds(seconds), ids);
+            position = tv.getString(OnTvChoices.CLOCK_POSITION, position);
+            return new Settings(on, Scenes.seconds(seconds), ids, position);
         }
     }
 
@@ -228,7 +235,7 @@ final class ScenePlayer {
                 ? context.getDrawable(weatherIcon).mutate() : null;
         SceneRenderer.Caption caption = new SceneRenderer.Caption(day, weatherText, icon, dateFont, weatherFont);
         worker.execute(() -> {
-            Bitmap b = renderer.render(s, width, height, t, dim, l, hd, caption);
+            Bitmap b = renderer.render(s, width, height, t, dim, l, hd, caption, clockPosition);
             Bitmap gpu = b == null ? null : b.copy(Bitmap.Config.HARDWARE, false);
             if (gpu != null) b.recycle(); else gpu = b;
             Bitmap result = gpu;

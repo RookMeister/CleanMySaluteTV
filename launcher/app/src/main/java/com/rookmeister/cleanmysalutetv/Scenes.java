@@ -129,6 +129,23 @@ final class Scenes {
         ALL = Collections.unmodifiableList(all);
     }
 
+    /** Where the clock stands: as the scene has it (couch-tv's own), or the owner's choice in the settings menu. */
+    static final String POS_AUTO = "auto", POS_LEFT = "left", POS_CENTER = "center", POS_RIGHT = "right";
+    static final String[] POSITIONS = {POS_AUTO, POS_LEFT, POS_CENTER, POS_RIGHT};
+    /** couch-tv's left margin for a left clock: 96 px on a 1920-wide screen; mirrored for a right one. */
+    static final float SIDE_MARGIN = 96f / 1920f;
+
+    /** "left", "center" or "right" for this scene: {@code position} unless it is auto or unknown. */
+    static String placement(Scene s, String position) {
+        if (POS_LEFT.equals(position) || POS_CENTER.equals(position) || POS_RIGHT.equals(position)) return position;
+        return s.left > 0f ? POS_LEFT : POS_CENTER;
+    }
+
+    static String nextPosition(String position) {
+        for (int i = 0; i < POSITIONS.length; i++) if (POSITIONS[i].equals(position)) return POSITIONS[(i + 1) % POSITIONS.length];
+        return POS_LEFT;
+    }
+
     /** couch-tv's date line sits this far above the clock's line box (96 px over 150 at 1080 lines). */
     static final float CAPTION_ABOVE = px(54);
 

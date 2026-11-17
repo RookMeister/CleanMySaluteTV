@@ -65,7 +65,8 @@ final class SceneRenderer {
      * @return an opaque RGB_565 picture, or null if a picture could not be read or memory ran out
      */
     Bitmap render(Scenes.Scene s, int width, int height, String time, boolean dimmed, float limit, float[] header,
-                  Caption caption) {
+                  Caption caption, String position) {
+        String where = Scenes.placement(s, position);
         Bitmap out = null, glass = null, cutout = null;
         try {
             out = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
@@ -79,7 +80,7 @@ final class SceneRenderer {
 
             // The glass is a blur: half size is plenty, and a quarter of the memory.
             glass = decode(s.id + "-glass.jpg", 2, Bitmap.Config.RGB_565);
-            float[] clock = drawClock(c, s, glass, time, width, height, limit, header);
+            float[] clock = drawClock(c, s, glass, time, width, height, limit, header, where);
             if (glass != null) { glass.recycle(); glass = null; }
 
             if (s.cutout) {
@@ -98,7 +99,7 @@ final class SceneRenderer {
             scrim.setShader(new LinearGradient(0, 0.6f * height, 0, height, 0x00000000, 0x80000000, Shader.TileMode.CLAMP));
             c.drawRect(0, 0.6f * height, width, height, scrim);
             if (dimmed) c.drawColor(0x47000000);   // brightness 0.72
-            if (caption != null) drawCaption(c, s, caption, clock[0], clock[1], width, height);
+            if (caption != null) drawCaption(c, s, caption, clock[0], clock[1], clock[2], where, width, height);
             return out;
         } catch (IOException | RuntimeException | OutOfMemoryError e) {
             if (out != null) out.recycle();
@@ -109,16 +110,19 @@ final class SceneRenderer {
         }
     }
 
-    /** @return the clock's line-box top and the left edge of its ink, for the date line over it */
+    /** @return the clock's line-box top and the left and right edges of its ink, for the date line over it */
     private float[] drawClock(Canvas c, Scenes.Scene s, Bitmap glass, String time, int width, int height, float limit,
-                              float[] header) {
+                              float[] header, String where) {
         Paint text = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
         text.setTypeface(font);
         text.setLetterSpacing(Scenes.LETTER_SPACING);
         float x;
-        if (s.left > 0f) {
+        if (Scenes.POS_LEFT.equals(where)) {
             text.setTextAlign(Paint.Align.LEFT);
-            x = s.left * width;
+            x = (s.left > 0f ? s.left : Scenes.SIDE_MARGIN) * width;
+        } else if (Scenes.POS_RIGHT.equals(where)) {
+            text.setTextAlign(Paint.Align.RIGHT);
+            x = (1f - Scenes.SIDE_MARGIN) * width;
         } else {
             text.setTextAlign(Paint.Align.CENTER);
             x = width / 2f;
@@ -127,14 +131,14 @@ final class SceneRenderer {
         // The digits' ink ends about 0.92 of the font size under the top of the line box (Antonio, line-height 0.82).
         float size = Scenes.fitSize(s.top, s.size, 0.92f, limit) * height;
         RectF box = new RectF();
-        float baseline = place(text, time, x, top, size, s.left > 0f, box);
+        float baseline = place(text, time, x, top, size, box);
         if (header != null) {
             float moved = Scenes.clearOfHeader(box.left, box.top, box.right, top,
                     header[0] * width, header[1] * width, header[2] * height, 14f * height / 1080f);
             if (moved != top) {
                 top = moved;
                 size = Scenes.fitSize(top / height, s.size, 0.92f, limit) * height;
-                baseline = place(text, time, x, top, size, s.left > 0f, box);
+                baseline = place(text, time, x, top, size, box);
             }
         }
 
@@ -151,15 +155,15 @@ final class SceneRenderer {
         } else {
             drawGlassText(c, s, glass, time, x, baseline, box, text, width, height, false);
         }
-        return new float[] {top, box.left};
+        return new float[] {top, box.left, box.right};
     }
 
     /**
-     * couch-tv's .date over the clock: 34 px type on a 1080 screen, centred over a centred clock, from the clock's
-     * left otherwise; the weather follows after a gap, its icon tinted like its words.
+     * couch-tv's .date over the clock: 34 px type on a 1080 screen, centred over a centred clock, from a left clock's
+     * left edge, ending at a right clock's right edge; the weather follows after a gap, its icon tinted like its words.
      */
     private static void drawCaption(Canvas c, Scenes.Scene s, Caption cap, float clockTop, float clockLeft,
-                                    int width, int height) {
+                                    float clockRight, String where, int width, int height) {
         float unit = height / 1080f;
         boolean hasDate = cap.date != null && !cap.date.isEmpty();
         boolean hasWeather = cap.weather != null && !cap.weather.isEmpty();
@@ -180,7 +184,8 @@ final class SceneRenderer {
         float dateW = hasDate ? date.measureText(cap.date) : 0f;
         float wxW = hasWeather ? wx.measureText(cap.weather) : 0f;
         float total = dateW + gapBefore + iconSize + gapIcon + wxW;
-        float x = s.left > 0f ? clockLeft + 8f * unit : (width - total) / 2f;
+        float x = Scenes.POS_LEFT.equals(where) ? clockLeft + 8f * unit
+                : Scenes.POS_RIGHT.equals(where) ? clockRight - 8f * unit - total : (width - total) / 2f;
         Paint.FontMetrics fm = date.getFontMetrics();
         float lineTop = Math.max(8f * unit, clockTop - Scenes.CAPTION_ABOVE * height);
         // a 40 px line, the text centred in it
@@ -198,13 +203,17 @@ final class SceneRenderer {
     }
 
     /** Sets the text size and returns the baseline for a line box at {@code top}; {@code box} gets the ink's bounds. */
-    private static float place(Paint text, String time, float x, float top, float size, boolean left, RectF box) {
+    private static float place(Paint text, String time, float x, float top, float size, RectF box) {
         text.setTextSize(size);
         Paint.FontMetrics fm = text.getFontMetrics();
         float baseline = Scenes.baseline(top, size, fm.ascent, fm.descent);
         Rect ink = new Rect();
         text.getTextBounds(time, 0, time.length(), ink);
-        float inkLeft = left ? x + ink.left : x - ink.width() / 2f;
+        // getTextBounds measures from a left-aligned origin; the alignment shifts the drawn text by its advance.
+        float advance = text.measureText(time);
+        Paint.Align align = text.getTextAlign();
+        float origin = align == Paint.Align.RIGHT ? x - advance : align == Paint.Align.CENTER ? x - advance / 2f : x;
+        float inkLeft = origin + ink.left;
         box.set(inkLeft, baseline + ink.top, inkLeft + ink.width(), baseline + ink.bottom);
         return baseline;
     }

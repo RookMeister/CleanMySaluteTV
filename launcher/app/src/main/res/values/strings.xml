@@ -221,4 +221,10 @@
     <string name="menu_airplay_restart_start_only">Start only (AIRPLAY=yes for more)</string>
     <string name="menu_airplay_check">Check now</string>
     <string name="menu_airplay_checking">Checking AirPlay in the background</string>
+    <string name="menu_clock_position">Clock position</string>
+    <string name="menu_clock_position_sub">Where the big clock stands in the scenes</string>
+    <string name="menu_pos_auto">As the scene</string>
+    <string name="menu_pos_left">Left</string>
+    <string name="menu_pos_center">Centre</string>
+    <string name="menu_pos_right">Right</string>
 </resources>

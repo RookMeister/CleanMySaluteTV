@@ -64,6 +64,9 @@ def main():
     secs = os.environ.get("CMST_SCENE_SECONDS", "").strip()
     if secs:
         cfg["scene_seconds"] = max(10, min(3600, int(secs)))
+    pos = os.environ.get("CMST_CLOCK_POSITION", "").strip().lower()
+    if pos in ("auto", "left", "center", "right"):
+        cfg["clock_position"] = pos
     scene_list = env_list("CMST_SCENE_LIST")
     if scene_list:
         cfg["scene_list"] = scene_list

@@ -17,12 +17,13 @@ final class OnTvChoices {
     static final String SCENES = "scenes";
     static final String SCENE_SECONDS = "scene_seconds";
     static final String SCENE_LIST = "scene_list";
+    static final String CLOCK_POSITION = "clock_position";
     static final String WEATHER = "weather";
     static final String WEATHER_LAT = "weather_lat";
     static final String WEATHER_LON = "weather_lon";
     static final String WEATHER_PLACE = "weather_place";
     /** Every key above plus the dock's: what a theme push or "follow the theme" removes. */
-    static final String[] ALL = {SCENES, SCENE_SECONDS, SCENE_LIST, WEATHER, WEATHER_LAT, WEATHER_LON, WEATHER_PLACE,
+    static final String[] ALL = {SCENES, SCENE_SECONDS, SCENE_LIST, CLOCK_POSITION, WEATHER, WEATHER_LAT, WEATHER_LON, WEATHER_PLACE,
             DockStyle.KEY, AirPlayGuard.KEY};
 
     static SharedPreferences prefs(Context context) {
