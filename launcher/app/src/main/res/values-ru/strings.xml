@@ -245,4 +245,9 @@
     <string name="menu_vpn_app_sub">Что открывает кнопка VPN</string>
     <string name="menu_vpn_none">Не выбрано (настройки VPN)</string>
     <string name="menu_vpn_pick">Выбор приложения для VPN</string>
+    <string name="scene_pavement">Мозаичная мостовая, Тасмания</string>
+    <string name="scene_valley">Долина Гроуз, Голубые горы</string>
+    <string name="scene_storm">Гроза на закате, Олбери</string>
+    <string name="scene_beach">Пляж Арескье, Франция</string>
+    <string name="scene_paddy">Ванвьенг, Лаос</string>
 </resources>

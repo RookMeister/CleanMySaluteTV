@@ -241,6 +241,7 @@ final class ScenePlayer {
         android.graphics.drawable.Drawable icon = weatherText != null && weatherIcon != 0
                 ? context.getDrawable(weatherIcon).mutate() : null;
         SceneRenderer.Caption caption = new SceneRenderer.Caption(day, weatherText, icon, dateFont, weatherFont);
+        if (s.placeRes != 0) caption.credit = context.getString(s.placeRes) + " \u00B7 " + s.author;
         worker.execute(() -> {
             Bitmap b = renderer.render(s, width, height, t, dim, l, hd, caption, clockPosition);
             Bitmap gpu = b == null ? null : b.copy(Bitmap.Config.HARDWARE, false);

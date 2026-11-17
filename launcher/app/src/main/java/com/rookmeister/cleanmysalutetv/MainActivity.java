@@ -694,7 +694,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // couch-tv's does, in the band. With every app in the dock (single_row) only the gear: there is no "other".
         if (AppAdapter.smallDock && dockRow) {
             Runnable lastApp = () -> focusTile(Math.max(0, dockAppCount() - 1));
-            Runnable up = () -> findViewById(R.id.btnSettings).requestFocus();
+            Runnable up = () -> barAnchor(findViewById(R.id.btnSettings)).requestFocus();
             if (appLibraryEnabled && !singleRow) {
                 moreTile = MoreTile.create(this, density, root, R.drawable.ic_cp_more, R.string.cp_all_apps, () -> {
                             onLibraryRequested();

@@ -248,4 +248,9 @@
     <string name="menu_vpn_app_sub">What the VPN button opens</string>
     <string name="menu_vpn_none">None (Android VPN settings)</string>
     <string name="menu_vpn_pick">Pick the VPN app</string>
+    <string name="scene_pavement">Tessellated Pavement, Tasmania</string>
+    <string name="scene_valley">Grose Valley, Blue Mountains</string>
+    <string name="scene_storm">Storm at sunset, Albury</string>
+    <string name="scene_beach">Aresquiers beach, France</string>
+    <string name="scene_paddy">Vang Vieng, Laos</string>
 </resources>

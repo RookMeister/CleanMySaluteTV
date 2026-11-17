@@ -56,7 +56,8 @@ public final class MenuSettingsActivity extends Activity {
     private static final int[] SECTION_ICONS = {R.drawable.ic_menu_look, R.drawable.ic_wx_cloud, R.drawable.ic_menu_apps,
             R.drawable.ic_settings, R.drawable.ic_menu_more, R.drawable.ic_menu_info};
     private static final int[] SCENE_NAMES = {R.string.menu_scene_night, R.string.menu_scene_golden,
-            R.string.menu_scene_water, R.string.menu_scene_fog, R.string.menu_scene_dawn};
+            R.string.menu_scene_water, R.string.menu_scene_fog, R.string.menu_scene_dawn,
+            R.string.scene_pavement, R.string.scene_valley, R.string.scene_storm, R.string.scene_beach, R.string.scene_paddy};
     private static final int[] OPACITIES = {100, 70, 50, 30};
     private static final int[] SCENE_SECONDS = {10, 20, 30, 60, 120, 300};
     private static final String[] CLOCKS = {"system", "12", "24"};

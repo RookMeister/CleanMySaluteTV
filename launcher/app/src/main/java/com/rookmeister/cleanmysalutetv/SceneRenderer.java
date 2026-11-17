@@ -38,6 +38,8 @@ final class SceneRenderer {
         final String date, weather;
         final android.graphics.drawable.Drawable icon;
         final Typeface dateFont, weatherFont;
+        /** "Place · Photographer" for a real photo, drawn small in the bottom right corner; null for none. */
+        String credit;
 
         Caption(String date, String weather, android.graphics.drawable.Drawable icon, Typeface dateFont, Typeface weatherFont) {
             this.date = date; this.weather = weather; this.icon = icon; this.dateFont = dateFont; this.weatherFont = weatherFont;
@@ -109,6 +111,7 @@ final class SceneRenderer {
             c.drawRect(0, 0.6f * height, width, height, scrim);
             if (dimmed) c.drawColor(0x47000000);   // brightness 0.72
             if (caption != null) drawCaption(c, s, caption, clock[0], clock[1], clock[2], where, width, height);
+            if (caption != null && caption.credit != null) drawCredit(c, caption, width, height);
             return out;
         } catch (IOException | RuntimeException | OutOfMemoryError e) {
             if (out != null) out.recycle();
@@ -209,6 +212,18 @@ final class SceneRenderer {
             x += iconSize + gapIcon;
         }
         if (hasWeather) c.drawText(cap.weather, x, baseline, wx);
+    }
+
+    /** couch-tv's photo credit: small, quiet, in the bottom right corner, clear of the centred dock. */
+    private static void drawCredit(Canvas c, Caption cap, int width, int height) {
+        float unit = height / 1080f;
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+        p.setTypeface(cap.weatherFont);
+        p.setTextSize(17f * unit);
+        p.setColor(0xA6FFFFFF);
+        p.setShadowLayer(8f * unit, 0, 1f * unit, 0x80000000);
+        p.setTextAlign(Paint.Align.RIGHT);
+        c.drawText(cap.credit, width - 36f * unit, height - 24f * unit, p);
     }
 
     /** Sets the text size and returns the baseline for a line box at {@code top}; {@code box} gets the ink's bounds. */

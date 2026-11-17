@@ -14,13 +14,18 @@ import org.junit.Test;
 public class ScenesTest {
 
     @Test
-    public void fiveBuiltInScenesInCouchTvOrder() {
-        assertEquals(Arrays.asList("night", "golden", "water", "fog", "dawn"), ids(Scenes.ALL));
+    public void couchTvScenesThenItsPhotos() {
+        assertEquals(Arrays.asList("night", "golden", "water", "fog", "dawn", "pavement", "valley", "storm", "beach", "paddy"),
+                ids(Scenes.ALL));
     }
 
     @Test
-    public void onlyWaterlineHasNoCutout() {
-        for (Scenes.Scene s : Scenes.ALL) assertEquals(s.id, !s.id.equals("water"), s.cutout);
+    public void onlyTheMadeUpScenesHaveCutoutsAndOnlyPhotosACredit() {
+        for (Scenes.Scene s : Scenes.ALL) {
+            boolean photo = s.placeRes != 0;
+            assertEquals(s.id, photo, s.author != null);
+            assertEquals(s.id, !photo && !s.id.equals("water"), s.cutout);
+        }
         assertTrue(Scenes.byId("water").water > 0f);
     }
 

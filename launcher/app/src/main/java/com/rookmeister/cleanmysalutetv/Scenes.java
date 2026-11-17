@@ -52,6 +52,10 @@ final class Scenes {
         /** The date and weather line over the clock: its colours, and whether it has a soft shadow (light text). */
         final int dateColor, weatherColor;
         final boolean captionShadow;
+        /** A real photo (couch-tv's backgrounds, Wikimedia Commons): the place (a string resource) and the
+         *  photographer, shown in a corner as their licences ask; 0 and null for the made-up scenes. */
+        final int placeRes;
+        final String author;
 
         Scene(Builder b) {
             id = b.id; cutout = b.cutout; top = b.top; size = b.size; left = b.left;
@@ -61,6 +65,7 @@ final class Scenes {
             shadowColor = b.shadowColor; shadowDy = b.shadowDy; shadowBlur = b.shadowBlur;
             shadeColors = b.shadeColors; shadeStops = b.shadeStops; water = b.water;
             dateColor = b.dateColor; weatherColor = b.weatherColor; captionShadow = b.captionShadow;
+            placeRes = b.placeRes; author = b.author;
         }
     }
 
@@ -79,8 +84,18 @@ final class Scenes {
         float water = 0f;
         int dateColor = 0xFFFFFFFF, weatherColor = 0xC7FFFFFF;
         boolean captionShadow = true;
+        int placeRes;
+        String author;
 
         Builder(String id) { this.id = id; }
+        /** couch-tv's Classic photos: no cut-out, the glass clock over the photo, credited in a corner. */
+        Builder photo(int place, String by) {
+            cutout = false; placeRes = place; author = by;
+            // a soft shade at the top keeps the date and the buttons readable on bright skies
+            shadeColors = new int[] {0x52000000, 0x00000000};
+            shadeStops = new float[] {0f, 0.45f};
+            return this;
+        }
         Builder caption(int date, int weather, boolean shadow) {
             dateColor = date; weatherColor = weather; captionShadow = shadow; return this;
         }
@@ -126,6 +141,12 @@ final class Scenes {
         // Rainforest dawn: warm light at the top, the clock low enough for the ridges to cross it.
         all.add(new Builder("dawn").clock(230, 400).shadow(0x4D3C1E0A, 8, 34)
                 .shade(new int[] {0x6B321C0C, 0x00321C0C}, new float[] {0f, 0.55f}).build());
+        // couch-tv's free photos (tv-home/web/backgrounds/CREDITS.md), in its order: the clock in glass over them.
+        all.add(new Builder("pavement").photo(R.string.scene_pavement, "JJ Harrison").build());
+        all.add(new Builder("valley").photo(R.string.scene_valley, "Diliff").build());
+        all.add(new Builder("storm").photo(R.string.scene_storm, "Thennicke").build());
+        all.add(new Builder("beach").photo(R.string.scene_beach, "Christian Ferrer").build());
+        all.add(new Builder("paddy").photo(R.string.scene_paddy, "Basile Morin").build());
         ALL = Collections.unmodifiableList(all);
     }
 
