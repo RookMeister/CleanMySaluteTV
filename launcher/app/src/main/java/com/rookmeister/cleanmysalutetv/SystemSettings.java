@@ -9,8 +9,7 @@ import android.net.Uri;
 import android.provider.Settings;
 
 /** The standard settings intent, or, when nothing usable answers it, the first vendor settings entry
- *  from settings_fallback_components that is installed (Xiaomi China, TCL / FFALCON, Fire OS), else the
- *  AOSP TV settings app's main screen where it is installed. */
+ *  from settings_fallback_components that is installed, else the AOSP TV settings app's main screen. */
 final class SystemSettings {
     private SystemSettings() {}
 
@@ -64,16 +63,8 @@ final class SystemSettings {
         return context.getPackageManager().resolveActivity(info, PackageManager.MATCH_DEFAULT_ONLY) != null ? info : null;
     }
 
-    /**
-     * The TV's display or picture settings. On Xiaomi sets, the AOSP DISPLAY_SETTINGS action resolves to
-     * an empty stub in DroidTvSettings; prefer Xiaomi's own PictureActivity where installed.
-     */
+    /** The TV's display or picture settings. */
     static Intent displayIntent(Context context) {
-        ComponentName xiaomi = new ComponentName("com.android.tv.settings",
-                "com.xiaomi.mitv.settings.picture.PictureActivity");
-        if (context.getPackageManager().resolveActivity(new Intent().setComponent(xiaomi), 0) != null) {
-            return new Intent().setComponent(xiaomi);
-        }
         return intent(context, Settings.ACTION_DISPLAY_SETTINGS);
     }
 }

@@ -16,9 +16,6 @@
     <string name="good_evening">Godaften</string>
     <string name="good_forenoon">God formiddag</string>
     <string name="good_night">Godnat</string>
-    <string name="festival_dussehra_greeting">Glædelig Dussehra</string>
-    <string name="festival_diwali_greeting">Glædelig Diwali</string>
-    <string name="festival_halloween_greeting">Glædelig halloween</string>
     <string name="ethernet">Ethernet</string>
     <string name="offline">Offline</string>
     <string name="not_available">Ikke tilgængelig på dette TV</string>
@@ -85,19 +82,7 @@
         <item quantity="other">%1$d apps</item>
     </plurals>
     <string name="greeting_with_name">%1$s, %2$s</string>
-    <string name="race_finished">Målflag</string>
-    <string name="race_practice_1">Træning 1</string>
-    <string name="race_practice_2">Træning 2</string>
-    <string name="race_practice_3">Træning 3</string>
-    <string name="race_sprint_qualifying">Sprintkvalifikation</string>
-    <string name="race_sprint">Sprint</string>
-    <string name="race_qualifying">Kvalifikation</string>
-    <string name="race_race">Løb</string>
-    <string name="race_countdown_minutes">%1$d min</string>
-    <string name="race_countdown_hours">%1$dt %2$dm</string>
-    <string name="race_countdown_days">%1$dd %2$dt</string>
     <string name="last_opened">Sidst åbnet %1$s</string>
-    <string name="game_live">Live nu</string>
     <string name="clock_format_system">System</string>
     <string name="clock_format_12">12 timer</string>
     <string name="clock_format_24">24 timer</string>

@@ -19,8 +19,6 @@ This product includes third-party components under their own licences:
   (launcher/FONT-LICENSE-OFL.txt)
 - Antonio typeface — Copyright 2013 The Antonio Project Authors — SIL Open Font License 1.1
   (launcher/FONT-LICENSE-OFL-ANTONIO.txt)
-- Fluent Emoji 3D (Halloween skin pictures) — Copyright (c) Microsoft Corporation — MIT License
-  (launcher/ICONS-LICENSE-FLUENT-EMOJI.txt)
 - Scene pictures (launcher/app/src/main/assets/scenes/scene-*) — made for Couch TV with an image
   model, free to use (Couch TV, tv-home/web/backgrounds/CREDITS.md)
 - Weather data and place search — Open-Meteo (https://open-meteo.com)

@@ -104,14 +104,7 @@
     <string name="wallpaper_none">Ei taustakuvaa</string>
     <string name="wallpaper_applied">Taustakuva vaihdettu</string>
     <string name="wallpaper_theme_default">Teeman oletus</string>
-    <string name="race_kicker">Osakilpailu %1$d · %2$s · %3$s</string>
-    <string name="race_kicker_no_place">Osakilpailu %1$d · %2$s</string>
-    <string name="race_next">%1$s alkuun %2$s</string>
-    <string name="race_lights_out">Lähtöön %1$s</string>
-    <string name="race_live">%1$s · käynnissä</string>
-    <string name="race_finished">Ruutulippu</string>
     <string name="last_opened">Viimeksi avattu %1$s</string>
-    <string name="game_live">Käynnissä nyt</string>
     <string name="clock_format_system">Järjestelmä</string>
     <string name="clock_format_12">12 tuntia</string>
     <string name="clock_format_24">24 tuntia</string>
