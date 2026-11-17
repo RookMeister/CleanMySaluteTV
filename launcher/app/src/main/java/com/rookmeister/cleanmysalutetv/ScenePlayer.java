@@ -77,21 +77,10 @@ final class ScenePlayer {
         this.context = context;
         this.root = root;
         Resources res = context.getResources();
-        boolean on = res.getBoolean(R.bool.scenes);
-        int seconds = res.getInteger(R.integer.scene_seconds);
-        List<String> ids = new ArrayList<>();
-        JSONObject json = Config.overlay(context);
-        if (json != null) {
-            Object v = json.opt("scenes");
-            if (v instanceof Boolean) on = (Boolean) v;
-            v = json.opt("scene_seconds");
-            if (v instanceof Number) seconds = ((Number) v).intValue();
-            JSONArray list = json.optJSONArray("scene_list");
-            if (list != null) for (int i = 0; i < list.length(); i++) ids.add(list.optString(i, ""));
-        }
-        enabled = on;
-        scenes = Scenes.select(ids);
-        turnMs = Scenes.seconds(seconds) * 1000L;
+        Settings set = Settings.load(context);
+        enabled = set.on;
+        scenes = Scenes.select(set.ids);
+        turnMs = Scenes.seconds(set.seconds) * 1000L;
         fade = !calm;
         preferences = context.getSharedPreferences("scenes", Context.MODE_PRIVATE);
         index = Math.max(0, Math.min(scenes.size() - 1, preferences.getInt("index", 0)));
@@ -113,6 +102,41 @@ final class ScenePlayer {
     }
 
     boolean isOn() { return enabled; }
+
+    /** What the scenes are set to: config.xml, then config.json, then the settings menu on the TV (OnTvChoices). */
+    static final class Settings {
+        final boolean on;
+        final int seconds;
+        final List<String> ids;
+
+        private Settings(boolean on, int seconds, List<String> ids) {
+            this.on = on; this.seconds = seconds; this.ids = ids;
+        }
+
+        static Settings load(Context context) {
+            Resources res = context.getResources();
+            boolean on = res.getBoolean(R.bool.scenes);
+            int seconds = res.getInteger(R.integer.scene_seconds);
+            List<String> ids = new ArrayList<>();
+            JSONObject json = Config.overlay(context);
+            if (json != null) {
+                Object v = json.opt("scenes");
+                if (v instanceof Boolean) on = (Boolean) v;
+                v = json.opt("scene_seconds");
+                if (v instanceof Number) seconds = ((Number) v).intValue();
+                JSONArray list = json.optJSONArray("scene_list");
+                if (list != null) for (int i = 0; i < list.length(); i++) ids.add(list.optString(i, ""));
+            }
+            SharedPreferences tv = OnTvChoices.prefs(context);
+            if (tv.contains(OnTvChoices.SCENES)) on = tv.getBoolean(OnTvChoices.SCENES, on);
+            if (tv.contains(OnTvChoices.SCENE_SECONDS)) seconds = tv.getInt(OnTvChoices.SCENE_SECONDS, seconds);
+            if (tv.contains(OnTvChoices.SCENE_LIST)) {
+                ids.clear();
+                ids.addAll(OnTvChoices.splitList(tv.getString(OnTvChoices.SCENE_LIST, "")));
+            }
+            return new Settings(on, Scenes.seconds(seconds), ids);
+        }
+    }
 
     /** The top of Home's dock, in pixels from the top of the screen, so the clock never runs into it. */
     void setDockTop(int pixels) {

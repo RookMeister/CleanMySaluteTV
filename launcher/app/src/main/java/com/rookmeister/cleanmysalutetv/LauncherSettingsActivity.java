@@ -176,7 +176,8 @@ public final class LauncherSettingsActivity extends Activity {
             choices.edit().remove("columns").remove(Config.ROWS_BELOW_DOCK_KEY).remove("animations")
                     .remove("advanced_effects").remove(Config.WALLPAPER_CHOICE_KEY)
                     .remove(Config.DOCK_OPACITY_KEY).remove(Config.CLOCK_FORMAT_KEY).remove(OpenOnStart.KEY)
-                    .remove(DockStyle.KEY).commit();
+                    .commit();
+            OnTvChoices.clear(choices.edit()).commit();
             dockSize = DockStyle.current(this);
             Config current = Config.load(this);
             columns = current.columns;

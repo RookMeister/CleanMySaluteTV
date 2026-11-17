@@ -109,6 +109,13 @@
             </intent-filter>
         </activity>
 
+        <!-- CleanMySaluteTV's settings menu, after couch-tv's Home settings; Launcher settings is one row inside it. -->
+        <activity
+            android:name=".MenuSettingsActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.TvHome" />
         <activity
             android:name=".LauncherSettingsActivity"
             android:exported="false"

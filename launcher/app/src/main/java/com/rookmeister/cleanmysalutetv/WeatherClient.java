@@ -52,21 +52,10 @@ final class WeatherClient {
     WeatherClient(Context context, TextView view) {
         this.context = context;
         this.view = view;
-        Resources res = context.getResources();
-        boolean on = res.getBoolean(R.bool.weather);
-        double lat = Double.NaN, lon = Double.NaN;
-        String name = res.getString(R.string.weather_place);
-        JSONObject json = Config.overlay(context);
-        if (json != null) {
-            Object v = json.opt("weather");
-            if (v instanceof Boolean) on = (Boolean) v;
-            v = json.opt("weather_lat");
-            if (v instanceof Number) lat = ((Number) v).doubleValue();
-            v = json.opt("weather_lon");
-            if (v instanceof Number) lon = ((Number) v).doubleValue();
-            v = json.opt("weather_place");
-            if (v instanceof String) name = ((String) v).trim();
-        }
+        Settings set = Settings.load(context);
+        boolean on = set.on;
+        double lat = set.latitude, lon = set.longitude;
+        String name = set.place;
         latitude = lat;
         longitude = lon;
         place = name.length() > 40 ? name.substring(0, 40) : name;
@@ -79,6 +68,45 @@ final class WeatherClient {
     }
 
     boolean isOn() { return enabled; }
+
+    /** What the weather is set to: config.xml, then config.json, then the settings menu on the TV (OnTvChoices). */
+    static final class Settings {
+        final boolean on;
+        final double latitude, longitude;
+        final String place;
+
+        private Settings(boolean on, double latitude, double longitude, String place) {
+            this.on = on; this.latitude = latitude; this.longitude = longitude; this.place = place;
+        }
+
+        boolean hasPlace() { return Weather.validPlace(latitude, longitude); }
+
+        static Settings load(Context context) {
+            Resources res = context.getResources();
+            boolean on = res.getBoolean(R.bool.weather);
+            double lat = Double.NaN, lon = Double.NaN;
+            String name = res.getString(R.string.weather_place);
+            JSONObject json = Config.overlay(context);
+            if (json != null) {
+                Object v = json.opt("weather");
+                if (v instanceof Boolean) on = (Boolean) v;
+                v = json.opt("weather_lat");
+                if (v instanceof Number) lat = ((Number) v).doubleValue();
+                v = json.opt("weather_lon");
+                if (v instanceof Number) lon = ((Number) v).doubleValue();
+                v = json.opt("weather_place");
+                if (v instanceof String) name = ((String) v).trim();
+            }
+            SharedPreferences tv = OnTvChoices.prefs(context);
+            if (tv.contains(OnTvChoices.WEATHER)) on = tv.getBoolean(OnTvChoices.WEATHER, on);
+            if (tv.contains(OnTvChoices.WEATHER_LAT) && tv.contains(OnTvChoices.WEATHER_LON)) {
+                lat = OnTvChoices.coordinate(tv, OnTvChoices.WEATHER_LAT);
+                lon = OnTvChoices.coordinate(tv, OnTvChoices.WEATHER_LON);
+                name = tv.getString(OnTvChoices.WEATHER_PLACE, "");
+            }
+            return new Settings(on, lat, lon, name);
+        }
+    }
 
     void start() {
         if (!enabled || closed) return;

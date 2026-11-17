@@ -60,6 +60,29 @@ final class Weather {
                 + "&current=temperature_2m,weather_code,is_day&timezone=auto&forecast_days=1", latitude, longitude);
     }
 
+    /** Open-Meteo's place search, in the TV's language: up to eight places named like {@code name}. */
+    static String geocodeUrl(String name, String language) {
+        String q;
+        try {
+            q = java.net.URLEncoder.encode(name.trim(), "UTF-8");
+        } catch (java.io.UnsupportedEncodingException e) {
+            q = name.trim();
+        }
+        String lang = language == null || language.isEmpty() ? "en" : language;
+        return "https://geocoding-api.open-meteo.com/v1/search?count=8&format=json&language=" + lang + "&name=" + q;
+    }
+
+    /** "Казань, Татарстан, Россия": the place, its region and its country, without repeats or blanks. */
+    static String placeLabel(String name, String region, String country) {
+        StringBuilder b = new StringBuilder(name == null ? "" : name.trim());
+        for (String part : new String[] {region, country}) {
+            if (part == null || part.trim().isEmpty() || b.toString().contains(part.trim())) continue;
+            if (b.length() > 0) b.append(", ");
+            b.append(part.trim());
+        }
+        return b.toString();
+    }
+
     static boolean validPlace(double latitude, double longitude) {
         return !Double.isNaN(latitude) && !Double.isNaN(longitude)
                 && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180

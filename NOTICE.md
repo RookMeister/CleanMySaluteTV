@@ -100,3 +100,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## techgenius1/tvOS-Launcher
+
+Только образец раскладки меню настроек (разделы слева, строки справа, группы с подзаголовками) и список
+идей для следующих шагов; код из него не брался. Лицензия проекта — Apache 2.0.
+https://github.com/techgenius1/tvOS-Launcher
