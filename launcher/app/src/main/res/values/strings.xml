@@ -238,4 +238,14 @@
     <string name="cp_power_explain">Only to turn the screen off: the sleep timer and the Screen off tile. Nothing can be wiped or changed.</string>
     <string name="menu_dock_all">Every app in the dock</string>
     <string name="menu_dock_all_sub">One row with all apps, scrolling sideways</string>
+    <string name="tb_vpn">VPN</string>
+    <string name="tb_panel">Control panel</string>
+    <string name="tb_minutes">%1$d min</string>
+    <string name="menu_buttons">Buttons</string>
+    <string name="menu_group_buttons">Top buttons</string>
+    <string name="menu_buttons_sub">Pick the round buttons at the top right</string>
+    <string name="menu_vpn_app">VPN app</string>
+    <string name="menu_vpn_app_sub">What the VPN button opens</string>
+    <string name="menu_vpn_none">None (Android VPN settings)</string>
+    <string name="menu_vpn_pick">Pick the VPN app</string>
 </resources>

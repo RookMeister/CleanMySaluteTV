@@ -24,9 +24,11 @@ final class OnTvChoices {
     static final String WEATHER_LAT = "weather_lat";
     static final String WEATHER_LON = "weather_lon";
     static final String WEATHER_PLACE = "weather_place";
+    /** The app the VPN button opens, picked in the menu's Buttons section; "" for none. Over the theme's vpn_app. */
+    static final String VPN_APP = "vpn_app";
     /** Every key above plus the dock's: what a theme push or "follow the theme" removes. */
     static final String[] ALL = {SCENES, SCENE_SECONDS, SCENE_LIST, CLOCK_POSITION, DOCK_ALL_APPS, WEATHER, WEATHER_LAT, WEATHER_LON, WEATHER_PLACE,
-            DockStyle.KEY, AirPlayGuard.KEY};
+            DockStyle.KEY, AirPlayGuard.KEY, TopButtons.KEY, VPN_APP};
 
     static SharedPreferences prefs(Context context) {
         return context.getSharedPreferences(Config.SETTINGS_NAME, Context.MODE_PRIVATE);

@@ -654,6 +654,10 @@ final class Config {
         animations = choices.getBoolean("animations", animations);
         // CleanMySaluteTV: "Every app in the dock" in the settings menu (OnTvChoices.DOCK_ALL_APPS) is single_row.
         singleRow = choices.getBoolean(OnTvChoices.DOCK_ALL_APPS, singleRow);
+        // CleanMySaluteTV: the Buttons section. A ticked VPN button is the vpn_pill; the app it opens is the owner's.
+        String buttons = choices.getString(TopButtons.KEY, null);
+        if (buttons != null) vpnPill = TopButtons.parse(buttons).contains(TopButtons.VPN);
+        vpn = choices.getString(OnTvChoices.VPN_APP, vpn).trim();
         advancedEffects = choices.getBoolean("advanced_effects", advancedEffects);
         File wallpaper = dir != null ? new File(dir, WALLPAPER_NAME) : null;
         if (wallpaper != null && !(wallpaper.isFile() && wallpaper.length() > 0)) wallpaper = null;
@@ -739,7 +743,11 @@ final class Config {
         try (InputStream in = new FileInputStream(file)) {
             byte[] bytes = new byte[(int) file.length()];
             int n = in.read(bytes);
-            return n > 0 ? new String(bytes, 0, n, StandardCharsets.US_ASCII) : "absent";
+            // CleanMySaluteTV: trimmed. install.sh writes the token with a newline, and SharedPreferences gives a stored
+            // string back without it, so the signature never matched again and every cold start cleared the choices
+            // made on the TV.
+            String token = n > 0 ? new String(bytes, 0, n, StandardCharsets.US_ASCII).trim() : "";
+            return token.isEmpty() ? "absent" : token;
         } catch (Exception ignored) {
             return "absent";
         }

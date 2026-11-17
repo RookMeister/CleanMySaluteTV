@@ -933,12 +933,15 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 focusTile(singleRow ? lastFocused : lastFocused % COLUMNS);
                 return true;
             }
-            int firstButton = btnInputs.getVisibility() == View.VISIBLE ? R.id.btnInputs : firstTopButton().getId();
-            int leftButton = rtlMenuBar ? R.id.btnSettings : firstButton;
-            int rightButton = rtlMenuBar ? firstButton : R.id.btnSettings;
-            if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) return v.getId() == leftButton;
-            return keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && v.getId() == rightButton;
+            // CleanMySaluteTV: the owner's buttons in the owner's order, so the ends are the bar's first and last shown.
+            View first = barEnd(true), last = barEnd(false);
+            View leftButton = rtlMenuBar ? last : first;
+            View rightButton = rtlMenuBar ? first : last;
+            if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) return v == leftButton;
+            return keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && v == rightButton;
         };
+        topPillKeys = pillKeys;
+        applyTopButtons();
         btnInputs.setOnKeyListener(pillKeys);
         btnWifi.setOnKeyListener(pillKeys);
         btnVpn.setOnKeyListener(pillKeys);
@@ -1027,7 +1030,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private boolean openInputsIfAsked(Intent intent) {
         if (intent == null || !ACTION_VIEW_INPUTS.equals(intent.getAction())) return false;
         setIntent(new Intent(Intent.ACTION_MAIN));
-        View anchor = topMenu ? findViewById(R.id.btnSettings) : btnInputs;
+        View anchor = topMenu ? findViewById(R.id.btnSettings) : barAnchor(btnInputs);
         if (anchor.getVisibility() != View.VISIBLE) return true;
         if (anchor.isLaidOut()) {
             // Android 9 delivers a new intent to a paused activity with a brief resume and pause around it, and
@@ -3005,15 +3008,127 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     /** The open library came from the VPN pill (vpn_pill, no VPN app): closing it returns there while the pill still shows. */
     private boolean libraryFromVpnPill;
 
+    // ---- CleanMySaluteTV: the owner's top buttons (TopButtons) ----------------------------------------
+
+    private View.OnKeyListener topPillKeys;
+    /** Buttons the owner left off the bar: kept in the hierarchy (the code that updates them still finds them), unseen. */
+    private FrameLayout parkedButtons;
+    private TextView sleepButton;
+
+    /** Puts the owner's buttons on the bar, in bar order; the others are parked out of sight. */
+    private void applyTopButtons() {
+        LinearLayout bar = findViewById(R.id.topButtons);
+        java.util.List<String> chosen = TopButtons.chosen(this);
+        if (chosen.equals(TopButtons.DEFAULT)) return;   // the bar as it always was
+        bar.setBaselineAligned(false);   // empty-text circles: a baseline would shift the row
+        parkedButtons = new FrameLayout(this);
+        parkedButtons.setVisibility(View.GONE);
+        root.addView(parkedButtons, new FrameLayout.LayoutParams(0, 0));
+        java.util.Map<String, View> known = new java.util.HashMap<>();
+        known.put(TopButtons.INPUTS, btnInputs);
+        known.put(TopButtons.NETWORK, btnWifi);
+        known.put(TopButtons.VPN, btnVpn);
+        known.put(TopButtons.SETTINGS, findViewById(R.id.btnSettings));
+        for (View v : known.values()) bar.removeView(v);
+        for (String kind : TopButtons.ALL) {
+            View v = known.get(kind);
+            if (v == null) {
+                if (!chosen.contains(kind)) continue;
+                v = extraButton(kind);
+            }
+            if (chosen.contains(kind)) bar.addView(v);
+            else parkedButtons.addView(v);
+        }
+    }
+
+    /** A round button for one of the bar's extra kinds, styled like the others. */
+    private View extraButton(String kind) {
+        TextView b = (TextView) getLayoutInflater().inflate(R.layout.top_button, findViewById(R.id.topButtons), false);
+        android.graphics.drawable.Drawable icon = getDrawable(TopButtons.icon(kind));
+        int size = Math.round(22 * density);   // the built-in buttons' icon size, whatever the drawable says
+        icon.setBounds(0, 0, size, size);
+        b.setCompoundDrawablesRelative(icon, null, null, null);
+        b.setContentDescription(getString(TopButtons.label(kind)));
+        b.setOnKeyListener(topPillKeys);
+        b.setOnClickListener(v -> onExtraButton(kind, v));
+        if (TopButtons.SLEEP.equals(kind)) {
+            sleepButton = b;
+            b.setSelected(PowerControl.minutesLeft(this) > 0);
+        }
+        return b;
+    }
+
+    private void onExtraButton(String kind, View button) {
+        switch (kind) {
+            case TopButtons.SLEEP: showSleepMenu(button); break;
+            case TopButtons.PICTURE: open(SystemSettings.displayIntent(this)); break;
+            case TopButtons.SOUND: open(systemIntent(Settings.ACTION_SOUND_SETTINGS)); break;
+            case TopButtons.SCREENSAVER: open(new Intent(this, ClockActivity.class)); break;
+            case TopButtons.BLUETOOTH: open(systemIntent(Settings.ACTION_BLUETOOTH_SETTINGS)); break;
+            case TopButtons.APPS: if (appLibraryEnabled) onLibraryRequested(); break;
+            case TopButtons.TV_SETTINGS: open(systemIntent(Settings.ACTION_SETTINGS)); break;
+            case TopButtons.SCREEN_OFF:
+                if (!PowerControl.sleepNow(this)) open(PowerControl.activationIntent(this));
+                break;
+            default: break;
+        }
+    }
+
+    /** couch-tv's sleep menu under the moon: 15, 30, 60, 90 minutes and Off, the running one marked. */
+    private void showSleepMenu(View anchor) {
+        if (!PowerControl.canSleep(this)) {
+            open(PowerControl.activationIntent(this));
+            return;
+        }
+        View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
+        LinearLayout rows = panel.findViewById(R.id.rows);
+        PopupWindow popup = glassPopup(panel, (int) (190 * density));
+        int left = PowerControl.minutesLeft(this);
+        int current = 0;
+        for (int step : PowerControl.STEPS) if (step >= left) { current = left == 0 ? 0 : step; break; }
+        View focus = null;
+        for (int i = 1; i <= PowerControl.STEPS.length; i++) {
+            int minutes = PowerControl.STEPS[i % PowerControl.STEPS.length];   // 15, 30, 60, 90, then Off
+            String title = minutes == 0 ? getString(R.string.menu_off) : getString(R.string.tb_minutes, minutes);
+            View row = addInputRow(rows, popup, R.drawable.ic_cp_timer, title, -1, () -> {
+                PowerControl.set(this, minutes);
+                if (sleepButton != null) sleepButton.setSelected(minutes > 0);
+            });
+            if (minutes == current) {
+                TextView status = row.findViewById(R.id.status);
+                status.setText(left > 0 ? getString(R.string.cp_timer_left, left) : "\u2713");
+                status.setVisibility(View.VISIBLE);
+                focus = row;
+            }
+        }
+        dropIn(popup, panel, anchor, Gravity.END);
+        if (focus != null) focus.requestFocus();
+    }
+
+    /** The bar's first or last shown button. */
+    private View barEnd(boolean first) {
+        LinearLayout bar = findViewById(R.id.topButtons);
+        for (int i = 0; i < bar.getChildCount(); i++) {
+            View v = bar.getChildAt(first ? i : bar.getChildCount() - 1 - i);
+            if (v.getVisibility() == View.VISIBLE) return v;
+        }
+        return bar;
+    }
+
+    /** {@code preferred} when it is on the bar and shown, else the bar's last button: a menu needs something to hang from. */
+    private View barAnchor(View preferred) {
+        return preferred != null && preferred.isShown() ? preferred : barEnd(false);
+    }
+
     /** Turns a labelled top pill into the round TopButtonIcon shape: no text, the icon centred by even padding. */
     private void makeIconOnly(TextView pill) {
         pill.setContentDescription(pill.getText());
         pill.setText(null);
         pill.setMaxWidth(Integer.MAX_VALUE);
-        int pad = Math.round(10 * density);
+        int pad = Math.round(13 * density);
         pill.setPaddingRelative(pad, 0, pad, 0);
         pill.setCompoundDrawablePadding(0);
-        pill.getLayoutParams().width = Math.round(42 * density);
+        pill.getLayoutParams().width = Math.round(48 * density);
     }
 
     /**
@@ -3292,7 +3407,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // Read the switch, not the pill: show_inputs_pill=false hides the pill too, and there the list
         // keeps its usual place.
         boolean underGear = topMenu;
-        View anchor = findViewById(underGear ? R.id.btnSettings : R.id.btnInputs);
+        View anchor = barAnchor(findViewById(underGear ? R.id.btnSettings : R.id.btnInputs));
         View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
         LinearLayout rows = panel.findViewById(R.id.rows);
 
@@ -3546,7 +3661,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     /** top_menu: the gear's dropdown, standing in for the Inputs, Wi-Fi and Settings pills. */
     private void showTopMenu() {
-        View anchor = findViewById(R.id.btnSettings);
+        View anchor = barAnchor(findViewById(R.id.btnSettings));
         View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
         LinearLayout rows = panel.findViewById(R.id.rows);
         PopupWindow popup = glassPopup(panel, (int) (220 * density));
@@ -3575,7 +3690,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     /** The header opens launcher settings directly; hold OK keeps the extra home actions available. */
     private void showSettingsMenu() {
-        View anchor = findViewById(R.id.btnSettings);
+        View anchor = barAnchor(findViewById(R.id.btnSettings));
         View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
         LinearLayout rows = panel.findViewById(R.id.rows);
         PopupWindow popup = glassPopup(panel, (int) (200 * density));
@@ -3887,7 +4002,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     }
 
     private void showModuleCardsNow() {
-        View anchor = findViewById(R.id.btnSettings);
+        View anchor = barAnchor(findViewById(R.id.btnSettings));
         View panel = getLayoutInflater().inflate(R.layout.popup_cards, root, false);
         if (getResources().getBoolean(R.bool.rtl_menu_bar))
             panel.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);

@@ -235,4 +235,14 @@
     <string name="cp_power_explain">Только чтобы выключать экран: таймер сна и плитка «Выключить экран». Стереть или изменить что-либо через это нельзя.</string>
     <string name="menu_dock_all">Все приложения в доке</string>
     <string name="menu_dock_all_sub">Одна строка со всеми приложениями, прокрутка вбок</string>
+    <string name="tb_vpn">VPN</string>
+    <string name="tb_panel">Панель управления</string>
+    <string name="tb_minutes">%1$d мин</string>
+    <string name="menu_buttons">Кнопки</string>
+    <string name="menu_group_buttons">Верхние кнопки</string>
+    <string name="menu_buttons_sub">Какие круглые кнопки стоят справа вверху</string>
+    <string name="menu_vpn_app">Приложение для VPN</string>
+    <string name="menu_vpn_app_sub">Что открывает кнопка VPN</string>
+    <string name="menu_vpn_none">Не выбрано (настройки VPN)</string>
+    <string name="menu_vpn_pick">Выбор приложения для VPN</string>
 </resources>

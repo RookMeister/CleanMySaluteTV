@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- CleanMySaluteTV: one of the owner's extra round buttons on the top bar (TopButtons). -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/TopButtonIcon"
+    android:focusable="true"
+    android:clickable="true" />

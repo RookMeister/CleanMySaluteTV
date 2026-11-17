@@ -50,11 +50,11 @@ import java.util.concurrent.Executors;
  * return and a theme push clears it (Config, OnTvChoices); the older Launcher settings page stays one row away.
  */
 public final class MenuSettingsActivity extends Activity {
-    private static final int LOOK = 0, WEATHER = 1, APPS = 2, MORE = 3, ABOUT = 4;
+    private static final int LOOK = 0, WEATHER = 1, APPS = 2, BUTTONS = 3, MORE = 4, ABOUT = 5;
     private static final int[] SECTION_NAMES = {R.string.menu_look, R.string.menu_weather, R.string.menu_apps,
-            R.string.menu_more, R.string.menu_about};
+            R.string.menu_buttons, R.string.menu_more, R.string.menu_about};
     private static final int[] SECTION_ICONS = {R.drawable.ic_menu_look, R.drawable.ic_wx_cloud, R.drawable.ic_menu_apps,
-            R.drawable.ic_menu_more, R.drawable.ic_menu_info};
+            R.drawable.ic_settings, R.drawable.ic_menu_more, R.drawable.ic_menu_info};
     private static final int[] SCENE_NAMES = {R.string.menu_scene_night, R.string.menu_scene_golden,
             R.string.menu_scene_water, R.string.menu_scene_fog, R.string.menu_scene_dawn};
     private static final int[] OPACITIES = {100, 70, 50, 30};
@@ -71,6 +71,8 @@ public final class MenuSettingsActivity extends Activity {
     private int section = LOOK;
     /** The city search page is showing in the Weather section: its last answer, and what it is doing. */
     private boolean searching;
+    /** The Buttons section's app list for the VPN button is open. */
+    private boolean pickingVpn;
     /** True while the right pane is being drawn again: focus moves made for it are not section changes. */
     private boolean rebuilding;
     private List<String[]> found;
@@ -166,6 +168,7 @@ public final class MenuSettingsActivity extends Activity {
 
     private void show(int s, int keepRow) {
         if (s != WEATHER) searching = false;
+        if (s != BUTTONS) pickingVpn = false;
         rebuilding = true;
         // The focused row is about to go: park the focus on this section's own item first, or Android hands it to
         // the first item on the left, which would switch the section.
@@ -179,6 +182,7 @@ public final class MenuSettingsActivity extends Activity {
             case LOOK: look(); break;
             case WEATHER: weather(); break;
             case APPS: apps(); break;
+            case BUTTONS: buttons(); break;
             case MORE: more(); break;
             default: about(); break;
         }
@@ -234,6 +238,74 @@ public final class MenuSettingsActivity extends Activity {
         row(getString(R.string.menu_clock_position), getString(R.string.menu_clock_position_sub),
                 getString(positionNames[pos]), null, null,
                 () -> choices.edit().putString(OnTvChoices.CLOCK_POSITION, Scenes.nextPosition(sc.position)).apply());
+    }
+
+    /** couch-tv's quick buttons: the owner ticks which round buttons stand at the top right (TopButtons). */
+    private void buttons() {
+        if (pickingVpn) { vpnPage(); return; }
+        group(R.string.menu_group_buttons);
+        info(getString(R.string.menu_buttons_sub), null, null);
+        List<String> chosen = TopButtons.chosen(this);
+        for (String kind : TopButtons.ALL) {
+            Drawable icon = getDrawable(TopButtons.icon(kind));
+            row(getString(TopButtons.label(kind)), null, null, icon,
+                    getDrawable(chosen.contains(kind) ? R.drawable.ic_menu_check_on : R.drawable.ic_menu_check_off),
+                    () -> choices.edit().putString(TopButtons.KEY,
+                            OnTvChoices.joinList(TopButtons.toggle(chosen, kind))).apply());
+            if (TopButtons.VPN.equals(kind)) {
+                String app = Config.load(this).vpnApp;
+                rowAction(getString(R.string.menu_vpn_app), getString(R.string.menu_vpn_app_sub),
+                        app.isEmpty() ? getString(R.string.menu_vpn_none) : appLabel(app), () -> {
+                            pickingVpn = true;
+                            show(BUTTONS, 0);
+                        });
+            }
+        }
+    }
+
+    /** The VPN button's app: "none" (Android's VPN settings), then every app on the TV, the current one ticked. */
+    private void vpnPage() {
+        head.setText(R.string.menu_vpn_pick);
+        String current = Config.load(this).vpnApp;
+        Drawable on = getDrawable(R.drawable.ic_menu_check_on), off = getDrawable(R.drawable.ic_menu_check_off);
+        pickRow(getString(R.string.menu_vpn_none), null, current.isEmpty() ? on : off, "");
+        android.content.pm.PackageManager pm = getPackageManager();
+        java.util.Map<String, android.content.pm.ResolveInfo> apps = new java.util.TreeMap<>();
+        for (String category : new String[] {Intent.CATEGORY_LEANBACK_LAUNCHER, Intent.CATEGORY_LAUNCHER}) {
+            Intent probe = new Intent(Intent.ACTION_MAIN).addCategory(category);
+            for (android.content.pm.ResolveInfo r : pm.queryIntentActivities(probe, 0)) {
+                String pkg = r.activityInfo.packageName;
+                if (pkg.equals(getPackageName())) continue;
+                String label = String.valueOf(r.loadLabel(pm));
+                boolean known = false;
+                for (android.content.pm.ResolveInfo seen : apps.values()) known |= seen.activityInfo.packageName.equals(pkg);
+                if (!known) apps.put(label.toLowerCase(java.util.Locale.ROOT) + "\u0000" + pkg, r);
+            }
+        }
+        for (android.content.pm.ResolveInfo r : apps.values()) {
+            String pkg = r.activityInfo.packageName;
+            pickRow(String.valueOf(r.loadLabel(pm)), r.loadIcon(pm), pkg.equals(current) ? on : off, pkg);
+        }
+    }
+
+    private void pickRow(String title, Drawable icon, Drawable mark, String pkg) {
+        View r = rowView(title, null, null, icon, mark);
+        r.setOnClickListener(v -> {
+            choices.edit().putString(OnTvChoices.VPN_APP, pkg).apply();
+            changed();
+            pickingVpn = false;
+            show(BUTTONS, 0);
+        });
+        list.addView(r, rowParams());
+    }
+
+    private String appLabel(String pkg) {
+        try {
+            android.content.pm.PackageManager pm = getPackageManager();
+            return String.valueOf(pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)));
+        } catch (Exception e) {
+            return pkg;
+        }
     }
 
     private void weather() {
@@ -314,7 +386,12 @@ public final class MenuSettingsActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        // Back leaves the city search for the Weather section first, as couch-tv's sub-pages do.
+        // Back leaves a sub-page (the city search, the VPN app list) for its section first, as couch-tv's do.
+        if (pickingVpn) {
+            pickingVpn = false;
+            show(BUTTONS, 0);
+            return;
+        }
         if (searching) {
             searching = false;
             show(WEATHER, 1);
@@ -491,7 +568,17 @@ public final class MenuSettingsActivity extends Activity {
         if (thumb != null) {
             ImageView t = new ImageView(this);
             t.setImageDrawable(thumb);
-            t.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            boolean glyph = thumb instanceof android.graphics.drawable.VectorDrawable;
+            boolean photo = thumb.getIntrinsicWidth() > thumb.getIntrinsicHeight() * 1.3f;
+            // A glyph (the Buttons section) keeps its shape and follows the row's text colour; a scene photo fills the
+            // frame; an app icon is shown whole.
+            t.setScaleType(photo ? ImageView.ScaleType.CENTER_CROP : ImageView.ScaleType.FIT_CENTER);
+            if (!photo && !glyph) t.setBackground(null);
+            if (glyph) {
+                t.setDuplicateParentStateEnabled(true);   // dark on the focused (white) row
+                t.setImageTintList(main);
+                t.setPadding(px(15), px(3), px(15), px(3));
+            }
             t.setClipToOutline(true);
             GradientDrawable shape = new GradientDrawable();
             shape.setCornerRadius(px(6));
@@ -568,7 +655,7 @@ public final class MenuSettingsActivity extends Activity {
         item.addView(label);
         item.setOnFocusChangeListener((v, focused) -> {
             if (!focused || rebuilding) return;
-            if (searching) { searching = false; show(i, false); return; }
+            if (searching || pickingVpn) { searching = false; pickingVpn = false; show(i, false); return; }
             if (section != i) show(i, false);
         });
         item.setOnClickListener(v -> focusList());
