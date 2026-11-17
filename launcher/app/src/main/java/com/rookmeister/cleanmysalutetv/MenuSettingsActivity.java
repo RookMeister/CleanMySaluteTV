@@ -1,7 +1,6 @@
 package com.rookmeister.cleanmysalutetv;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -70,11 +69,13 @@ public final class MenuSettingsActivity extends Activity {
     private LinearLayout list;
     private ScrollView scroller;
     private int section = LOOK;
-    /**
-     * Where the focus goes back when a dialog closes: {section, row}. Android hands the returning focus to the first
-     * focusable view, the first section on the left, which would switch the section away; null when none is due.
-     */
-    private int[] restore;
+    /** The city search page is showing in the Weather section: its last answer, and what it is doing. */
+    private boolean searching;
+    /** True while the right pane is being drawn again: focus moves made for it are not section changes. */
+    private boolean rebuilding;
+    private List<String[]> found;
+    private String status;
+    private String query = "";
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final Handler handler = new Handler(Looper.getMainLooper());
 
@@ -164,6 +165,12 @@ public final class MenuSettingsActivity extends Activity {
     }
 
     private void show(int s, int keepRow) {
+        if (s != WEATHER) searching = false;
+        rebuilding = true;
+        // The focused row is about to go: park the focus on this section's own item first, or Android hands it to
+        // the first item on the left, which would switch the section.
+        View focused = getCurrentFocus();
+        if (focused != null && focused != sideItems.get(s) && isInList(focused)) sideItems.get(s).requestFocus();
         section = s;
         for (int i = 0; i < sideItems.size(); i++) sideItems.get(i).setSelected(i == s);
         head.setText(SECTION_NAMES[s]);
@@ -181,6 +188,12 @@ public final class MenuSettingsActivity extends Activity {
         } else {
             scroller.scrollTo(0, 0);
         }
+        rebuilding = false;
+    }
+
+    private boolean isInList(View v) {
+        for (android.view.ViewParent p = v.getParent(); p != null; p = p.getParent()) if (p == list) return true;
+        return false;
     }
 
     private void look() {
@@ -217,6 +230,7 @@ public final class MenuSettingsActivity extends Activity {
     }
 
     private void weather() {
+        if (searching) { searchPage(); return; }
         WeatherClient.Settings w = WeatherClient.Settings.load(this);
         row(getString(R.string.menu_weather_show), getString(R.string.menu_weather_sub), onOff(w.on), null, null,
                 () -> choices.edit().putBoolean(OnTvChoices.WEATHER, !w.on).apply());
@@ -270,56 +284,100 @@ public final class MenuSettingsActivity extends Activity {
     // ---- city search ----------------------------------------------------------------------------
 
     @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (!hasFocus) {
-            // A dialog took the remote: come back to this section and row when it closes.
-            if (restore == null) {
-                View f = getCurrentFocus();
-                int row = f == null ? -1 : rows().indexOf(f);
-                restore = new int[] {section, Math.max(0, row)};
-            }
-        } else if (restore != null) {
-            int[] r = restore;
-            show(r[0], r[1]);
-            restore = null;
+    public void onBackPressed() {
+        // Back leaves the city search for the Weather section first, as couch-tv's sub-pages do.
+        if (searching) {
+            searching = false;
+            show(WEATHER, 1);
+            return;
         }
+        super.onBackPressed();
     }
 
     private void searchCity() {
+        searching = true;
+        found = null;
+        status = null;
+        show(WEATHER, 0);
+        showKeyboard();
+    }
+
+    /** The city search, in the menu's own look: a glass field, then the places found as rows. */
+    private void searchPage() {
+        head.setText(R.string.menu_weather_search);
         EditText input = new EditText(this);
         input.setSingleLine(true);
+        input.setText(query);
+        input.setSelection(query.length());
         input.setHint(R.string.menu_weather_search_hint);
+        input.setHintTextColor(0x80FFFFFF);
+        input.setTextColor(0xFFFFFFFF);
+        input.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+        input.setTypeface(medium);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
-        input.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle(R.string.menu_weather_search)
-                .setView(input)
-                .setPositiveButton(R.string.menu_weather_search, (d, which) -> geocode(input.getText().toString()))
-                .setNegativeButton(android.R.string.cancel, null)
-                .create();
+        input.setImeOptions(EditorInfo.IME_ACTION_SEARCH | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+        input.setPadding(px(20), px(14), px(20), px(14));
+        StateListDrawable field = new StateListDrawable();
+        field.addState(new int[] {android.R.attr.state_focused}, solid(px(14), 0x33FFFFFF, 0xCCFFFFFF));
+        field.addState(new int[] {}, solid(px(14), 0x1FFFFFFF, 0x1AFFFFFF));
+        input.setBackground(field);
+        input.setCompoundDrawablePadding(px(12));
+        Drawable glass = getDrawable(R.drawable.ic_menu_search).mutate();
+        glass.setTint(0xCCFFFFFF);
+        glass.setBounds(0, 0, px(22), px(22));
+        input.setCompoundDrawablesRelative(glass, null, null, null);
         input.setOnEditorActionListener((v, action, event) -> {
-            if (action != EditorInfo.IME_ACTION_SEARCH && action != EditorInfo.IME_ACTION_DONE) return false;
-            dialog.dismiss();
-            geocode(input.getText().toString());
+            boolean enter = event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                    && event.getAction() == KeyEvent.ACTION_DOWN;
+            if (action != EditorInfo.IME_ACTION_SEARCH && action != EditorInfo.IME_ACTION_DONE && !enter) return false;
+            query = v.getText().toString();
+            geocode(query);
             return true;
         });
-        dialog.show();
+        list.addView(input, rowParams());
+        if (status != null) info(status, null, null);
+        if (found != null) for (String[] place : found) {
+            rowAction(place[1], null, null, () -> {
+                choices.edit().putString(OnTvChoices.WEATHER_PLACE, place[0]).putString(OnTvChoices.WEATHER_LAT, place[2])
+                        .putString(OnTvChoices.WEATHER_LON, place[3]).putBoolean(OnTvChoices.WEATHER, true).apply();
+                changed();
+                searching = false;
+                show(WEATHER, 1);
+            });
+        }
+    }
+
+    private void showKeyboard() {
+        View f = getCurrentFocus();
+        if (!(f instanceof EditText)) return;
+        f.post(() -> {
+            android.view.inputmethod.InputMethodManager imm =
+                    (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            if (imm != null) imm.showSoftInput(f, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
+        });
+    }
+
+    private void hideKeyboard() {
+        android.view.inputmethod.InputMethodManager imm =
+                (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        if (imm != null) imm.hideSoftInputFromWindow(list.getWindowToken(), 0);
     }
 
     private void geocode(String name) {
         if (name.trim().isEmpty()) return;
-        Toast.makeText(this, R.string.menu_weather_searching, Toast.LENGTH_SHORT).show();
+        found = null;
+        status = getString(R.string.menu_weather_searching);
+        show(WEATHER, 0);
         String url = Weather.geocodeUrl(name, Locale.getDefault().getLanguage());
         worker.execute(() -> {
-            List<String[]> found = new ArrayList<>();
+            List<String[]> places = new ArrayList<>();
             boolean failed = false;
             try {
                 JSONArray results = new JSONObject(get(url)).optJSONArray("results");
                 if (results != null) for (int i = 0; i < results.length(); i++) {
                     JSONObject r = results.getJSONObject(i);
                     String label = Weather.placeLabel(r.optString("name"), r.optString("admin1"), r.optString("country"));
-                    found.add(new String[] {r.optString("name"), label,
+                    places.add(new String[] {r.optString("name"), label,
                             String.valueOf(r.getDouble("latitude")), String.valueOf(r.getDouble("longitude"))});
                 }
             } catch (Exception e) {
@@ -327,18 +385,14 @@ public final class MenuSettingsActivity extends Activity {
             }
             boolean error = failed;
             handler.post(() -> {
-                if (isFinishing()) return;
-                if (error) { Toast.makeText(this, R.string.menu_weather_failed, Toast.LENGTH_LONG).show(); return; }
-                if (found.isEmpty()) { Toast.makeText(this, R.string.menu_weather_none_found, Toast.LENGTH_LONG).show(); return; }
-                String[] labels = new String[found.size()];
-                for (int i = 0; i < labels.length; i++) labels[i] = found.get(i)[1];
-                new AlertDialog.Builder(this).setTitle(R.string.menu_weather_place).setItems(labels, (d, which) -> {
-                    String[] p = found.get(which);
-                    choices.edit().putString(OnTvChoices.WEATHER_PLACE, p[0]).putString(OnTvChoices.WEATHER_LAT, p[2])
-                            .putString(OnTvChoices.WEATHER_LON, p[3]).putBoolean(OnTvChoices.WEATHER, true).apply();
-                    changed();
-                    restore = new int[] {WEATHER, 1};   // drawn again with the new city once the dialog has gone
-                }).show();
+                if (isFinishing() || !searching) return;
+                if (error) status = getString(R.string.menu_weather_failed);
+                else if (places.isEmpty()) status = getString(R.string.menu_weather_none_found);
+                else status = null;
+                found = places;
+                if (!places.isEmpty()) hideKeyboard();   // the places are under it
+                // The first place found takes the focus, ready for OK; with none, the field keeps it.
+                show(WEATHER, places.isEmpty() ? 0 : (status == null ? 1 : 2));
             });
         });
     }
@@ -484,7 +538,9 @@ public final class MenuSettingsActivity extends Activity {
         label.setDuplicateParentStateEnabled(true);
         item.addView(label);
         item.setOnFocusChangeListener((v, focused) -> {
-            if (focused && restore == null && section != i) show(i, false);
+            if (!focused || rebuilding) return;
+            if (searching) { searching = false; show(i, false); return; }
+            if (section != i) show(i, false);
         });
         item.setOnClickListener(v -> focusList());
         item.setOnKeyListener((v, key, event) -> {
