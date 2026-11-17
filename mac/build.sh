@@ -37,7 +37,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleVersion</key><string>${VERSION}</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundleDevelopmentRegion</key><string>ru</string>
-  <key>LSMinimumSystemVersion</key><string>14.0</string>
+  <key>LSMinimumSystemVersion</key><string>26.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
   <key>NSHighResolutionCapable</key><true/>
   <key>NSLocalNetworkUsageDescription</key>
@@ -55,6 +55,8 @@ done
 cp "$ADB_SRC" "$APP/Contents/Resources/adb"
 
 cp "$ROOT/profiles/sber-staros.tsv" "$ROOT/profiles/never.txt" "$APP/Contents/Resources/"
+# the window's backdrop: one of the launcher's scenes (Liquid Glass floats over it)
+cp "$ROOT/launcher/app/src/main/assets/scenes/scene-valley.jpg" "$APP/Contents/Resources/Backdrop.jpg"
 
 if [ ! -f "$APK" ]; then
   say "APK лаунчера нет — собираю"

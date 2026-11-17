@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "CleanMySaluteTV",
     defaultLocalization: "ru",
-    platforms: [.macOS(.v14)],
+    platforms: [.macOS("26.0")],   // Liquid Glass
     targets: [
         .executableTarget(name: "CleanMySaluteTV", path: "Sources/CleanMySaluteTV")
     ]

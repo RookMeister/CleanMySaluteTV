@@ -131,7 +131,8 @@ enum Bundled {
         // swift run: walk up from the executable to the repo
         var dir = URL(fileURLWithPath: CommandLine.arguments[0]).deletingLastPathComponent()
         for _ in 0..<8 {
-            for sub in ["profiles/" + name, "launcher/app/build/outputs/apk/release/" + name] {
+            for sub in ["profiles/" + name, "launcher/app/build/outputs/apk/release/" + name,
+                        name == "Backdrop.jpg" ? "launcher/app/src/main/assets/scenes/scene-valley.jpg" : name] {
                 let u = dir.appendingPathComponent(sub)
                 if FileManager.default.fileExists(atPath: u.path) { return u }
             }

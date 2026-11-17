@@ -75,6 +75,9 @@ struct RootView: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // Liquid Glass: the scene runs under the floating sidebar too
+            .background { Backdrop().backgroundExtensionEffect() }
             .navigationTitle(section.title)
             .toolbar {
                 if section.needsLauncher && tv.state != nil { ApplyBar() }
@@ -92,14 +95,15 @@ struct ApplyBar: ToolbarContent {
     var body: some ToolbarContent {
         ToolbarItemGroup {
             Button("Сбросить") { tv.discardEdits() }
+                .buttonStyle(.glass)
                 .disabled(!tv.dirty || tv.busy != nil)
             Button {
                 Task { await tv.apply() }
             } label: {
-                Label("Применить на ТВ", systemImage: "paperplane")
+                Label("Применить на ТВ", systemImage: "paperplane.fill")
             }
             .keyboardShortcut("s")
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.glassProminent)
             .disabled(!tv.dirty || tv.busy != nil)
         }
     }
@@ -130,9 +134,10 @@ struct StatusBar: View {
                         .buttonStyle(.plain).foregroundStyle(.secondary)
                 }
             }
-            .padding(.horizontal, 14).padding(.vertical, 8)
-            .background(.regularMaterial, in: Capsule())
-            .padding(.bottom, 12)
+            .padding(.horizontal, 16).padding(.vertical, 10)
+            .glassEffect(.regular, in: .capsule)
+            .padding(.bottom, 14)
+            .animation(.smooth, value: text)
         }
     }
 }
@@ -141,10 +146,13 @@ struct Placeholder: View {
     var icon: String
     var text: String
     var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: icon).font(.system(size: 40)).foregroundStyle(.secondary)
-            Text(text).foregroundStyle(.secondary).multilineTextAlignment(.center)
+        VStack(spacing: 14) {
+            Image(systemName: icon).font(.system(size: 40))
+            Text(text).multilineTextAlignment(.center)
         }
-        .frame(maxWidth: 380).frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(28)
+        .frame(maxWidth: 420)
+        .glassEffect(.regular, in: .rect(cornerRadius: 30))
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

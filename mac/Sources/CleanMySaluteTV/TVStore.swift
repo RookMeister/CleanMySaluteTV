@@ -284,7 +284,8 @@ final class TVStore: ObservableObject {
             hidden = s.apps.hidden
             sentHome = home.map(\.key)
             sentHidden = hidden.map(\.key)
-            await loadIcons(s.apps.home + s.apps.hidden)
+            // icons come after, one by one, without holding up the window
+            Task { await loadIcons(s.apps.home + s.apps.hidden) }
         } catch {
             message = "Не разобрал настройки лаунчера: \(error.localizedDescription)"
         }
@@ -356,17 +357,14 @@ final class TVStore: ObservableObject {
         }
     }
 
-    /// Reorders inside the dock or inside More apps.
-    func moveDocked(from: IndexSet, to: Int) {
-        var d = docked
-        d.move(fromOffsets: from, toOffset: to)
-        home = d + more
-    }
-
-    func moveMore(from: IndexSet, to: Int) {
-        var m = more
-        m.move(fromOffsets: from, toOffset: to)
-        home = docked + m
+    /// A drag inside the dock or inside More apps: `key` takes `target`'s place. Across the groups it does nothing
+    /// (the place picker moves an app from one group to another).
+    func moveApp(_ key: String, before target: String) -> Bool {
+        guard let from = home.firstIndex(where: { $0.key == key }), let to = home.firstIndex(where: { $0.key == target }),
+              from != to, (from < dockSize) == (to < dockSize) else { return false }
+        let app = home.remove(at: from)
+        home.insert(app, at: to)
+        return true
     }
 
     /// Every app, for picking the VPN button's app.
