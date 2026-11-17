@@ -192,4 +192,21 @@
     <string name="menu_scene_water">Waterline</string>
     <string name="menu_scene_fog">Fog</string>
     <string name="menu_scene_dawn">Rainforest dawn</string>
+    <!-- CleanMySaluteTV control panel (QuickSettingsActivity). -->
+    <string name="cp_wifi">Wi-Fi</string>
+    <string name="cp_ethernet">Ethernet</string>
+    <string name="cp_connected">Connected</string>
+    <string name="cp_offline">Not connected</string>
+    <string name="cp_bluetooth">Bluetooth</string>
+    <string name="cp_none">Not on this TV</string>
+    <string name="cp_sound">Sound</string>
+    <string name="cp_volume">Volume %1$d%%</string>
+    <string name="cp_muted">Muted</string>
+    <string name="cp_picture">Picture</string>
+    <string name="cp_memory">Memory</string>
+    <string name="cp_memory_used">%1$d%% used · OK to free</string>
+    <string name="cp_memory_cleaned">Background apps closed · memory %1$d%% → %2$d%%</string>
+    <string name="cp_screensaver">Screensaver</string>
+    <string name="cp_screensaver_sub">Clock</string>
+    <string name="cp_all_apps">All apps</string>
 </resources>

@@ -189,4 +189,21 @@
     <string name="menu_scene_water">Вода</string>
     <string name="menu_scene_fog">Туман</string>
     <string name="menu_scene_dawn">Рассвет в лесу</string>
+    <!-- CleanMySaluteTV: панель управления. -->
+    <string name="cp_wifi">Wi-Fi</string>
+    <string name="cp_ethernet">Ethernet</string>
+    <string name="cp_connected">Подключено</string>
+    <string name="cp_offline">Нет подключения</string>
+    <string name="cp_bluetooth">Bluetooth</string>
+    <string name="cp_none">Нет на этом ТВ</string>
+    <string name="cp_sound">Звук</string>
+    <string name="cp_volume">Громкость %1$d%%</string>
+    <string name="cp_muted">Без звука</string>
+    <string name="cp_picture">Изображение</string>
+    <string name="cp_memory">Память</string>
+    <string name="cp_memory_used">Занято %1$d%% · OK — очистить</string>
+    <string name="cp_memory_cleaned">Фоновые приложения закрыты · память %1$d%% → %2$d%%</string>
+    <string name="cp_screensaver">Заставка</string>
+    <string name="cp_screensaver_sub">Часы</string>
+    <string name="cp_all_apps">Все приложения</string>
 </resources>
