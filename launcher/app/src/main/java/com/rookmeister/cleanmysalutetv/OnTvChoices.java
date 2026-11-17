@@ -23,7 +23,7 @@ final class OnTvChoices {
     static final String WEATHER_PLACE = "weather_place";
     /** Every key above plus the dock's: what a theme push or "follow the theme" removes. */
     static final String[] ALL = {SCENES, SCENE_SECONDS, SCENE_LIST, WEATHER, WEATHER_LAT, WEATHER_LON, WEATHER_PLACE,
-            DockStyle.KEY};
+            DockStyle.KEY, AirPlayGuard.KEY};
 
     static SharedPreferences prefs(Context context) {
         return context.getSharedPreferences(Config.SETTINGS_NAME, Context.MODE_PRIVATE);

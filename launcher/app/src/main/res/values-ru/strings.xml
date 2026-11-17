@@ -206,4 +206,16 @@
     <string name="cp_screensaver">Заставка</string>
     <string name="cp_screensaver_sub">Часы</string>
     <string name="cp_all_apps">Все приложения</string>
+    <!-- CleanMySaluteTV: AirPlay в меню. -->
+    <string name="menu_group_airplay">AIRPLAY</string>
+    <string name="menu_group_reset">СБРОС</string>
+    <string name="menu_airplay_missing">AirPlay Server не установлен</string>
+    <string name="menu_airplay_missing_sub">Приложение с github.com/jqssun/android-airplay-server, см. docs/AIRPLAY.md</string>
+    <string name="menu_airplay_guard">Держать AirPlay видимым</string>
+    <string name="menu_airplay_guard_sub">Проверка при пробуждении, при появлении сети и раз в 15 минут</string>
+    <string name="menu_airplay_restart">Перезапуск приёмника</string>
+    <string name="menu_airplay_restart_full">Полный</string>
+    <string name="menu_airplay_restart_start_only">Только запуск (полный — AIRPLAY=yes)</string>
+    <string name="menu_airplay_check">Проверить сейчас</string>
+    <string name="menu_airplay_checking">Проверяю AirPlay в фоне</string>
 </resources>

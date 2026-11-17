@@ -12,6 +12,8 @@ Credits and acknowledgements:
   and the look of the settings menu, rewritten natively; MIT License (licenses/couch-tv-LICENSE.txt)
 - tvOS Launcher (https://github.com/techgenius1/tvOS-Launcher) — the layout of the settings menu;
   no code taken
+- Hume Launcher (https://github.com/petrobot-admin/hume-launcher) — AirPlayGuard, changed (see the
+  file's header); Copyright 2026 Petrobot; Apache License 2.0 (licenses/hume-launcher-LICENSE.txt)
 
 This product includes third-party components under their own licences:
 
@@ -22,3 +24,5 @@ This product includes third-party components under their own licences:
 - Scene pictures (launcher/app/src/main/assets/scenes/scene-*) — made for Couch TV with an image
   model, free to use (Couch TV, tv-home/web/backgrounds/CREDITS.md)
 - Weather data and place search — Open-Meteo (https://open-meteo.com)
+- AirPlay Server (https://github.com/jqssun/android-airplay-server) — not included; the launcher only
+  talks to it when it is installed (GPL-3.0)
