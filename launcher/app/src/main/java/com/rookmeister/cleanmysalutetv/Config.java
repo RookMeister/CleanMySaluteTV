@@ -271,6 +271,13 @@ final class Config {
     final boolean singleRow;
     /** CleanMySaluteTV: how many apps the dock can be set to hold (the settings menu's Apps). */
     static final int DOCK_MIN = 4, DOCK_MAX = 9;
+    /** The large dock's wide tiles: six fit across the screen (the small one's squares: nine). */
+    static final int DOCK_MAX_LARGE = 6;
+
+    /** The most apps the dock can hold with the dock size the TV has now. */
+    static int dockMax(Context c) {
+        return DockStyle.small(c) ? DOCK_MAX : DOCK_MAX_LARGE;
+    }
     /** With single_row, the band runs behind every app in the row, not only the dock apps (config.xml, dock_band_all). */
     final boolean dockBandAll;
 
@@ -651,6 +658,8 @@ final class Config {
         if (mounted) syncThemeChoices(choices, dir, file);
         int chosenColumns = choices.getInt("columns", columns);
         if (chosenColumns >= DOCK_MIN && chosenColumns <= DOCK_MAX) columns = chosenColumns;
+        // CleanMySaluteTV: no more than the dock size takes (6 large, 9 small); switching to the large dock cuts it
+        columns = Math.min(columns, dockMax(ctx));
         // CleanMySaluteTV: no rows of apps under the dock, the owner's wish: the dock sits low, the other apps wait
         // below it (Down) and under "All apps".
         rowsBelow = 0;

@@ -370,7 +370,7 @@ public final class MenuSettingsActivity extends Activity {
         // The dock's size, 4 to 9 apps: the dock's band is as long as the apps in it.
         group(R.string.menu_group_dock);
         row(getString(R.string.menu_columns), null, String.valueOf(plan.size), null, null, () -> {
-            int next = plan.size >= Config.DOCK_MAX ? Config.DOCK_MIN : Math.max(Config.DOCK_MIN, plan.size + 1);
+            int next = plan.size >= Config.dockMax(this) ? Config.DOCK_MIN : Math.max(Config.DOCK_MIN, plan.size + 1);
             choices.edit().putInt("columns", next).apply();
             plan = new AppsPlan(plan.home, next, plan.hidden);
         });

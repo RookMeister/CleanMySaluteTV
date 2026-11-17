@@ -9,6 +9,9 @@ struct LauncherState: Decodable {
     var apps: Apps
     var dockMin: Int
     var dockMax: Int
+    /// The most apps for each dock size (6 large, 9 small); older launchers send only dockMax.
+    var dockMaxSmall: Int?
+    var dockMaxLarge: Int?
 
     struct TopButton: Decodable, Hashable {
         var kind: String

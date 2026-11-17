@@ -136,12 +136,16 @@ struct LayoutTab: View {
         if let d = Binding($tv.draft) {
             GlassCard("Док") {
                 GlassRow("Плитки") {
-                    Picker("", selection: d.dockStyle) { Text("Маленькие").tag("small"); Text("Большие").tag("large") }
+                    Picker("", selection: Binding(get: { d.wrappedValue.dockStyle }, set: { style in
+                        d.wrappedValue.dockStyle = style
+                        // the large dock takes 6 at most, as the launcher does
+                        d.wrappedValue.columns = min(d.wrappedValue.columns, tv.dockMax)
+                    })) { Text("Маленькие").tag("small"); Text("Большие").tag("large") }
                         .labelsHidden().pickerStyle(.segmented).fixedSize()
                 }
                 GlassDivider()
-                GlassRow("Приложений в доке", detail: "Остальные — под доком и в «Все приложения»") {
-                    Stepper(value: d.columns, in: (tv.state?.dockMin ?? 4)...(tv.state?.dockMax ?? 9)) {
+                GlassRow("Приложений в доке", detail: "До \(tv.dockMax) · остальные — под доком и в «Все приложения»") {
+                    Stepper(value: d.columns, in: (tv.state?.dockMin ?? 4)...tv.dockMax) {
                         Text("\(d.wrappedValue.columns)").monospacedDigit().frame(minWidth: 20)
                     }
                 }

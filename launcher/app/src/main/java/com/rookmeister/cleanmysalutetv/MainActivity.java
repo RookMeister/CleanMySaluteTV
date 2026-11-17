@@ -704,7 +704,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 cfg.dockBandAll || (singleRow && AppAdapter.smallDock)) : null;
         if (dockBand != null) grid.addItemDecoration(dockBand);
         // The small dock is the whole bottom of the screen, as in couch-tv: the other apps wait below it.
-        if (dockBand != null && AppAdapter.smallDock) dockBand.setGapBelow(Math.round(160 * density));
+        // CleanMySaluteTV: a small gap, not 160dp: Down to the apps below scrolled the dock up by the whole gap, high
+        // over the clock. The dock sits at the screen's bottom edge, so the next row still waits out of sight.
+        if (dockBand != null && AppAdapter.smallDock) dockBand.setGapBelow(Math.round(24 * density));
         if (cfg.fadeRows) TopFade.attach(grid, 48 * density);
         // Reduced motion: the tiles are simply there, with no entrance (reloadApps skips it there too).
         if (animations && !reducedMotion) {

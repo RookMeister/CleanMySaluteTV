@@ -114,7 +114,9 @@ final class RemoteSettings {
                 .put("buttons", buttons)
                 .put("apps", apps)
                 .put("dockMin", Config.DOCK_MIN)
-                .put("dockMax", Config.DOCK_MAX);
+                .put("dockMax", Config.dockMax(c))
+                .put("dockMaxSmall", Config.DOCK_MAX)
+                .put("dockMaxLarge", Config.DOCK_MAX_LARGE);
         write(new File(d, STATE), state.toString(1).getBytes(StandardCharsets.UTF_8));
     }
 

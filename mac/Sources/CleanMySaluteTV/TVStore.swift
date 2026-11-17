@@ -360,6 +360,11 @@ final class TVStore: ObservableObject {
     // MARK: - apps: the dock, More apps and hidden (the launcher's AppsPlan, here on the Mac side)
 
     var dockSize: Int { draft?.columns ?? state?.apps.docked ?? 6 }
+
+    /// The most apps the dock takes with the tile size in the edits: 6 large, 9 small.
+    var dockMax: Int {
+        draft?.dockStyle == "large" ? (state?.dockMaxLarge ?? 6) : (state?.dockMaxSmall ?? state?.dockMax ?? 9)
+    }
     var docked: [TVApp] { Array(home.prefix(dockSize)) }
     var more: [TVApp] { Array(home.dropFirst(dockSize)) }
 
