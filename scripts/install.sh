@@ -58,6 +58,8 @@ CMST_LIVE_TV_PACKAGE="${LIVE_TV_PACKAGE:-}" CMST_GREETING_NAME="${GREETING_NAME:
 CMST_COLUMNS="${COLUMNS_PER_ROW:-}" CMST_APP_LIBRARY="${APP_LIBRARY:-yes}" \
 CMST_SHOW_STATS="${SHOW_STATS:-no}" CMST_REDUCED_MOTION="${REDUCED_MOTION:-no}" \
 CMST_SCENES="${SCENES:-yes}" CMST_SCENE_SECONDS="${SCENE_SECONDS:-}" CMST_SCENE_LIST="${SCENE_LIST:-}" \
+CMST_WEATHER="${WEATHER:-yes}" CMST_WEATHER_CITY="${WEATHER_CITY:-}" \
+CMST_WEATHER_LAT="${WEATHER_LAT:-}" CMST_WEATHER_LON="${WEATHER_LON:-}" \
   python3 -I "$ROOT/scripts/make_config.py" "$cfg" "$ROOT/config.extra.json" || die "Не удалось собрать config.json"
 put_theme_file "$cfg" config.json || die "config.json не записан на ТВ"
 

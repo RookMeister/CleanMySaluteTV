@@ -147,6 +147,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private WallpaperPlayer wallpaperPlayer;
     /** CleanMySaluteTV: scenes with the big glass clock behind Home (ScenePlayer); off leaves Home as it was. */
     private ScenePlayer scenePlayer;
+    /** CleanMySaluteTV: the weather line under the date (WeatherClient). */
+    private WeatherClient weather;
     private GlassView glass;
     private View ambient;
     private TextView heroName;
@@ -448,6 +450,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (festive) updateWifiLabel();
             sky.update();
             wallpaperPlayer.update();
+            weather.update();
             handler.postDelayed(this, MINUTE_MS);
         }
     };
@@ -516,6 +519,33 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         getWindow().setBackgroundDrawable(null);
         scenePlayer = new ScenePlayer(this, root, reducedMotion || !animations);
         wallpaperPlayer = new WallpaperPlayer(this, root, cfg, !scenePlayer.isOn());
+        weather = new WeatherClient(this, findViewById(R.id.weatherLine));
+        if (scenePlayer.isOn()) {
+            // As in couch-tv, the date and the weather go over the scene clock; the header keeps its place (so the
+            // round buttons stay where they are) but shows nothing.
+            findViewById(R.id.leftBlock).setVisibility(View.INVISIBLE);
+            weather.setListener(scenePlayer::setWeather);
+        }
+        if (scenePlayer.isOn()) {
+            // The header's visible lines, so the scene clock keeps out of them (ScenePlayer.setHeader).
+            View[] lines = {findViewById(R.id.leftBlock), findViewById(R.id.stats), findViewById(R.id.weatherLine)};
+            View.OnLayoutChangeListener header = (v, l, t, r, b, ol, ot, or, ob) -> {
+                android.graphics.Rect all = new android.graphics.Rect(), one = new android.graphics.Rect();
+                for (View line : lines) {
+                    if (line.getVisibility() != View.VISIBLE || line.getWidth() == 0) continue;
+                    // Only the text, not the whole row: leftBlock spans to the top buttons.
+                    int w = line instanceof TextView ? Math.min(line.getWidth(), (int) Math.ceil(
+                            ((TextView) line).getLayout() != null ? ((TextView) line).getLayout().getLineWidth(0)
+                                    + line.getPaddingLeft() + line.getPaddingRight() + ((TextView) line).getCompoundPaddingLeft() : line.getWidth()))
+                            : textWidth((ViewGroup) line);
+                    one.set(0, 0, w, line.getHeight());
+                    root.offsetDescendantRectToMyCoords(line, one);
+                    all.union(one);
+                }
+                if (!all.isEmpty()) scenePlayer.setHeader(all.left, all.right, all.bottom);
+            };
+            for (View line : lines) line.addOnLayoutChangeListener(header);
+        }
         if (scenePlayer.isOn()) {
             // The scene's clock is the time: the small one in the header would say it twice.
             findViewById(R.id.clock).setVisibility(View.GONE);
@@ -1150,6 +1180,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         sky.update();
         wallpaperPlayer.start();
         scenePlayer.start();
+        weather.start();
         handler.postDelayed(minuteTick, MINUTE_MS);
         if (festive && lamp != null) {
             lamp.start();
@@ -1325,6 +1356,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         endReorder();   // Home or another app while reordering keeps the order so far
         wallpaperPlayer.stop();
         scenePlayer.stop();
+        weather.stop();
         stopAmbientAnimation();
         hero.animate().cancel();
         ambient.animate().cancel();
@@ -1407,6 +1439,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (openOnStartOnWake) unregisterReceiver(wakeReceiver);
         wallpaperPlayer.close();
         scenePlayer.close();
+        weather.close();
         ConnectivityManager cm = getApplicationContext().getSystemService(ConnectivityManager.class);   // as registered
         TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
         if (tim != null) tim.unregisterCallback(inputCallback);
@@ -1931,6 +1964,28 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 || !glassCardRect.equals(r)) {
             onTileFocused(pos, card);
         }
+    }
+
+    /** The width the visible text in a header group takes, from its left edge: its widest visible TextView's ink. */
+    private static int textWidth(ViewGroup group) {
+        int widest = 0;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child.getVisibility() != View.VISIBLE) continue;
+            int right;
+            if (child instanceof ViewGroup) {
+                right = child.getLeft() + textWidth((ViewGroup) child);
+            } else if (child instanceof TextView && ((TextView) child).getLayout() != null) {
+                android.text.Layout layout = ((TextView) child).getLayout();
+                float w = 0;
+                for (int k = 0; k < layout.getLineCount(); k++) w = Math.max(w, layout.getLineWidth(k));
+                right = child.getLeft() + child.getPaddingLeft() + (int) Math.ceil(w);
+            } else {
+                right = child.getRight();
+            }
+            widest = Math.max(widest, right);
+        }
+        return widest;
     }
 
     // ---- top shelf -------------------------------------------------------------------------------
@@ -2741,7 +2796,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     private void updateClockVisibility() {
         boolean valid = System.currentTimeMillis() >= TIME_VALID_AFTER_MS;
-        clockBlock.setVisibility(valid ? View.VISIBLE : View.INVISIBLE);
+        // With the scenes on, the date sits over the scene clock and this block only keeps the buttons' place.
+        clockBlock.setVisibility(valid && !scenePlayer.isOn() ? View.VISIBLE : View.INVISIBLE);
         handler.removeCallbacks(clockCheck);
         if (valid) {
             updateGreeting();

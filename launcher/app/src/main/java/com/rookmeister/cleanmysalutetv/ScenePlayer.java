@@ -46,8 +46,16 @@ final class ScenePlayer {
     private final int width, height;
     /** The clock's digits stay above this share of the height; set from the dock's position once laid out. */
     private volatile float limit;
+    /** Home's header (greeting, date, weather): left, right, bottom as shares of the screen; null until laid out. */
+    private volatile float[] header;
+    /** The weather after the date over the clock (WeatherClient); null or empty for none. */
+    private String weatherText;
+    private int weatherIcon;
+    private final android.graphics.Typeface dateFont, weatherFont;
     private int index;
     private boolean active, closed, busy;
+    /** Asked for while a picture was being drawn: a redraw (new minute, new dock position) or the next scene. */
+    private boolean pendingRedraw, pendingTurn;
     /** Front picture: kept so it can be dropped under memory pressure. */
     private Bitmap shown;
     private String shownTime = "";
@@ -94,6 +102,8 @@ final class ScenePlayer {
         width = Math.max(1, Math.round(m.widthPixels * scale));
         height = Math.max(1, Math.round(m.heightPixels * scale));
         renderer = enabled ? new SceneRenderer(context.getAssets()) : null;
+        dateFont = font(context, R.string.font_medium);
+        weatherFont = font(context, R.string.font_regular);
         back = enabled ? image(context) : null;
         front = enabled ? image(context) : null;
         if (enabled) {
@@ -113,6 +123,26 @@ final class ScenePlayer {
             limit = l;
             if (active) draw(index, false);
         }
+    }
+
+    /** The header's bounds in pixels in Home's root, so the clock moves under it rather than through it. */
+    void setHeader(int left, int right, int bottom) {
+        int w = root.getWidth(), h = root.getHeight();
+        if (w <= 0 || h <= 0 || bottom <= 0) return;
+        float[] next = {left / (float) w, right / (float) w, bottom / (float) h};
+        float[] was = header;
+        if (was != null && Math.abs(was[0] - next[0]) < 0.005f && Math.abs(was[1] - next[1]) < 0.005f
+                && Math.abs(was[2] - next[2]) < 0.005f) return;
+        header = next;
+        if (active) draw(index, false);
+    }
+
+    /** The weather for the line over the clock: "1° Переменная облачность" and its icon; null hides it. */
+    void setWeather(String text, int iconRes) {
+        if (java.util.Objects.equals(text, weatherText) && iconRes == weatherIcon) return;
+        weatherText = text;
+        weatherIcon = iconRes;
+        if (active) draw(index, false);
     }
 
     void start() {
@@ -157,22 +187,41 @@ final class ScenePlayer {
 
     /** Draws scene {@code i} off the UI thread and puts it on screen: faded in as a new scene, or swapped for a new minute. */
     private void draw(int i, boolean asTurn) {
-        if (busy || closed) return;
+        if (closed) return;
+        if (busy) {
+            // Not dropped: a dock position or minute that arrives mid-draw is drawn right after.
+            if (asTurn) pendingTurn = true; else pendingRedraw = true;
+            return;
+        }
         busy = true;
         Scenes.Scene s = scenes.get(i);
         String t = time();
         boolean dim = Scenes.dimmed(Calendar.getInstance().get(Calendar.HOUR_OF_DAY));
         float l = limit;
+        float[] hd = header;
+        String day = Scenes.dateLine(new java.util.Date(), java.util.Locale.getDefault());
+        android.graphics.drawable.Drawable icon = weatherText != null && weatherIcon != 0
+                ? context.getDrawable(weatherIcon).mutate() : null;
+        SceneRenderer.Caption caption = new SceneRenderer.Caption(day, weatherText, icon, dateFont, weatherFont);
         worker.execute(() -> {
-            Bitmap b = renderer.render(s, width, height, t, dim, l);
+            Bitmap b = renderer.render(s, width, height, t, dim, l, hd, caption);
             Bitmap gpu = b == null ? null : b.copy(Bitmap.Config.HARDWARE, false);
             if (gpu != null) b.recycle(); else gpu = b;
             Bitmap result = gpu;
             handler.post(() -> {
                 busy = false;
-                if (closed || result == null) return;
-                if (!active && shown != null) return;   // hidden meanwhile: start() draws a fresh one
-                show(result, i, t, asTurn && fade && shown != null);
+                if (closed) return;
+                if (result != null && (active || shown == null)) show(result, i, t, asTurn && fade && shown != null);
+                // hidden meanwhile: start() draws a fresh one
+                if (!active) { pendingTurn = false; pendingRedraw = false; return; }
+                if (pendingTurn) {
+                    pendingTurn = false;
+                    pendingRedraw = false;
+                    draw(Scenes.next(index, scenes.size()), true);
+                } else if (pendingRedraw) {
+                    pendingRedraw = false;
+                    draw(index, false);
+                }
             });
         });
     }
@@ -199,6 +248,14 @@ final class ScenePlayer {
             front.setAlpha(1f);
             back.setImageDrawable(null);
         }).start();
+    }
+
+    private static android.graphics.Typeface font(Context context, int res) {
+        try {
+            return UiFont.get(context, res);
+        } catch (Exception e) {
+            return android.graphics.Typeface.DEFAULT;
+        }
     }
 
     private static ImageView image(Context context) {

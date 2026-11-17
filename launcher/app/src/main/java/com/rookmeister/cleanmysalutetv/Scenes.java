@@ -49,6 +49,9 @@ final class Scenes {
         final float[] shadeStops;
         /** The waterline as a share of the height: below it the clock is a softer reflection. 0 for none. */
         final float water;
+        /** The date and weather line over the clock: its colours, and whether it has a soft shadow (light text). */
+        final int dateColor, weatherColor;
+        final boolean captionShadow;
 
         Scene(Builder b) {
             id = b.id; cutout = b.cutout; top = b.top; size = b.size; left = b.left;
@@ -57,6 +60,7 @@ final class Scenes {
             fillAlpha = b.fillAlpha; rimFill = b.rimFill; rimStroke = b.rimStroke; sheen = b.sheen;
             shadowColor = b.shadowColor; shadowDy = b.shadowDy; shadowBlur = b.shadowBlur;
             shadeColors = b.shadeColors; shadeStops = b.shadeStops; water = b.water;
+            dateColor = b.dateColor; weatherColor = b.weatherColor; captionShadow = b.captionShadow;
         }
     }
 
@@ -73,8 +77,13 @@ final class Scenes {
         int[] shadeColors = new int[0];
         float[] shadeStops = new float[0];
         float water = 0f;
+        int dateColor = 0xFFFFFFFF, weatherColor = 0xC7FFFFFF;
+        boolean captionShadow = true;
 
         Builder(String id) { this.id = id; }
+        Builder caption(int date, int weather, boolean shadow) {
+            dateColor = date; weatherColor = weather; captionShadow = shadow; return this;
+        }
         Builder clock(float topPx, float sizePx) { top = px(topPx); size = px(sizePx); return this; }
         Builder fill(float brightness, float saturation, float contrast, float alpha) {
             fillBrightness = brightness; fillSaturation = saturation; fillContrast = contrast; fillAlpha = alpha;
@@ -96,7 +105,8 @@ final class Scenes {
     static {
         List<Scene> all = new ArrayList<>();
         // Night: the clock behind the peak, pink glass.
-        Builder night = new Builder("night").fill(1.15f, 1.2f, 1f, 0.9f).rim(0x0FFFC8D7, 0x80FFD7E1);
+        Builder night = new Builder("night").fill(1.15f, 1.2f, 1f, 0.9f).rim(0x0FFFC8D7, 0x80FFD7E1)
+                .caption(0xEBFFE8EE, 0xC7FFE8EE, true);
         night.photoBrightness = 0.86f;
         all.add(night.build());
         // Golden hour: a little smaller, low enough for the volcano's tip to rise into the digits.
@@ -109,7 +119,7 @@ final class Scenes {
         all.add(water.build());
         // Fog: a big dark clock on the left, sinking into the misty hills.
         Builder fog = new Builder("fog").clock(172, 470).fill(0.46f, 0.8f, 1.1f, 0.8f).rim(0x00000000, 0x99FFFFFF)
-                .shadow(0, 0, 0);
+                .shadow(0, 0, 0).caption(0xFF16201D, 0xB816201D, false);
         fog.left = 96f / 1920f;
         fog.sheen = false;
         all.add(fog.build());
@@ -117,6 +127,15 @@ final class Scenes {
         all.add(new Builder("dawn").clock(230, 400).shadow(0x4D3C1E0A, 8, 34)
                 .shade(new int[] {0x6B321C0C, 0x00321C0C}, new float[] {0f, 0.55f}).build());
         ALL = Collections.unmodifiableList(all);
+    }
+
+    /** couch-tv's date line sits this far above the clock's line box (96 px over 150 at 1080 lines). */
+    static final float CAPTION_ABOVE = px(54);
+
+    /** "Вторник 17 ноября", "Tuesday 17 November": weekday, day and month, no comma, a capital first letter. */
+    static String dateLine(java.util.Date date, java.util.Locale locale) {
+        String text = new java.text.SimpleDateFormat("EEEE d MMMM", locale).format(date).replace(",", "");
+        return text.isEmpty() ? text : text.substring(0, 1).toUpperCase(locale) + text.substring(1);
     }
 
     /** The scenes named in scene_list, in that order; unknown and repeated names are skipped. None named: all. */
@@ -157,6 +176,18 @@ final class Scenes {
     static float baseline(float top, float fontSize, float ascent, float descent) {
         float lineHeight = LINE_HEIGHT * fontSize;
         return top + (lineHeight - (descent - ascent)) / 2f - ascent;
+    }
+
+    /**
+     * The clock's top, moved down under the header (greeting, date, weather) when its ink would run into it; all in
+     * pixels. A header that ends left of the digits, as it does beside a centred clock, leaves the clock where it is.
+     */
+    static float clearOfHeader(float inkLeft, float inkTop, float inkRight, float top,
+                               float headerLeft, float headerRight, float headerBottom, float gap) {
+        if (headerBottom <= 0f || headerRight <= headerLeft) return top;
+        boolean across = inkLeft < headerRight + gap && inkRight > headerLeft - gap;
+        if (!across || inkTop >= headerBottom + gap) return top;
+        return top + (headerBottom + gap - inkTop);
     }
 
     /**

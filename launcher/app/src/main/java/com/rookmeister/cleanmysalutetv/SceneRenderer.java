@@ -33,6 +33,17 @@ final class SceneRenderer {
     private final AssetManager assets;
     private final Typeface font;
 
+    /** The line over the clock: the date, then the weather's icon and words; any part may be missing. */
+    static final class Caption {
+        final String date, weather;
+        final android.graphics.drawable.Drawable icon;
+        final Typeface dateFont, weatherFont;
+
+        Caption(String date, String weather, android.graphics.drawable.Drawable icon, Typeface dateFont, Typeface weatherFont) {
+            this.date = date; this.weather = weather; this.icon = icon; this.dateFont = dateFont; this.weatherFont = weatherFont;
+        }
+    }
+
     SceneRenderer(AssetManager assets) {
         this.assets = assets;
         Typeface t;
@@ -49,9 +60,12 @@ final class SceneRenderer {
      * @param time    the digits, e.g. "21:07"
      * @param dimmed  the night-time dimming (couch-tv: brightness 0.72 from 21:00 to 06:00)
      * @param limit   the clock's digits stay above this share of the height (the hero and dock); 0 for no limit
+     * @param header  Home's header (left, right, bottom as shares of width, width and height), kept clear of the
+     *                clock's digits; null for none
      * @return an opaque RGB_565 picture, or null if a picture could not be read or memory ran out
      */
-    Bitmap render(Scenes.Scene s, int width, int height, String time, boolean dimmed, float limit) {
+    Bitmap render(Scenes.Scene s, int width, int height, String time, boolean dimmed, float limit, float[] header,
+                  Caption caption) {
         Bitmap out = null, glass = null, cutout = null;
         try {
             out = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
@@ -65,7 +79,7 @@ final class SceneRenderer {
 
             // The glass is a blur: half size is plenty, and a quarter of the memory.
             glass = decode(s.id + "-glass.jpg", 2, Bitmap.Config.RGB_565);
-            drawClock(c, s, glass, time, width, height, limit);
+            float[] clock = drawClock(c, s, glass, time, width, height, limit, header);
             if (glass != null) { glass.recycle(); glass = null; }
 
             if (s.cutout) {
@@ -84,6 +98,7 @@ final class SceneRenderer {
             scrim.setShader(new LinearGradient(0, 0.6f * height, 0, height, 0x00000000, 0x80000000, Shader.TileMode.CLAMP));
             c.drawRect(0, 0.6f * height, width, height, scrim);
             if (dimmed) c.drawColor(0x47000000);   // brightness 0.72
+            if (caption != null) drawCaption(c, s, caption, clock[0], clock[1], width, height);
             return out;
         } catch (IOException | RuntimeException | OutOfMemoryError e) {
             if (out != null) out.recycle();
@@ -94,16 +109,12 @@ final class SceneRenderer {
         }
     }
 
-    private void drawClock(Canvas c, Scenes.Scene s, Bitmap glass, String time, int width, int height, float limit) {
+    /** @return the clock's line-box top and the left edge of its ink, for the date line over it */
+    private float[] drawClock(Canvas c, Scenes.Scene s, Bitmap glass, String time, int width, int height, float limit,
+                              float[] header) {
         Paint text = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
         text.setTypeface(font);
         text.setLetterSpacing(Scenes.LETTER_SPACING);
-        float top = s.top * height;
-        // The digits' ink ends about 0.92 of the font size under the top of the line box (Antonio, line-height 0.82).
-        float size = Scenes.fitSize(s.top, s.size, 0.92f, limit) * height;
-        text.setTextSize(size);
-        Paint.FontMetrics fm = text.getFontMetrics();
-        float baseline = Scenes.baseline(top, size, fm.ascent, fm.descent);
         float x;
         if (s.left > 0f) {
             text.setTextAlign(Paint.Align.LEFT);
@@ -112,10 +123,20 @@ final class SceneRenderer {
             text.setTextAlign(Paint.Align.CENTER);
             x = width / 2f;
         }
-        Rect ink = new Rect();
-        text.getTextBounds(time, 0, time.length(), ink);
-        float inkLeft = s.left > 0f ? x + ink.left : x - ink.width() / 2f;
-        RectF box = new RectF(inkLeft, baseline + ink.top, inkLeft + ink.width(), baseline + ink.bottom);
+        float top = s.top * height;
+        // The digits' ink ends about 0.92 of the font size under the top of the line box (Antonio, line-height 0.82).
+        float size = Scenes.fitSize(s.top, s.size, 0.92f, limit) * height;
+        RectF box = new RectF();
+        float baseline = place(text, time, x, top, size, s.left > 0f, box);
+        if (header != null) {
+            float moved = Scenes.clearOfHeader(box.left, box.top, box.right, top,
+                    header[0] * width, header[1] * width, header[2] * height, 14f * height / 1080f);
+            if (moved != top) {
+                top = moved;
+                size = Scenes.fitSize(top / height, s.size, 0.92f, limit) * height;
+                baseline = place(text, time, x, top, size, s.left > 0f, box);
+            }
+        }
 
         if (s.water > 0f) {
             float line = s.water * height;
@@ -130,6 +151,62 @@ final class SceneRenderer {
         } else {
             drawGlassText(c, s, glass, time, x, baseline, box, text, width, height, false);
         }
+        return new float[] {top, box.left};
+    }
+
+    /**
+     * couch-tv's .date over the clock: 34 px type on a 1080 screen, centred over a centred clock, from the clock's
+     * left otherwise; the weather follows after a gap, its icon tinted like its words.
+     */
+    private static void drawCaption(Canvas c, Scenes.Scene s, Caption cap, float clockTop, float clockLeft,
+                                    int width, int height) {
+        float unit = height / 1080f;
+        boolean hasDate = cap.date != null && !cap.date.isEmpty();
+        boolean hasWeather = cap.weather != null && !cap.weather.isEmpty();
+        if (!hasDate && !hasWeather) return;
+        Paint date = new Paint(Paint.ANTI_ALIAS_FLAG);
+        date.setTypeface(cap.dateFont);
+        date.setTextSize(34f * unit);
+        date.setColor(s.dateColor);
+        Paint wx = new Paint(date);
+        wx.setTypeface(cap.weatherFont);
+        wx.setColor(s.weatherColor);
+        if (s.captionShadow) {
+            date.setShadowLayer(15f * unit, 0, 2f * unit, 0x40000000);
+            wx.setShadowLayer(15f * unit, 0, 2f * unit, 0x40000000);
+        }
+        float iconSize = cap.icon != null && hasWeather ? 30f * unit : 0f;
+        float gapBefore = hasDate && hasWeather ? 16f * unit : 0f, gapIcon = iconSize > 0 ? 7f * unit : 0f;
+        float dateW = hasDate ? date.measureText(cap.date) : 0f;
+        float wxW = hasWeather ? wx.measureText(cap.weather) : 0f;
+        float total = dateW + gapBefore + iconSize + gapIcon + wxW;
+        float x = s.left > 0f ? clockLeft + 8f * unit : (width - total) / 2f;
+        Paint.FontMetrics fm = date.getFontMetrics();
+        float lineTop = Math.max(8f * unit, clockTop - Scenes.CAPTION_ABOVE * height);
+        // a 40 px line, the text centred in it
+        float baseline = lineTop + 20f * unit - (fm.ascent + fm.descent) / 2f;
+        if (hasDate) c.drawText(cap.date, x, baseline, date);
+        x += dateW + gapBefore;
+        if (iconSize > 0) {
+            float iconTop = baseline - iconSize + 5f * unit;
+            cap.icon.setBounds(Math.round(x), Math.round(iconTop), Math.round(x + iconSize), Math.round(iconTop + iconSize));
+            cap.icon.setTint(s.weatherColor);
+            cap.icon.draw(c);
+            x += iconSize + gapIcon;
+        }
+        if (hasWeather) c.drawText(cap.weather, x, baseline, wx);
+    }
+
+    /** Sets the text size and returns the baseline for a line box at {@code top}; {@code box} gets the ink's bounds. */
+    private static float place(Paint text, String time, float x, float top, float size, boolean left, RectF box) {
+        text.setTextSize(size);
+        Paint.FontMetrics fm = text.getFontMetrics();
+        float baseline = Scenes.baseline(top, size, fm.ascent, fm.descent);
+        Rect ink = new Rect();
+        text.getTextBounds(time, 0, time.length(), ink);
+        float inkLeft = left ? x + ink.left : x - ink.width() / 2f;
+        box.set(inkLeft, baseline + ink.top, inkLeft + ink.width(), baseline + ink.bottom);
+        return baseline;
     }
 
     /** One copy of the digits: shadow, frosted fill, sheen, rim. {@code under} is the waterline's reflection. */

@@ -67,6 +67,13 @@ def main():
     scene_list = env_list("CMST_SCENE_LIST")
     if scene_list:
         cfg["scene_list"] = scene_list
+    # Погода под датой (WeatherClient в лаунчере). Без координат лаунчер её не показывает.
+    cfg["weather"] = env_yes("CMST_WEATHER", True)
+    lat, lon = os.environ.get("CMST_WEATHER_LAT", "").strip(), os.environ.get("CMST_WEATHER_LON", "").strip()
+    if lat and lon:
+        cfg["weather_lat"] = round(float(lat.replace(",", ".")), 4)
+        cfg["weather_lon"] = round(float(lon.replace(",", ".")), 4)
+    cfg["weather_place"] = os.environ.get("CMST_WEATHER_CITY", "").strip()
 
     if len(sys.argv) > 2 and os.path.isfile(sys.argv[2]):
         with open(sys.argv[2], encoding="utf-8") as f:

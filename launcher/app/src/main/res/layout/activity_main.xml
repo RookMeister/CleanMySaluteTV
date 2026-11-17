@@ -322,6 +322,28 @@
                 android:focusable="false"
                 android:visibility="gone" />
 
+            <!-- CleanMySaluteTV: place, icon, temperature and sky (WeatherClient); gone until a reading. Outside
+                 leftBlock, like the stats line, so the top buttons stay level with the date. -->
+            <TextView
+                android:id="@+id/weatherLine"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/stats"
+                android:layout_alignStart="@id/leftBlock"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="8dp"
+                android:gravity="left|center_vertical"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:drawablePadding="8dp"
+                android:textColor="#A6FFFFFF"
+                android:textSize="14sp"
+                android:fontFamily="@string/font_regular"
+                android:letterSpacing="0.14"
+                android:textAllCaps="true"
+                android:focusable="false"
+                android:visibility="gone" />
+
             <LinearLayout
                 android:id="@+id/topButtons"
                 android:layout_width="wrap_content"

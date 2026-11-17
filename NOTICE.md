@@ -75,7 +75,7 @@ icons (Apache License 2.0) and the wallpapers (see wallpapers/CREDITS.md).
 `tv-home/web/backgrounds/`: по CREDITS.md couch-tv их сгенерировали для проекта нейросетью, это не
 реальные места, и использовать их можно как угодно. Шрифт часов Antonio (SIL OFL 1.1) сконвертирован
 из `antonio-latin-300.woff2` couch-tv в TTF, лицензия в `launcher/FONT-LICENSE-OFL-ANTONIO.txt`.
-Погода и быстрые кнопки переносятся дальше по docs/ROADMAP.md. https://github.com/Seagey/couch-tv
+Погода (значки из `WX` в app.js, слова из i18n.js) перенесена в 0.3.0. Док и быстрые кнопки переносятся дальше по docs/ROADMAP.md. https://github.com/Seagey/couch-tv
 
 ```
 MIT License
