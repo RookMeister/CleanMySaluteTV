@@ -262,4 +262,6 @@
     <string name="menu_apps_note">OK переносит приложение: в док, в «Ещё» и в скрытые. Удерживайте OK, чтобы поменять порядок.</string>
     <string name="menu_apps_moving">Вверх и вниз — переместить, OK или Назад — готово.</string>
     <string name="menu_columns_sub">От 4 до 9; по ним строится длина дока</string>
+    <string name="menu_buttons_note">OK ставит кнопку на панель или убирает. Удерживайте OK на показанной, чтобы переместить.</string>
+    <string name="menu_buttons_moving">Вверх и вниз — переместить кнопку по панели, OK или Назад — готово.</string>
 </resources>

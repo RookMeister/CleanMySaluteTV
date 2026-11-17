@@ -3048,14 +3048,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         known.put(TopButtons.VPN, btnVpn);
         known.put(TopButtons.SETTINGS, findViewById(R.id.btnSettings));
         for (View v : known.values()) bar.removeView(v);
-        for (String kind : TopButtons.ALL) {
+        // The owner's order (the settings menu moves them), then the built-in ones left off, parked.
+        for (String kind : chosen) {
             View v = known.get(kind);
-            if (v == null) {
-                if (!chosen.contains(kind)) continue;
-                v = extraButton(kind);
-            }
-            if (chosen.contains(kind)) bar.addView(v);
-            else parkedButtons.addView(v);
+            bar.addView(v != null ? v : extraButton(kind));
+        }
+        for (String kind : known.keySet()) {
+            if (!chosen.contains(kind)) parkedButtons.addView(known.get(kind));
         }
     }
 

@@ -265,4 +265,6 @@
     <string name="menu_apps_note">OK moves an app between the dock, More apps and hidden. Hold OK to change the order.</string>
     <string name="menu_apps_moving">Up and down move the app, OK or Back when done.</string>
     <string name="menu_columns_sub">From 4 to 9; the dock is as long as its apps</string>
+    <string name="menu_buttons_note">OK puts a button on the bar or takes it off. Hold OK on a shown one to move it.</string>
+    <string name="menu_buttons_moving">Up and down move the button along the bar, OK or Back when done.</string>
 </resources>

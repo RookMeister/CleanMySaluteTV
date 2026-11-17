@@ -9,15 +9,23 @@ import org.junit.Test;
 
 public class TopButtonsTest {
     @Test
-    public void parseKeepsBarOrderAndDropsUnknown() {
-        assertEquals(Arrays.asList("sleep", "inputs", "settings"),
+    public void parseKeepsTheSavedOrderAndDropsUnknown() {
+        assertEquals(Arrays.asList("settings", "inputs", "sleep"),
                 TopButtons.parse("settings, inputs,bogus,sleep,inputs"));
         assertEquals(Collections.emptyList(), TopButtons.parse(""));
     }
 
     @Test
-    public void toggleAddsInBarOrderAndRemoves() {
-        assertEquals(Arrays.asList("sleep", "inputs", "network", "vpn", "settings"),
+    public void moveSwapsWithANeighbourAndStopsAtTheEnds() {
+        assertEquals(Arrays.asList("network", "inputs", "vpn", "settings"),
+                TopButtons.move(TopButtons.DEFAULT, "inputs", 1));
+        assertEquals(TopButtons.DEFAULT, TopButtons.move(TopButtons.DEFAULT, "inputs", -1));
+        assertEquals(TopButtons.DEFAULT, TopButtons.move(TopButtons.DEFAULT, "settings", 1));
+    }
+
+    @Test
+    public void toggleAddsBeforeTheGearAndRemoves() {
+        assertEquals(Arrays.asList("inputs", "network", "vpn", "sleep", "settings"),
                 TopButtons.toggle(TopButtons.DEFAULT, "sleep"));
         assertEquals(Arrays.asList("inputs", "network", "settings"),
                 TopButtons.toggle(TopButtons.DEFAULT, "vpn"));

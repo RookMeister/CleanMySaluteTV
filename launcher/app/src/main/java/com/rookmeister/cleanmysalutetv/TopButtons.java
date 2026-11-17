@@ -30,19 +30,34 @@ final class TopButtons {
         return saved == null ? DEFAULT : parse(saved);
     }
 
-    /** "sleep,inputs" to the known buttons in bar order; unknown names and repeats are dropped. */
+    /** "sleep,inputs" to the known buttons in the saved order (the owner's); unknown names and repeats are dropped. */
     static List<String> parse(String text) {
-        List<String> picked = OnTvChoices.splitList(text);
         List<String> out = new ArrayList<>();
-        for (String k : ALL) if (picked.contains(k)) out.add(k);
+        for (String k : OnTvChoices.splitList(text)) {
+            String name = k.trim();
+            if (ALL.contains(name) && !out.contains(name)) out.add(name);
+        }
         return out;
     }
 
-    /** {@code chosen} with {@code kind} switched on or off, kept in bar order. */
+    /**
+     * {@code chosen} with {@code kind} switched off, or on: a new button goes last, before the gear when the gear
+     * ends the bar.
+     */
     static List<String> toggle(List<String> chosen, String kind) {
-        List<String> out = new ArrayList<>();
-        boolean on = !chosen.contains(kind);
-        for (String k : ALL) if (k.equals(kind) ? on : chosen.contains(k)) out.add(k);
+        List<String> out = new ArrayList<>(chosen);
+        if (out.remove(kind)) return out;
+        int at = !out.isEmpty() && SETTINGS.equals(out.get(out.size() - 1)) ? out.size() - 1 : out.size();
+        out.add(at, kind);
+        return out;
+    }
+
+    /** {@code kind} one place to the left ({@code -1}) or right ({@code 1}) on the bar; unchanged at either end. */
+    static List<String> move(List<String> chosen, String kind, int step) {
+        List<String> out = new ArrayList<>(chosen);
+        int i = out.indexOf(kind), j = i + step;
+        if (i < 0 || j < 0 || j >= out.size()) return out;
+        Collections.swap(out, i, j);
         return out;
     }
 

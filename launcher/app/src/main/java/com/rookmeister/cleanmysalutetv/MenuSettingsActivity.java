@@ -78,6 +78,8 @@ public final class MenuSettingsActivity extends Activity {
     private AppsPlan plan;
     /** The app being moved with Up and Down (held OK), or null. */
     private String moving;
+    /** The top button being moved with Up and Down (held OK), or null. */
+    private String movingButton;
     /** True while the right pane is being drawn again: focus moves made for it are not section changes. */
     private boolean rebuilding;
     private List<String[]> found;
@@ -138,6 +140,8 @@ public final class MenuSettingsActivity extends Activity {
         list = new LinearLayout(this);
         list.setOrientation(LinearLayout.VERTICAL);
         list.setPadding(px(6), 0, px(6), 0);
+        list.setClipToPadding(false);   // a focused row grows a little past the padding
+        list.setClipChildren(false);
         scroller.addView(list, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         right.addView(scroller, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
@@ -175,6 +179,7 @@ public final class MenuSettingsActivity extends Activity {
         if (s != WEATHER) searching = false;
         if (s != BUTTONS) pickingVpn = false;
         if (s != APPS) moving = null;
+        if (s != BUTTONS) movingButton = null;
         rebuilding = true;
         // The focused row is about to go: park the focus on this section's own item first, or Android hands it to
         // the first item on the left, which would switch the section.
@@ -251,14 +256,12 @@ public final class MenuSettingsActivity extends Activity {
     private void buttons() {
         if (pickingVpn) { vpnPage(); return; }
         group(R.string.menu_group_buttons);
-        info(getString(R.string.menu_buttons_sub), null, null);
+        // The bar's buttons in the bar's order (left to right), then the ones left off, as couch-tv's lists go.
         List<String> chosen = TopButtons.chosen(this);
-        for (String kind : TopButtons.ALL) {
-            Drawable icon = getDrawable(TopButtons.icon(kind));
-            row(getString(TopButtons.label(kind)), null, null, icon,
-                    getDrawable(chosen.contains(kind) ? R.drawable.ic_menu_check_on : R.drawable.ic_menu_check_off),
-                    () -> choices.edit().putString(TopButtons.KEY,
-                            OnTvChoices.joinList(TopButtons.toggle(chosen, kind))).apply());
+        List<String> order = new ArrayList<>(chosen);
+        for (String kind : TopButtons.ALL) if (!order.contains(kind)) order.add(kind);
+        for (String kind : order) {
+            buttonRow(kind, chosen);
             if (TopButtons.VPN.equals(kind)) {
                 String app = Config.load(this).vpnApp;
                 rowAction(getString(R.string.menu_vpn_app), getString(R.string.menu_vpn_app_sub),
@@ -268,6 +271,52 @@ public final class MenuSettingsActivity extends Activity {
                         });
             }
         }
+        TextView note = text(getString(movingButton != null ? R.string.menu_buttons_moving : R.string.menu_buttons_note),
+                14, regular, 0xB3FFFFFF);
+        note.setPadding(px(16), px(10), px(16), px(6));
+        list.addView(note);
+    }
+
+    /** One top button: OK puts it on the bar or takes it off; holding OK moves a shown one left and right (Up, Down). */
+    private void buttonRow(String kind, List<String> chosen) {
+        boolean on = chosen.contains(kind);
+        String value = kind.equals(movingButton) ? getString(R.string.menu_apps_move_value) : null;
+        View r = rowView(getString(TopButtons.label(kind)), null, value, getDrawable(TopButtons.icon(kind)),
+                value != null ? null : getDrawable(on ? R.drawable.ic_menu_check_on : R.drawable.ic_menu_check_off));
+        r.setTag(kind);
+        r.setOnClickListener(v -> {
+            if (movingButton == null) {
+                choices.edit().putString(TopButtons.KEY, OnTvChoices.joinList(TopButtons.toggle(chosen, kind))).apply();
+                changed();
+            }
+            movingButton = null;
+            showTagged(BUTTONS, kind);
+        });
+        r.setOnLongClickListener(v -> {
+            if (!on) return true;
+            movingButton = kind;
+            showTagged(BUTTONS, kind);
+            return true;
+        });
+        r.setOnKeyListener((v, code, event) -> {
+            if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
+            if (kind.equals(movingButton) && (code == KeyEvent.KEYCODE_DPAD_UP || code == KeyEvent.KEYCODE_DPAD_DOWN)) {
+                List<String> moved = TopButtons.move(chosen, kind, code == KeyEvent.KEYCODE_DPAD_UP ? -1 : 1);
+                if (!moved.equals(chosen)) {
+                    choices.edit().putString(TopButtons.KEY, OnTvChoices.joinList(moved)).apply();
+                    changed();
+                    showTagged(BUTTONS, kind);
+                }
+                return true;
+            }
+            if (movingButton != null && code != KeyEvent.KEYCODE_DPAD_CENTER && code != KeyEvent.KEYCODE_ENTER) return true;
+            if (code == KeyEvent.KEYCODE_DPAD_LEFT) {
+                sideItems.get(section).requestFocus();
+                return true;
+            }
+            return false;
+        });
+        list.addView(r, rowParams());
     }
 
     /** The VPN button's app: "none" (Android's VPN settings), then every app on the TV, the current one ticked. */
@@ -408,7 +457,13 @@ public final class MenuSettingsActivity extends Activity {
 
     /** The Apps list again, the focus on {@code key}'s row (where the app now is). */
     private void showApp(String key) {
-        show(APPS, -1);
+        showTagged(APPS, key);
+    }
+
+    /** Section {@code s} again, the focus on the row tagged {@code tag}, scrolled into view. */
+    private void showTagged(int s, String tag) {
+        String key = tag;
+        show(s, -1);
         for (int i = 0; i < list.getChildCount(); i++) {
             View v = list.getChildAt(i);
             if (key.equals(v.getTag())) {
@@ -532,6 +587,12 @@ public final class MenuSettingsActivity extends Activity {
             String key = moving;
             moving = null;
             showApp(key);
+            return;
+        }
+        if (movingButton != null) {
+            String kind = movingButton;
+            movingButton = null;
+            showTagged(BUTTONS, kind);
             return;
         }
         if (pickingVpn) {
@@ -672,7 +733,7 @@ public final class MenuSettingsActivity extends Activity {
     // ---- rows -----------------------------------------------------------------------------------
 
     private void group(int name) {
-        TextView g = text(getString(name), 12, medium, 0x99FFFFFF);
+        TextView g = text(getString(name).toUpperCase(java.util.Locale.getDefault()), 12, medium, 0x99FFFFFF);
         g.setLetterSpacing(0.08f);
         g.setPadding(px(16), px(14), 0, px(6));
         list.addView(g);
