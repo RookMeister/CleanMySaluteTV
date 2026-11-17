@@ -686,6 +686,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         DockDecoration dockBand = dockRow ? new DockDecoration(COLUMNS, density, cinematic, cfg.alwaysShowNames,
                 cfg.dockOpacity, cfg.dockGlass, cfg.dockEvenPadding, cfg.dockBand, singleRow, cfg.dockBandAll) : null;
         if (dockBand != null) grid.addItemDecoration(dockBand);
+        // The small dock is the whole bottom of the screen, as in couch-tv: the other apps wait below it.
+        if (dockBand != null && AppAdapter.smallDock) dockBand.setGapBelow(Math.round(160 * density));
         // CleanMySaluteTV: the small dock ends with a "…" tile that opens every app (couch-tv's), in the band.
         boolean withMore = AppAdapter.smallDock && dockRow && !singleRow && appLibraryEnabled;
         if (withMore) {

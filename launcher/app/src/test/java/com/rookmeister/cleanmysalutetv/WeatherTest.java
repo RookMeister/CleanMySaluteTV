@@ -83,6 +83,33 @@ public class WeatherTest {
     }
 
     @Test
+    public void metSymbolsBecomeWmoCodes() {
+        assertEquals(0, Weather.metCode("clearsky_day"));
+        assertEquals(1, Weather.metCode("fair_night"));
+        assertEquals(2, Weather.metCode("partlycloudy_polartwilight"));
+        assertEquals(3, Weather.metCode("cloudy"));
+        assertEquals(45, Weather.metCode("fog"));
+        assertEquals(61, Weather.metCode("lightrain"));
+        assertEquals(65, Weather.metCode("heavyrain"));
+        assertEquals(80, Weather.metCode("lightrainshowers_day"));
+        assertEquals(71, Weather.metCode("lightsnow"));
+        assertEquals(75, Weather.metCode("heavysnow"));
+        assertEquals(85, Weather.metCode("snowshowers_night"));
+        assertEquals(66, Weather.metCode("sleet"));
+        assertEquals(95, Weather.metCode("rainandthunder"));
+        assertEquals(3, Weather.metCode(""));
+        assertEquals(Weather.Icon.SNOW, Weather.icon(Weather.metCode("heavysnowshowers_day"), true));
+    }
+
+    @Test
+    public void metDayFromTheSuffix() {
+        assertTrue(Weather.metDay("cloudy"));
+        assertTrue(Weather.metDay("fair_day"));
+        assertFalse(Weather.metDay("clearsky_night"));
+        assertFalse(Weather.metDay("clearsky_polartwilight"));
+    }
+
+    @Test
     public void lineLeavesOutWhatIsMissing() {
         assertEquals("Москва · −3° · Пасмурно", Weather.line(" Москва ", -3, "Пасмурно"));
         assertEquals("5° · Ясно", Weather.line("", 5, "Ясно"));

@@ -26,6 +26,11 @@ public class DockDecoration extends RecyclerView.ItemDecoration {
     private int extraRight;
 
     void setExtraRight(int px) { extraRight = px; }
+
+    /** CleanMySaluteTV: room under the small dock, so the rows below wait off screen until Down scrolls to them. */
+    private int gapBelow;
+
+    void setGapBelow(int px) { gapBelow = px; }
     /** Light glass like the top bar's pills (config.xml dock_glass): a white tint that fades downwards. */
     private final boolean lightGlass;
     /** Padding all round the tiles equal to the gap between them (config.xml dock_even_padding). */
@@ -85,7 +90,7 @@ public class DockDecoration extends RecyclerView.ItemDecoration {
         int pos = parent.getChildAdapterPosition(view);
         if (pos >= 0 && (singleRow || pos < dockSize)) {
             outRect.top = (int) (6 * density);
-            outRect.bottom = (int) (12 * density);
+            outRect.bottom = (int) (12 * density) + (singleRow ? 0 : gapBelow);
         }
     }
 

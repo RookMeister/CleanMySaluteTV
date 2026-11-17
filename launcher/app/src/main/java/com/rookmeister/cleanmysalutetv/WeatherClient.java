@@ -130,31 +130,58 @@ final class WeatherClient {
         long now = System.currentTimeMillis();
         if (loading || !Weather.due(now, preferences.getLong("time", 0), lastFailure)) return;
         loading = true;
-        String url = Weather.url(latitude, longitude);
+        // The source that answered last goes first: where Open-Meteo is blocked (it is from some Russian
+        // networks), each refresh would otherwise wait out its timeout before MET Norway.
+        boolean metFirst = "met".equals(preferences.getString("source", ""));
         worker.execute(() -> {
-            JSONObject current = null;
-            try {
-                current = new JSONObject(get(url)).getJSONObject("current");
-            } catch (Exception e) {
-                Log.w(TAG, "weather not read: " + e);
+            int[] reading = null;   // {temperature, WMO code, day 1/0}
+            String source = null;
+            for (int attempt = 0; attempt < 2 && reading == null; attempt++) {
+                boolean met = (attempt == 0) == metFirst;
+                try {
+                    reading = met ? readMet() : readOpenMeteo();
+                    source = met ? "met" : "open-meteo";
+                } catch (Exception e) {
+                    Log.w(TAG, (met ? "MET Norway" : "Open-Meteo") + " not read: " + e);
+                }
             }
-            JSONObject reading = current;
+            int[] r = reading;
+            String from = source;
             handler.post(() -> {
                 loading = false;
                 if (closed) return;
-                if (reading == null || !reading.has("temperature_2m") || !reading.has("weather_code")) {
+                if (r == null) {
                     lastFailure = System.currentTimeMillis();
                     return;
                 }
                 preferences.edit()
-                        .putInt("temp", (int) Math.round(reading.optDouble("temperature_2m")))
-                        .putInt("code", (int) Math.round(reading.optDouble("weather_code")))
-                        .putBoolean("day", reading.optInt("is_day", 1) == 1)
+                        .putInt("temp", r[0])
+                        .putInt("code", r[1])
+                        .putBoolean("day", r[2] == 1)
+                        .putString("source", from)
                         .putLong("time", System.currentTimeMillis())
                         .apply();
                 show();
             });
         });
+    }
+
+    /** Open-Meteo's current reading: {temperature, WMO code, day}. */
+    private int[] readOpenMeteo() throws Exception {
+        JSONObject c = new JSONObject(get(Weather.url(latitude, longitude))).getJSONObject("current");
+        return new int[] {(int) Math.round(c.getDouble("temperature_2m")), (int) Math.round(c.getDouble("weather_code")),
+                c.optInt("is_day", 1)};
+    }
+
+    /** MET Norway's first forecast hour, its symbol turned into the WMO code the rest of the weather line uses. */
+    private int[] readMet() throws Exception {
+        JSONObject first = new JSONObject(get(Weather.metUrl(latitude, longitude)))
+                .getJSONObject("properties").getJSONArray("timeseries").getJSONObject(0).getJSONObject("data");
+        double t = first.getJSONObject("instant").getJSONObject("details").getDouble("air_temperature");
+        JSONObject next = first.optJSONObject("next_1_hours");
+        if (next == null) next = first.optJSONObject("next_6_hours");
+        String symbol = next == null ? "" : next.getJSONObject("summary").optString("symbol_code", "");
+        return new int[] {(int) Math.round(t), Weather.metCode(symbol), Weather.metDay(symbol) ? 1 : 0};
     }
 
     private void show() {
@@ -200,7 +227,9 @@ final class WeatherClient {
 
     private static String get(String address) throws Exception {
         HttpURLConnection c = (HttpURLConnection) new URL(address).openConnection();
-        c.setConnectTimeout(10_000);
+        c.setConnectTimeout(6_000);
+        // MET Norway refuses requests without an identifying User-Agent; nothing about the TV or its owner is in it.
+        c.setRequestProperty("User-Agent", "CleanMySaluteTV (Android TV launcher)");
         c.setReadTimeout(10_000);
         c.setRequestProperty("Accept", "application/json");
         try {

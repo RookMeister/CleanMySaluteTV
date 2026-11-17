@@ -15,8 +15,8 @@ android {
         targetSdk 34
         // CleanMySaluteTV: Russian and English only; AndroidX's other translations stay out of the APK.
         resourceConfigurations += ['en', 'ru']
-        versionCode 11
-        versionName '0.11.0'
+        versionCode 12
+        versionName '0.11.1'
     }
 
     buildTypes {

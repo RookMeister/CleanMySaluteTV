@@ -60,6 +60,40 @@ final class Weather {
                 + "&current=temperature_2m,weather_code,is_day&timezone=auto&forecast_days=1", latitude, longitude);
     }
 
+    /** MET Norway's forecast for a place: the fallback where Open-Meteo cannot be reached. */
+    static String metUrl(double latitude, double longitude) {
+        return String.format(Locale.US, "https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=%.4f&lon=%.4f",
+                latitude, longitude);
+    }
+
+    /**
+     * MET Norway's symbol ("lightrainshowers_day", "cloudy", "heavysnow") as the nearest WMO code, so icons and words
+     * work as for Open-Meteo. Unknown symbols count as cloudy.
+     */
+    static int metCode(String symbol) {
+        String s = symbol == null ? "" : symbol.replaceAll("_(day|night|polartwilight)$", "");
+        if (s.contains("thunder")) return 95;
+        boolean showers = s.contains("showers");
+        if (s.contains("sleet")) return s.startsWith("heavy") ? 67 : 66;
+        if (s.contains("snow")) return s.startsWith("heavy") ? (showers ? 86 : 75) : s.startsWith("light") ? (showers ? 85 : 71) : (showers ? 85 : 73);
+        if (s.contains("rain")) {
+            if (showers) return s.startsWith("heavy") ? 82 : s.startsWith("light") ? 80 : 81;
+            return s.startsWith("heavy") ? 65 : s.startsWith("light") ? 61 : 63;
+        }
+        switch (s) {
+            case "clearsky": return 0;
+            case "fair": return 1;
+            case "partlycloudy": return 2;
+            case "fog": return 45;
+            default: return 3;
+        }
+    }
+
+    /** Day unless the symbol says night or polar twilight. */
+    static boolean metDay(String symbol) {
+        return symbol == null || !(symbol.endsWith("_night") || symbol.endsWith("_polartwilight"));
+    }
+
     /** Open-Meteo's place search, in the TV's language: up to eight places named like {@code name}. */
     static String geocodeUrl(String name, String language) {
         String q;
