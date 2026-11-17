@@ -4,7 +4,7 @@
 предустановок, с лёгким нативным лаунчером. Всё через ADB по Wi-Fi, без root. Ничего не удаляется —
 только отключается, и одна команда возвращает всё как было.
 
-**Статус: 0.1.0, каркас.** Собирается и проходит тесты; на телевизоре ещё не проверялся.
+**Статус: 0.2.0.** Собирается, проходит тесты, сцены проверены на эмуляторе Android TV; на телевизоре ещё не проверялся.
 Целевая модель — Sber SDX-55UQ5231.
 
 ## Из чего собран
@@ -14,7 +14,7 @@
 | Лаунчер (`launcher/`) | [Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv) | Нативная Java, ~590 КБ, без сети и фоновых служб, темы, 31 язык включая русский, проверен на двух ТВ Sber |
 | Установка (`scripts/`) | [sridathballeda/cleantv](https://github.com/sridathballeda/cleantv) | Один файл настроек, бэкап, классификация пакетов, запрет на отключение важного, откат |
 | Списки для Sber (`profiles/`) | cleanyourtv, `examples/sber-salute-tv-*` | Что отключать, что прятать, чего не трогать |
-| Дальнейшие функции | [Seagey/couch-tv](https://github.com/Seagey/couch-tv) | Сцены со стеклянными часами, погода, быстрые кнопки — переносятся нативно, см. [docs/ROADMAP.md](docs/ROADMAP.md) |
+| Сцены (`Scene*.java`, `assets/scenes/`) | [Seagey/couch-tv](https://github.com/Seagey/couch-tv) | Пять фоновых сцен с большими стеклянными часами, переписаны нативно. Погода и быстрые кнопки — дальше, см. [docs/ROADMAP.md](docs/ROADMAP.md) |
 
 ## Что нужно
 
@@ -59,5 +59,7 @@ bash scripts/install.sh                                # собрать, пос�
 ## Лицензии
 
 Код — MIT ([LICENSE](LICENSE)), включая части из трёх проектов выше: их уведомления в [NOTICE.md](NOTICE.md).
-Шрифт Outfit — SIL OFL 1.1 (`launcher/FONT-LICENSE-OFL.txt`), значки Fluent Emoji — MIT
+Шрифт Outfit — SIL OFL 1.1 (`launcher/FONT-LICENSE-OFL.txt`), шрифт часов Antonio — SIL OFL 1.1
+(`launcher/FONT-LICENSE-OFL-ANTONIO.txt`), картинки сцен — из couch-tv, сделаны для него и свободны
+к использованию (см. NOTICE.md), значки Fluent Emoji — MIT
 (`launcher/ICONS-LICENSE-FLUENT-EMOJI.txt`).

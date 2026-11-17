@@ -807,6 +807,17 @@ final class Config {
 
     /** Reads and parses the overlay; any problem means "no overlay", never a crash on the home screen. */
     /**
+     * The theme's config.json as read for Home, for the parts kept outside this class (ScenePlayer): the
+     * same file, or before external storage is mounted the copy kept from the last read. Null for none.
+     */
+    static JSONObject overlay(Context ctx) {
+        File dir = dir(ctx);
+        File file = dir != null ? new File(dir, FILE_NAME) : null;
+        boolean mounted = Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
+        return mounted ? read(file) : read(new File(ctx.getFilesDir(), FILE_NAME));
+    }
+
+    /**
      * The overlay, or before external storage is mounted, the copy kept from the last time it was read. Home can
      * start before the card is mounted (seen at every boot on a Xiaomi MiTV-MTEQ0), and without the copy it comes
      * up with the built-in dock order. A missing file on mounted storage still means no overlay.

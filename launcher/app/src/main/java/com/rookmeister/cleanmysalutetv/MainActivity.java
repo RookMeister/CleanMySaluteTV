@@ -145,6 +145,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private RecyclerView grid;
     private FrameLayout root;
     private WallpaperPlayer wallpaperPlayer;
+    /** CleanMySaluteTV: scenes with the big glass clock behind Home (ScenePlayer); off leaves Home as it was. */
+    private ScenePlayer scenePlayer;
     private GlassView glass;
     private View ambient;
     private TextView heroName;
@@ -512,7 +514,14 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // black under it is a second full-screen fill on every frame for nothing. The starting window still uses
         // the theme's background, so launch looks the same.
         getWindow().setBackgroundDrawable(null);
-        wallpaperPlayer = new WallpaperPlayer(this, root, cfg);
+        scenePlayer = new ScenePlayer(this, root, reducedMotion || !animations);
+        wallpaperPlayer = new WallpaperPlayer(this, root, cfg, !scenePlayer.isOn());
+        if (scenePlayer.isOn()) {
+            // The scene's clock is the time: the small one in the header would say it twice.
+            findViewById(R.id.clock).setVisibility(View.GONE);
+            findViewById(R.id.ampm).setVisibility(View.GONE);
+            findViewById(R.id.clockDivider).setVisibility(View.GONE);
+        }
         sky = findViewById(R.id.sky);
         sky.setIntensity(cfg.skyIntensity);
         glass = findViewById(R.id.glass);
@@ -1140,6 +1149,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (gameDay != null) gameDay.start();
         sky.update();
         wallpaperPlayer.start();
+        scenePlayer.start();
         handler.postDelayed(minuteTick, MINUTE_MS);
         if (festive && lamp != null) {
             lamp.start();
@@ -1314,6 +1324,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         root.removeCallbacks(showIdleClock);
         endReorder();   // Home or another app while reordering keeps the order so far
         wallpaperPlayer.stop();
+        scenePlayer.stop();
         stopAmbientAnimation();
         hero.animate().cancel();
         ambient.animate().cancel();
@@ -1362,6 +1373,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         heroArtCache.clear();
         heroArtKey = null;
         wallpaperPlayer.releaseForMemoryPressure();
+        scenePlayer.releaseForMemoryPressure();
         tileRefresh.invalidate();
     }
 
@@ -1394,6 +1406,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         unregisterReceiver(packageReceiver);
         if (openOnStartOnWake) unregisterReceiver(wakeReceiver);
         wallpaperPlayer.close();
+        scenePlayer.close();
         ConnectivityManager cm = getApplicationContext().getSystemService(ConnectivityManager.class);   // as registered
         TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
         if (tim != null) tim.unregisterCallback(inputCallback);
@@ -1926,6 +1939,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         String label = adapter.labelAt(position);
         int color = adapter.ambientColorAt(position);
         float y = dockTopInRoot - 14 * density - 26 * density - hero.getHeight();
+        scenePlayer.setDockTop(Math.round(y));   // the scene clock stays above the app name over the dock
         boolean changed = !label.contentEquals(heroName.getText());
         if (cinematic && heroArtAlpha > 0f) showHeroArt(position);
 

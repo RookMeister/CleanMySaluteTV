@@ -70,7 +70,12 @@ icons (Apache License 2.0) and the wallpapers (see wallpapers/CREDITS.md).
 
 ## Seagey/couch-tv
 
-Образец для сцен, погоды и быстрых кнопок (переносятся по docs/ROADMAP.md). https://github.com/Seagey/couch-tv
+Сцены переписаны нативно по образцу couch-tv (`tv-home/web/app.js`, `app.css`). Картинки
+`launcher/app/src/main/assets/scenes/scene-*.jpg` и `scene-*-fg.webp` взяты из
+`tv-home/web/backgrounds/`: по CREDITS.md couch-tv их сгенерировали для проекта нейросетью, это не
+реальные места, и использовать их можно как угодно. Шрифт часов Antonio (SIL OFL 1.1) сконвертирован
+из `antonio-latin-300.woff2` couch-tv в TTF, лицензия в `launcher/FONT-LICENSE-OFL-ANTONIO.txt`.
+Погода и быстрые кнопки переносятся дальше по docs/ROADMAP.md. https://github.com/Seagey/couch-tv
 
 ```
 MIT License

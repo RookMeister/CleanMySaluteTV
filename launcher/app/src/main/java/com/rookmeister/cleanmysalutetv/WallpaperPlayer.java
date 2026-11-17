@@ -62,10 +62,11 @@ final class WallpaperPlayer {
     private LocalDate sunDay;
     private int[] sun;
 
-    WallpaperPlayer(Context context, FrameLayout root, Config config) {
+    /** @param allowed false while CleanMySaluteTV's scenes are on: they cover the screen, so no wallpaper is drawn under them. */
+    WallpaperPlayer(Context context, FrameLayout root, Config config, boolean allowed) {
         this.root = root;
         backgroundColor = config.backgroundColor;
-        files = new ArrayList<>(config.wallpapers);
+        files = allowed ? new ArrayList<>(config.wallpapers) : new ArrayList<>();
         interval = config.wallpaperRotationMinutes * 60_000L;
         bitmapConfig = config.wallpaperTrueColor ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565;
         // The dim is painted into the picture (decode), so no full-screen shade layer is drawn on every frame.

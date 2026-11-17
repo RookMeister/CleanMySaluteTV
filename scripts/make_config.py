@@ -59,6 +59,14 @@ def main():
     cfg["app_library"] = env_yes("CMST_APP_LIBRARY", True)
     cfg["show_stats"] = env_yes("CMST_SHOW_STATS", False)
     cfg["reduced_motion"] = env_yes("CMST_REDUCED_MOTION", False)
+    # Сцены со стеклянными часами (ScenePlayer в лаунчере).
+    cfg["scenes"] = env_yes("CMST_SCENES", True)
+    secs = os.environ.get("CMST_SCENE_SECONDS", "").strip()
+    if secs:
+        cfg["scene_seconds"] = max(10, min(3600, int(secs)))
+    scene_list = env_list("CMST_SCENE_LIST")
+    if scene_list:
+        cfg["scene_list"] = scene_list
 
     if len(sys.argv) > 2 and os.path.isfile(sys.argv[2]):
         with open(sys.argv[2], encoding="utf-8") as f:

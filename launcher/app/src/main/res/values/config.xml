@@ -564,4 +564,10 @@
     <!-- Tiles drawn from the app's icon and name instead of its banner (for banners that crop badly). -->
     <string-array name="icon_tiles" translatable="false">
     </string-array>
+
+    <!-- CleanMySaluteTV scenes (ScenePlayer): a picture with a big glass clock behind Home, after couch-tv.
+         config.json: "scenes" true/false, "scene_seconds" 10-3600, "scene_list" ["night", "golden", "water",
+         "fog", "dawn"] in the order to show (none: all). On, the small clock in the header is hidden. -->
+    <bool name="scenes">true</bool>
+    <integer name="scene_seconds">20</integer>
 </resources>
