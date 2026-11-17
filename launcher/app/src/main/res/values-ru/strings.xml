@@ -224,4 +224,6 @@
     <string name="menu_pos_left">Слева</string>
     <string name="menu_pos_center">По центру</string>
     <string name="menu_pos_right">Справа</string>
+    <string name="menu_group_all">ВСЕ ПРИЛОЖЕНИЯ</string>
+    <string name="menu_all_apps_sub">Все установленные; убранное с главного экрана можно вернуть</string>
 </resources>

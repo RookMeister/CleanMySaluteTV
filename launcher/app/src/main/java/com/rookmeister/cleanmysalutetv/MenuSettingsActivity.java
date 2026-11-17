@@ -257,6 +257,13 @@ public final class MenuSettingsActivity extends Activity {
             row(getString(R.string.menu_rows), null, String.valueOf(cfg.rowsBelowDock), null, null,
                     () -> choices.edit().putInt(Config.ROWS_BELOW_DOCK_KEY, (cfg.rowsBelowDock + 1) % 4).apply());
         }
+        group(R.string.menu_group_all);
+        rowAction(getString(R.string.cp_all_apps), getString(R.string.menu_all_apps_sub), null, () -> {
+            // Through Home, which owns the app library and rebuilds with what changes there.
+            open(new Intent(this, MainActivity.class).setAction(MainActivity.ACTION_APP_LIBRARY)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            finish();
+        });
         group(R.string.menu_group_order);
         rowAction(getString(R.string.menu_reorder), getString(R.string.menu_reorder_sub), null, () -> {
             setResult(RESULT_OK, new Intent().putExtra(LauncherSettingsActivity.EXTRA_REORDER, true));

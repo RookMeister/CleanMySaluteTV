@@ -227,4 +227,6 @@
     <string name="menu_pos_left">Left</string>
     <string name="menu_pos_center">Centre</string>
     <string name="menu_pos_right">Right</string>
+    <string name="menu_group_all">ALL APPS</string>
+    <string name="menu_all_apps_sub">Every installed app; put a removed one back on Home</string>
 </resources>
