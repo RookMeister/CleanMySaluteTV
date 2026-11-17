@@ -44,30 +44,6 @@ public class DockStyleTest {
     }
 
     @Test
-    public void theMoreTileIsCentredWithTheApps() {
-        // 2 apps and the "…" in cells of 200: three cells centred in 1800, the other two free cells to the right.
-        int[] p = DockStyle.dockPadding(1800, 4, 2, 200, 1);
-        assertEquals(600, p[0]);
-        assertEquals(400, p[1]);
-        // a full dock of 4 plus "…": the extra cell sits in the right padding
-        int[] full = DockStyle.dockPadding(1800, 4, 4, 200, 1);
-        assertEquals(400, full[0]);
-        assertEquals(600, full[1]);
-    }
-
-    @Test
-    public void everyAppRowIsCentredWhileItFits() {
-        // 5 apps + gear in cells of 100 in 1800: 600 wide, centred
-        int[] fits = DockStyle.rowPadding(1800, 5, 100, 1, 60);
-        assertEquals(600, fits[0]);
-        assertEquals(700, fits[1]);
-        // 20 apps do not fit: from the margin, the gear's cell kept after the last app
-        int[] scrolls = DockStyle.rowPadding(1800, 20, 100, 1, 60);
-        assertEquals(60, scrolls[0]);
-        assertEquals(160, scrolls[1]);
-    }
-
-    @Test
     public void smallTilesAreSquareAndFixed() {
         boolean was = AppAdapter.smallDock;
         try {

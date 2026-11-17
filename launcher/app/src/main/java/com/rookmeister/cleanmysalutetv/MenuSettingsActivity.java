@@ -298,24 +298,13 @@ public final class MenuSettingsActivity extends Activity {
             showTagged(BUTTONS, kind);
             return true;
         });
-        r.setOnKeyListener((v, code, event) -> {
-            if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
-            if (kind.equals(movingButton) && (code == KeyEvent.KEYCODE_DPAD_UP || code == KeyEvent.KEYCODE_DPAD_DOWN)) {
-                List<String> moved = TopButtons.move(chosen, kind, code == KeyEvent.KEYCODE_DPAD_UP ? -1 : 1);
-                if (!moved.equals(chosen)) {
-                    choices.edit().putString(TopButtons.KEY, OnTvChoices.joinList(moved)).apply();
-                    changed();
-                    showTagged(BUTTONS, kind);
-                }
-                return true;
-            }
-            if (movingButton != null && code != KeyEvent.KEYCODE_DPAD_CENTER && code != KeyEvent.KEYCODE_ENTER) return true;
-            if (code == KeyEvent.KEYCODE_DPAD_LEFT) {
-                sideItems.get(section).requestFocus();
-                return true;
-            }
-            return false;
-        });
+        r.setOnKeyListener(moveKeys(() -> movingButton, kind, step -> {
+            List<String> moved = TopButtons.move(chosen, kind, step);
+            if (moved.equals(chosen)) return;
+            choices.edit().putString(TopButtons.KEY, OnTvChoices.joinList(moved)).apply();
+            changed();
+            showTagged(BUTTONS, kind);
+        }));
         list.addView(r, rowParams());
     }
 
@@ -432,14 +421,27 @@ public final class MenuSettingsActivity extends Activity {
             showApp(key);
             return true;
         });
-        View.OnKeyListener left = (v, code, event) -> {
+        r.setOnKeyListener(moveKeys(() -> moving, key, step -> {
+            AppsPlan next = plan.move(key, step);
+            if (next == plan) return;
+            setPlan(next);
+            showApp(key);
+        }));
+        list.addView(r, rowParams());
+    }
+
+    /**
+     * Keys for a row that can be moved by holding OK (the Apps list, the top buttons): while {@code tag}'s row is the
+     * one moving, Up and Down step it ({@code -1}, {@code 1}); while any row moves, only OK gets through, to end it.
+     * Otherwise Left goes back to the sections, as on every row.
+     */
+    private View.OnKeyListener moveKeys(java.util.function.Supplier<String> movingTag, String tag,
+                                        java.util.function.IntConsumer step) {
+        return (v, code, event) -> {
             if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
-            if (key.equals(moving) && (code == KeyEvent.KEYCODE_DPAD_UP || code == KeyEvent.KEYCODE_DPAD_DOWN)) {
-                AppsPlan next = plan.move(key, code == KeyEvent.KEYCODE_DPAD_UP ? -1 : 1);
-                if (next != plan) {
-                    setPlan(next);
-                    showApp(key);
-                }
+            String moving = movingTag.get();
+            if (tag.equals(moving) && (code == KeyEvent.KEYCODE_DPAD_UP || code == KeyEvent.KEYCODE_DPAD_DOWN)) {
+                step.accept(code == KeyEvent.KEYCODE_DPAD_UP ? -1 : 1);
                 return true;
             }
             if (moving != null && code != KeyEvent.KEYCODE_DPAD_CENTER && code != KeyEvent.KEYCODE_ENTER) return true;
@@ -449,8 +451,6 @@ public final class MenuSettingsActivity extends Activity {
             }
             return false;
         };
-        r.setOnKeyListener(left);
-        list.addView(r, rowParams());
     }
 
     /** The Apps list again, the focus on {@code key}'s row (where the app now is). */
@@ -459,8 +459,7 @@ public final class MenuSettingsActivity extends Activity {
     }
 
     /** Section {@code s} again, the focus on the row tagged {@code tag}, scrolled into view. */
-    private void showTagged(int s, String tag) {
-        String key = tag;
+    private void showTagged(int s, String key) {
         show(s, -1);
         for (int i = 0; i < list.getChildCount(); i++) {
             View v = list.getChildAt(i);

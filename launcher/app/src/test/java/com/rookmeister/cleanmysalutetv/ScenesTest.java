@@ -85,10 +85,8 @@ public class ScenesTest {
     }
 
     @Test
-    public void sizesAreCouchTvPixelsAt1080() {
+    public void aLeftClockStandsAtCouchTvsMargin() {
         Scenes.Scene night = Scenes.byId("night"), fog = Scenes.byId("fog");
-        assertEquals(150f / 1080f, night.top, 1e-6);
-        assertEquals(400f / 1080f, night.size, 1e-6);
         assertEquals(96f / 1920f, fog.left, 1e-6);
         assertEquals(0f, night.left, 0f);
     }

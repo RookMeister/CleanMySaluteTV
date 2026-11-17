@@ -146,8 +146,6 @@
     <string name="menu_group_scenes">СЦЕНЫ</string>
     <string name="menu_group_clock">ЧАСЫ</string>
     <string name="menu_group_place">МЕСТО</string>
-    <string name="menu_group_layout">РАСКЛАДКА</string>
-    <string name="menu_group_order">ПОРЯДОК</string>
     <string name="menu_dock_size">Размер дока</string>
     <string name="menu_dock_opacity">Непрозрачность панели дока</string>
     <string name="menu_scenes">Сцены на главном экране</string>
@@ -171,10 +169,6 @@
     <string name="menu_weather_failed">Не удалось найти: проверьте интернет</string>
     <string name="menu_weather_sub">Open-Meteo, раз в 30 минут, пока открыт главный экран</string>
     <string name="menu_columns">Приложений в доке</string>
-    <string name="menu_rows">Рядов под доком</string>
-    <string name="menu_rows_small">Только для большого дока</string>
-    <string name="menu_reorder">Изменить порядок приложений</string>
-    <string name="menu_reorder_sub">Плитки двигаются стрелками на главном экране</string>
     <string name="menu_all_settings">Все настройки лаунчера</string>
     <string name="menu_all_settings_sub">Обои, анимация, заставка и другое</string>
     <string name="menu_default_home">Главный экран по умолчанию</string>
@@ -191,20 +185,12 @@
     <string name="menu_scene_dawn">Рассвет в лесу</string>
     <!-- CleanMySaluteTV: панель управления. -->
     <string name="cp_wifi">Wi-Fi</string>
-    <string name="cp_ethernet">Ethernet</string>
-    <string name="cp_connected">Подключено</string>
-    <string name="cp_offline">Нет подключения</string>
     <string name="cp_bluetooth">Bluetooth</string>
-    <string name="cp_none">Нет на этом ТВ</string>
     <string name="cp_sound">Звук</string>
-    <string name="cp_volume">Громкость %1$d%%</string>
-    <string name="cp_muted">Без звука</string>
     <string name="cp_picture">Изображение</string>
     <string name="cp_memory">Память</string>
-    <string name="cp_memory_used">Занято %1$d%% · OK — очистить</string>
     <string name="cp_memory_cleaned">Фоновые приложения закрыты · память %1$d%% → %2$d%%</string>
     <string name="cp_screensaver">Заставка</string>
-    <string name="cp_screensaver_sub">Часы</string>
     <string name="cp_all_apps">Все приложения</string>
     <!-- CleanMySaluteTV: AirPlay в меню. -->
     <string name="menu_group_airplay">AIRPLAY</string>
@@ -224,23 +210,16 @@
     <string name="menu_pos_left">Слева</string>
     <string name="menu_pos_center">По центру</string>
     <string name="menu_pos_right">Справа</string>
-    <string name="menu_group_all">ВСЕ ПРИЛОЖЕНИЯ</string>
-    <string name="menu_all_apps_sub">Все установленные; убранное с главного экрана можно вернуть</string>
     <string name="cp_timer">Таймер сна</string>
     <string name="cp_timer_left">Через %1$d мин</string>
     <string name="cp_screen_off">Выключить экран</string>
-    <string name="cp_screen_off_sub">Сейчас</string>
-    <string name="cp_power_needed_short">Нужно разрешение · OK</string>
     <string name="cp_power_needed">Лаунчер не может выключить экран: запусти install.sh с POWER=yes или разреши ему роль администратора устройства</string>
     <string name="cp_power_explain">Только чтобы выключать экран: таймер сна и плитка «Выключить экран». Стереть или изменить что-либо через это нельзя.</string>
-    <string name="menu_dock_all">Все приложения в доке</string>
-    <string name="menu_dock_all_sub">Одна строка со всеми приложениями, прокрутка вбок</string>
     <string name="tb_vpn">VPN</string>
     <string name="tb_panel">Настройки</string>
     <string name="tb_minutes">%1$d мин</string>
     <string name="menu_buttons">Кнопки</string>
     <string name="menu_group_buttons">Верхние кнопки</string>
-    <string name="menu_buttons_sub">Какие круглые кнопки стоят справа вверху</string>
     <string name="menu_vpn_app">Приложение для VPN</string>
     <string name="menu_vpn_app_sub">Что открывает кнопка VPN</string>
     <string name="menu_vpn_none">Не выбрано (настройки VPN)</string>

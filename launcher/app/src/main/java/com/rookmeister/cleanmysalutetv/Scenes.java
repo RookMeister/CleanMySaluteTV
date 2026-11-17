@@ -29,8 +29,6 @@ final class Scenes {
         final String id;
         /** assets/scenes/scene-<id>.jpg, -glass.jpg and, when {@link #cutout}, -fg.webp. */
         final boolean cutout;
-        /** Top of the clock's line box and its font size, as shares of the screen height. */
-        final float top, size;
         /** 0 centres the clock; otherwise its left edge as a share of the screen width. */
         final float left;
         /** Picture and cut-out brightness (couch-tv .s-night .sbg: 0.86). */
@@ -58,7 +56,7 @@ final class Scenes {
         final String author;
 
         Scene(Builder b) {
-            id = b.id; cutout = b.cutout; top = b.top; size = b.size; left = b.left;
+            id = b.id; cutout = b.cutout; left = b.left;
             photoBrightness = b.photoBrightness;
             fillBrightness = b.fillBrightness; fillSaturation = b.fillSaturation; fillContrast = b.fillContrast;
             fillAlpha = b.fillAlpha; rimFill = b.rimFill; rimStroke = b.rimStroke; sheen = b.sheen;
@@ -72,7 +70,7 @@ final class Scenes {
     static final class Builder {
         final String id;
         boolean cutout = true;
-        float top = px(150), size = px(400), left = 0f;
+        float left = 0f;
         float photoBrightness = 1f;
         float fillBrightness = 1f, fillSaturation = 1f, fillContrast = 1f, fillAlpha = 1f;
         int rimFill = 0x1AFFFFFF, rimStroke = 0x8CFFFFFF;
@@ -99,7 +97,6 @@ final class Scenes {
         Builder caption(int date, int weather, boolean shadow) {
             dateColor = date; weatherColor = weather; captionShadow = shadow; return this;
         }
-        Builder clock(float topPx, float sizePx) { top = px(topPx); size = px(sizePx); return this; }
         Builder fill(float brightness, float saturation, float contrast, float alpha) {
             fillBrightness = brightness; fillSaturation = saturation; fillContrast = contrast; fillAlpha = alpha;
             return this;
@@ -125,21 +122,21 @@ final class Scenes {
         night.photoBrightness = 0.86f;
         all.add(night.build());
         // Golden hour: a little smaller, low enough for the volcano's tip to rise into the digits.
-        all.add(new Builder("golden").clock(152, 390).build());
+        all.add(new Builder("golden").build());
         // Waterline: the clock sits on the water; under the surface it shows as a softer reflection.
-        Builder water = new Builder("water").clock(268, 420).shadow(0x59001428, 8, 30)
+        Builder water = new Builder("water").shadow(0x59001428, 8, 30)
                 .shade(new int[] {0x6B000C18, 0x1F000C18, 0x00000000, 0x80001428}, new float[] {0f, 0.40f, 0.52f, 1f});
         water.cutout = false;
         water.water = 0.55f;
         all.add(water.build());
         // Fog: a big dark clock on the left, sinking into the misty hills.
-        Builder fog = new Builder("fog").clock(172, 470).fill(0.46f, 0.8f, 1.1f, 0.8f).rim(0x00000000, 0x99FFFFFF)
+        Builder fog = new Builder("fog").fill(0.46f, 0.8f, 1.1f, 0.8f).rim(0x00000000, 0x99FFFFFF)
                 .shadow(0, 0, 0).caption(0xFF16201D, 0xB816201D, false);
         fog.left = 96f / 1920f;
         fog.sheen = false;
         all.add(fog.build());
-        // Rainforest dawn: warm light at the top, the clock low enough for the ridges to cross it.
-        all.add(new Builder("dawn").clock(230, 400).shadow(0x4D3C1E0A, 8, 34)
+        // Rainforest dawn: warm light at the top.
+        all.add(new Builder("dawn").shadow(0x4D3C1E0A, 8, 34)
                 .shade(new int[] {0x6B321C0C, 0x00321C0C}, new float[] {0f, 0.55f}).build());
         // couch-tv's free photos (tv-home/web/backgrounds/CREDITS.md), in its order: the clock in glass over them.
         all.add(new Builder("pavement").photo(R.string.scene_pavement, "JJ Harrison").build());

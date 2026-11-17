@@ -24,7 +24,13 @@ final class MemoryClean {
         if (am == null) return -1;
         ActivityManager.MemoryInfo info = new ActivityManager.MemoryInfo();
         am.getMemoryInfo(info);
-        return ControlPanel.percent(info.totalMem - info.availMem, info.totalMem);
+        return percent(info.totalMem - info.availMem, info.totalMem);
+    }
+
+    /** Rounded share in percent, 0 to 100; 0 when there is no whole to take it of. */
+    static int percent(long part, long whole) {
+        if (whole <= 0) return 0;
+        return (int) Math.max(0, Math.min(100, Math.round(part * 100.0 / whole)));
     }
 
     /**
