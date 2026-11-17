@@ -3084,6 +3084,14 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             case TopButtons.SOUND: open(systemIntent(Settings.ACTION_SOUND_SETTINGS)); break;
             case TopButtons.SCREENSAVER: open(new Intent(this, ClockActivity.class)); break;
             case TopButtons.BLUETOOTH: open(systemIntent(Settings.ACTION_BLUETOOTH_SETTINGS)); break;
+            case TopButtons.MEMORY: {
+                int before = MemoryClean.used(this);
+                MemoryClean.clean(this);
+                // The freed memory shows after a moment, once the processes are gone.
+                button.postDelayed(() -> Toast.makeText(this, getString(R.string.cp_memory_cleaned, before,
+                        MemoryClean.used(this)), Toast.LENGTH_SHORT).show(), 800);
+                break;
+            }
             case TopButtons.APPS: if (appLibraryEnabled) onLibraryRequested(); break;
             case TopButtons.TV_SETTINGS: open(systemIntent(Settings.ACTION_SETTINGS)); break;
             case TopButtons.SCREEN_OFF:
@@ -3290,7 +3298,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (!any && tim != null) {
             for (TvInputInfo info : tim.getTvInputList()) {
                 // Inputs hidden in Settings > Inputs are left out of the menu, so they don't count here either.
-                if (info.isPassthroughInput() && !info.isHidden(this)) {
+                if (info.isPassthroughInput() && !hiddenInput(info)) {
                     any = true;
                     break;
                 }
@@ -3471,6 +3479,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     }
 
     /** Dropdown menu under the Inputs pill: HDMI ports (with connection state), AV and Live TV. */
+    /** Hidden in the TV's Settings > Inputs, and config.xml inputs_show_hidden does not list those anyway. */
+    private boolean hiddenInput(TvInputInfo info) {
+        return !getResources().getBoolean(R.bool.inputs_show_hidden) && info.isHidden(this);
+    }
+
     private void showInputs() {
         // A configured source panel and no Live TV row to offer next to it: the panel is the whole menu.
         // The BYINTEK U4 needs this, as its TvInputManager lists three HDMI ports and an AV input it doesn't have.
@@ -3518,7 +3531,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             for (TvInputInfo info : inputs) {
                 String parent = info.getParentId();
                 if (parent == null || !inputIds.contains(parent)) continue;
-                if (!info.isPassthroughInput() || info.isHidden(this)) continue;
+                if (!info.isPassthroughInput() || hiddenInput(info)) continue;
                 List<TvInputInfo> onPort = cecDevices.get(parent);
                 if (onPort == null) cecDevices.put(parent, onPort = new ArrayList<>());
                 onPort.add(info);
@@ -3558,7 +3571,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                     }
                 }
                 // Inputs hidden in the TV's Settings > Inputs stay out of the menu too.
-                if (!info.isPassthroughInput() || info.isHidden(this)) continue;
+                if (!info.isPassthroughInput() || hiddenInput(info)) continue;
                 // input_sources can leave out ports the board reports but the set does not have ("HW8=-").
                 if (Integer.valueOf(-1).equals(mappedSource(info.getId()))) continue;
                 // A CEC device's row is added with its port, below.

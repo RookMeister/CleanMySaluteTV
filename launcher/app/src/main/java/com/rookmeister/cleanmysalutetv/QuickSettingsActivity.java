@@ -1,14 +1,10 @@
 package com.rookmeister.cleanmysalutetv;
 
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -33,9 +29,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * CleanMySaluteTV's control panel, after tvOS-Launcher's Control Center and couch-tv's quick buttons: glass tiles at
@@ -49,7 +42,7 @@ import java.util.Set;
 public final class QuickSettingsActivity extends Activity {
     private float dp;
     private Typeface medium, regular;
-    private TextView memoryStatus, timerStatus;
+    private TextView timerStatus;
 
     @Override
     protected void attachBaseContext(Context base) {
@@ -90,8 +83,6 @@ public final class QuickSettingsActivity extends Activity {
                 () -> open(SystemSettings.intent(this, Settings.ACTION_SOUND_SETTINGS)));
         View picture = tile(R.drawable.ic_picture, getString(R.string.cp_picture), null,
                 () -> open(SystemSettings.displayIntent(this)));
-        View memory = tile(R.drawable.ic_cp_memory, getString(R.string.cp_memory), memory(), this::cleanMemory);
-        memoryStatus = memory.findViewWithTag("status");
         View clock = tile(R.drawable.ic_cp_clock, getString(R.string.cp_screensaver), getString(R.string.cp_screensaver_sub),
                 () -> open(new Intent(this, ClockActivity.class)));
         // Wrap, not the vertical parent's default match: the round row is narrower and would squeeze the pairs.
@@ -99,13 +90,14 @@ public final class QuickSettingsActivity extends Activity {
                 ViewGroup.LayoutParams.WRAP_CONTENT);
         panel.addView(pair(wifi, bt), wrap);
         panel.addView(pair(sound, picture), new LinearLayout.LayoutParams(wrap));
-        panel.addView(pair(memory, clock), new LinearLayout.LayoutParams(wrap));
         View timer = tile(R.drawable.ic_cp_timer, getString(R.string.cp_timer), timerText(), this::stepTimer);
         timerStatus = timer.findViewWithTag("status");
         View off = tile(R.drawable.ic_cp_power, getString(R.string.cp_screen_off),
                 PowerControl.canSleep(this) ? getString(R.string.cp_screen_off_sub) : getString(R.string.cp_power_needed_short),
                 this::screenOff);
-        panel.addView(pair(timer, off), new LinearLayout.LayoutParams(wrap));
+        // CleanMySaluteTV: Memory went to the top bar (TopButtons.MEMORY); the screensaver pairs with the timer.
+        panel.addView(pair(clock, timer), new LinearLayout.LayoutParams(wrap));
+        panel.addView(pair(off, null), new LinearLayout.LayoutParams(wrap));
 
         LinearLayout round = new LinearLayout(this);
         round.setOrientation(LinearLayout.HORIZONTAL);
@@ -222,55 +214,6 @@ public final class QuickSettingsActivity extends Activity {
         return getString(R.string.cp_volume, ControlPanel.percent(v, max));
     }
 
-    private String memory() {
-        int used = memoryUsed();
-        return used < 0 ? null : getString(R.string.cp_memory_used, used);
-    }
-
-    /** Memory in use, in percent; -1 when Android does not say. */
-    private int memoryUsed() {
-        ActivityManager am = getSystemService(ActivityManager.class);
-        if (am == null) return -1;
-        ActivityManager.MemoryInfo info = new ActivityManager.MemoryInfo();
-        am.getMemoryInfo(info);
-        return ControlPanel.percent(info.totalMem - info.availMem, info.totalMem);
-    }
-
-    /**
-     * Closes the background processes of the TV's apps with a launcher icon, preinstalled ones included
-     * (KILL_BACKGROUND_PROCESSES, granted at install like any normal permission). The app on screen, services the
-     * system keeps alive and this launcher keep running.
-     */
-    private void cleanMemory() {
-        ActivityManager am = getSystemService(ActivityManager.class);
-        if (am == null) return;
-        PackageManager pm = getPackageManager();
-        Set<String> packages = new HashSet<>();
-        for (String category : new String[] {Intent.CATEGORY_LEANBACK_LAUNCHER, Intent.CATEGORY_LAUNCHER}) {
-            List<ResolveInfo> apps = pm.queryIntentActivities(new Intent(Intent.ACTION_MAIN).addCategory(category), 0);
-            for (ResolveInfo r : apps) {
-                ApplicationInfo ai = r.activityInfo.applicationInfo;
-                if ((ai.flags & ApplicationInfo.FLAG_PERSISTENT) == 0) packages.add(ai.packageName);
-            }
-        }
-        packages.remove(getPackageName());
-        for (String p : packages) {
-            try {
-                am.killBackgroundProcesses(p);
-            } catch (SecurityException ignored) {
-                // the permission is missing on this build: nothing closed
-            }
-        }
-        int before = memoryUsed();
-        if (memoryStatus == null) return;
-        // The freed memory shows after a moment, once the processes are gone.
-        memoryStatus.postDelayed(() -> {
-            int after = memoryUsed();
-            memoryStatus.setText(memory());
-            Toast.makeText(this, getString(R.string.cp_memory_cleaned, before, after), Toast.LENGTH_SHORT).show();
-        }, 800);
-    }
-
     // ---- tiles ----------------------------------------------------------------------------------
 
     private LinearLayout pair(View a, View b) {
@@ -281,7 +224,7 @@ public final class QuickSettingsActivity extends Activity {
         row.addView(a, lp);
         LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(px(236), px(70));
         lp2.setMargins(px(6), px(6), px(6), px(6));
-        row.addView(b, lp2);
+        if (b != null) row.addView(b, lp2);
         return row;
     }
 

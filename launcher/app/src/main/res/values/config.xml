@@ -375,6 +375,9 @@
          HDMI 1 as connected and a device on HDMI 2 nowhere, while its CEC device list stays right. A device without
          CEC then shows no state at all. Off by default. Can also be set with "inputs_cec_state_only" in a theme. -->
     <bool name="inputs_cec_state_only">false</bool>
+    <!-- CleanMySaluteTV: list inputs the TV's Settings > Inputs marks hidden too. StarOS hides HDMI 3 and AV 1 on the
+         SDX-55UQ5231 although the set has both, so the Inputs menu showed two HDMI ports. -->
+    <bool name="inputs_show_hidden">true</bool>
     <!-- Names under every tile, not only the focused one: unfocused names stay dimmed, the focused one is full white.
          With dock_row the band grows down to hold the dock's names too. -->
     <bool name="always_show_names">false</bool>

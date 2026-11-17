@@ -18,11 +18,11 @@ final class TopButtons {
     static final String KEY = "top_buttons";
     static final String INPUTS = "inputs", NETWORK = "network", VPN = "vpn", SETTINGS = "settings";
     static final String SLEEP = "sleep", PICTURE = "picture", SCREEN_OFF = "screen_off", BLUETOOTH = "bluetooth",
-            SOUND = "sound", SCREENSAVER = "screensaver", APPS = "apps", TV_SETTINGS = "tv_settings";
+            SOUND = "sound", SCREENSAVER = "screensaver", APPS = "apps", TV_SETTINGS = "tv_settings", MEMORY = "memory";
 
     /** Every button, in the order the bar shows them. */
     static final List<String> ALL = Collections.unmodifiableList(Arrays.asList(
-            SLEEP, PICTURE, SOUND, SCREENSAVER, SCREEN_OFF, BLUETOOTH, INPUTS, NETWORK, VPN, APPS, TV_SETTINGS, SETTINGS));
+            SLEEP, PICTURE, SOUND, SCREENSAVER, SCREEN_OFF, BLUETOOTH, MEMORY, INPUTS, NETWORK, VPN, APPS, TV_SETTINGS, SETTINGS));
     static final List<String> DEFAULT = Collections.unmodifiableList(Arrays.asList(INPUTS, NETWORK, VPN, SETTINGS));
 
     static List<String> chosen(Context c) {
@@ -54,6 +54,7 @@ final class TopButtons {
             case SCREENSAVER: return R.drawable.ic_cp_clock;
             case SCREEN_OFF: return R.drawable.ic_cp_power;
             case BLUETOOTH: return R.drawable.ic_cp_bluetooth;
+            case MEMORY: return R.drawable.ic_cp_memory;
             case INPUTS: return R.drawable.ic_input;
             case NETWORK: return R.drawable.ic_wifi;
             case VPN: return R.drawable.ic_lock;
@@ -71,6 +72,7 @@ final class TopButtons {
             case SCREENSAVER: return R.string.cp_screensaver;
             case SCREEN_OFF: return R.string.cp_screen_off;
             case BLUETOOTH: return R.string.cp_bluetooth;
+            case MEMORY: return R.string.cp_memory;
             case INPUTS: return R.string.inputs;
             case NETWORK: return R.string.cp_wifi;
             case VPN: return R.string.tb_vpn;

@@ -29,6 +29,6 @@ public class TopButtonsTest {
             TopButtons.icon(k);
             TopButtons.label(k);
         }
-        assertEquals(12, TopButtons.ALL.size());
+        assertEquals(13, TopButtons.ALL.size());
     }
 }
