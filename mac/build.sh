@@ -57,6 +57,11 @@ cp "$ADB_SRC" "$APP/Contents/Resources/adb"
 cp "$ROOT/profiles/sber-staros.tsv" "$ROOT/profiles/never.txt" "$APP/Contents/Resources/"
 # the window's backdrop: one of the launcher's scenes (Liquid Glass floats over it)
 cp "$ROOT/launcher/app/src/main/assets/scenes/scene-valley.jpg" "$APP/Contents/Resources/Backdrop.jpg"
+# the Home screen step's preview: the scenes (not their -glass blur or cut-outs) and the clock's font
+for f in "$ROOT"/launcher/app/src/main/assets/scenes/scene-*.jpg; do
+  case "$f" in *-glass.jpg) ;; *) cp "$f" "$APP/Contents/Resources/" ;; esac
+done
+cp "$ROOT/launcher/app/src/main/assets/scenes/antonio_light.ttf" "$APP/Contents/Resources/"
 
 if [ ! -f "$APK" ]; then
   say "APK лаунчера нет — собираю"

@@ -8,12 +8,13 @@ final class TVStore: ObservableObject {
     static let pkg = "com.rookmeister.cleanmysalutetv"
     static let homeActivity = pkg + "/.MainActivity"
     static let dream = pkg + "/.ClockDream"
-    private static let provider = "content://" + pkg + ".theme"
+    static let providerURI = "content://" + pkg + ".theme"
+    private static var provider: String { providerURI }
 
     // connection
     @Published var host: String = UserDefaults.standard.string(forKey: "host") ?? ""
     @Published private(set) var device: Device?
-    @Published private(set) var busy: String?          // what is running now, for the status bar
+    @Published var busy: String?                       // what is running now, for the status bar
     @Published var message: String?                    // the last result or error, shown once
     @Published private(set) var found: [String] = []   // TVs with adb open on the network
 
@@ -21,8 +22,8 @@ final class TVStore: ObservableObject {
     @Published private(set) var model = ""
     @Published private(set) var android = ""
     @Published private(set) var freeSpace = ""
-    @Published private(set) var launcherVersion: String?
-    @Published private(set) var homeIsOurs = false
+    @Published var launcherVersion: String?
+    @Published var homeIsOurs = false
     @Published private(set) var screenshot: NSImage?
 
     // clean-up
@@ -37,6 +38,10 @@ final class TVStore: ObservableObject {
     @Published var home: [TVApp] = []
     @Published var hidden: [TVApp] = []
     @Published private(set) var icons: [String: NSImage] = [:]
+    /// The photo sent as wallpaper from this Mac, for the preview.
+    @Published var wallpaper: NSImage?
+    /// The last change is on its way to the TV, or there.
+    @Published private(set) var saving = false
     private var sentHome: [String] = [], sentHidden: [String] = []
 
     let adb = ADB.locate()
@@ -102,6 +107,8 @@ final class TVStore: ObservableObject {
         if found.isEmpty { message = "Не нашёл ТВ с открытой отладкой (порт 5555)" }
         else if host.isEmpty, let first = found.first { host = first }
     }
+
+    nonisolated static func portOpenPublic(_ ip: String, _ port: UInt16) async -> Bool { await portOpen(ip, port) }
 
     nonisolated private static func portOpen(_ ip: String, _ port: UInt16) async -> Bool {
         /// Resumes the continuation exactly once, whichever of "connected", "failed" or the timeout comes first.
@@ -202,8 +209,11 @@ final class TVStore: ObservableObject {
         if off && never.contains(pkg) { message = "\(pkg) нужен системе, его не отключаю"; return }
         busy = off ? "Отключаю \(pkg)…" : "Включаю \(pkg)…"
         defer { busy = nil }
+        if off { await backup() }
         let out = await d.shell(off ? "pm disable-user --user 0 \(pkg)" : "pm enable --user 0 \(pkg)")
-        if !out.text.contains(off ? "disabled-user" : "enabled") {
+        if out.text.contains(off ? "disabled-user" : "enabled") {
+            noteDisabled(pkg, off)
+        } else {
             message = "\(pkg): \(out.text.isEmpty ? out.error : out.text)"
         }
         await refreshPackages()
@@ -300,14 +310,16 @@ final class TVStore: ObservableObject {
     }
 
     /// Sends the edits: the changed settings and, when it changed, where the apps stand. Home rebuilds with them.
+    /// The edits stay as they are in the window (no reload), so typing and dragging carry on undisturbed.
     func apply() async {
         guard let d = device, let s = state, let draft else { return }
-        busy = "Применяю на ТВ…"
-        defer { busy = nil }
-        var body: [String: Any] = ["choices": draft.changes(from: s.choices)]
-        if home.map(\.key) != sentHome || hidden.map(\.key) != sentHidden {
-            body["apps"] = ["home": home.map(\.key), "hidden": hidden.map(\.key)]
-        }
+        let changes = draft.changes(from: s.choices)
+        let appsChanged = home.map(\.key) != sentHome || hidden.map(\.key) != sentHidden
+        guard !changes.isEmpty || appsChanged else { return }
+        saving = true
+        defer { saving = false }
+        var body: [String: Any] = ["choices": changes]
+        if appsChanged { body["apps"] = ["home": home.map(\.key), "hidden": hidden.map(\.key)] }
         do {
             let data = try JSONSerialization.data(withJSONObject: body, options: [.prettyPrinted])
             let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("cmst-apply.json")
@@ -316,10 +328,24 @@ final class TVStore: ObservableObject {
             _ = await d.shell("content write --uri \(Self.provider)/remote/apply.json < /data/local/tmp/cmst-apply.json; rm -f /data/local/tmp/cmst-apply.json")
             let call = await d.shell("content call --uri \(Self.provider) --method apply")
             guard call.text.contains("ok=true") else { message = "ТВ не применил: \(call.text)"; return }
-            message = "Применено на ТВ"
-            await loadLauncher()
+            state?.choices = draft
+            sentHome = home.map(\.key)
+            sentHidden = hidden.map(\.key)
         } catch {
             message = "Не получилось: \(error.localizedDescription)"
+        }
+    }
+
+    private var pendingApply: Task<Void, Never>?
+
+    /// Every edit on the Home screen step goes to the TV by itself, a moment after the last one (a slider or typing
+    /// settles first), as CleanMyTV does: there is no Apply button.
+    func scheduleApply(after seconds: Double = 0.7) {
+        pendingApply?.cancel()
+        pendingApply = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(seconds))
+            guard !Task.isCancelled, let self, self.dirty else { return }
+            await self.apply()
         }
     }
 
