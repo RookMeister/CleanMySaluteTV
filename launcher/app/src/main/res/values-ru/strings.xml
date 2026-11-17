@@ -250,4 +250,6 @@
     <string name="scene_storm">Гроза на закате, Олбери</string>
     <string name="scene_beach">Пляж Арескье, Франция</string>
     <string name="scene_paddy">Ванвьенг, Лаос</string>
+    <string name="menu_glass_icons">Стеклянные значки</string>
+    <string name="menu_glass_icons_sub">Символ приложения белым на стекле; выбранное — в своих цветах</string>
 </resources>

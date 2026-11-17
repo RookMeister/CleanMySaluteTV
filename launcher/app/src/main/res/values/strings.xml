@@ -253,4 +253,6 @@
     <string name="scene_storm">Storm at sunset, Albury</string>
     <string name="scene_beach">Aresquiers beach, France</string>
     <string name="scene_paddy">Vang Vieng, Laos</string>
+    <string name="menu_glass_icons">Glass app icons</string>
+    <string name="menu_glass_icons_sub">The app symbol in white on glass; the focused app in its own colours</string>
 </resources>

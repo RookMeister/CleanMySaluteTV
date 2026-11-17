@@ -211,6 +211,9 @@ public final class MenuSettingsActivity extends Activity {
                 () -> choices.edit().putBoolean(OnTvChoices.DOCK_ALL_APPS, !cfg.singleRow).apply());
         row(getString(R.string.menu_dock_opacity), null, cfg.dockOpacity + "%", null, null,
                 () -> choices.edit().putInt(Config.DOCK_OPACITY_KEY, next(OPACITIES, cfg.dockOpacity)).apply());
+        boolean glass = choices.getBoolean(OnTvChoices.GLASS_ICONS, false);
+        row(getString(R.string.menu_glass_icons), getString(R.string.menu_glass_icons_sub), onOff(glass), null, null,
+                () -> choices.edit().putBoolean(OnTvChoices.GLASS_ICONS, !glass).apply());
 
         ScenePlayer.Settings sc = ScenePlayer.Settings.load(this);
         group(R.string.menu_group_scenes);

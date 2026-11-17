@@ -612,6 +612,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         grid = findViewById(R.id.grid);
         // CleanMySaluteTV: small or large dock (DockStyle), for every tile size worked out from here on.
         AppAdapter.smallDock = DockStyle.small(this);
+        AppAdapter.glassIcons = OnTvChoices.prefs(this).getBoolean(OnTvChoices.GLASS_ICONS, false);
         rtlAppGrid = getResources().getBoolean(R.bool.rtl_app_grid);
         // Mirror only the app grid; the header and other locales keep their own layouts.
         // single_row: one span laid out sideways, so the same adapter, glass and dock band serve a scrolling row.

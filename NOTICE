@@ -8,8 +8,9 @@ Credits and acknowledgements:
   and the launcher docs; MIT License (licenses/cleanyourtv-LICENSE.txt)
 - CleanTV (https://github.com/sridathballeda/cleantv) — the install scripts and the never-touch
   list; MIT License (licenses/cleantv-LICENSE.txt)
-- Couch TV (https://github.com/Seagey/couch-tv) — the scenes, the glass clock, the weather line
-  and the look of the settings menu, rewritten natively; MIT License (licenses/couch-tv-LICENSE.txt)
+- Couch TV (https://github.com/Seagey/couch-tv) — the scenes, the glass clock, the weather line,
+  the look of the settings menu and the clear (glass) app icons (ClearIcon, from clearicon.js),
+  rewritten natively; MIT License (licenses/couch-tv-LICENSE.txt)
 - tvOS Launcher (https://github.com/techgenius1/tvOS-Launcher) — the layout of the settings menu;
   no code taken
 - Hume Launcher (https://github.com/petrobot-admin/hume-launcher) — AirPlayGuard, changed (see the

@@ -80,6 +80,10 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         int ambient;
         /** uniform_tiles card fill, top and bottom colour; null until sampled from the icon. */
         int[] backdrop;
+        /** Glass icons: the icon's glyph, white on clear (ClearIcon); null while unknown or when it does not split. */
+        Bitmap glyph;
+        /** Glass icons: the glyph has been worked out (or read from the cache), whatever the answer. */
+        boolean glyphDone, glyphAsked;
 
         Entry(String label, ComponentName component, Drawable banner, Drawable icon) {
             this(APP, label, component, banner, icon, null, 0);
@@ -98,6 +102,15 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     static final float FOCUS_SCALE = 1.10f;
+
+    /**
+     * CleanMySaluteTV: glass app icons (the settings menu, OnTvChoices.GLASS_ICONS), after couch-tv's "Glass app
+     * icons": at rest every icon tile is glass with the app's glyph in white; the focused one shows its own colours,
+     * so OK always says what it will open. An icon that does not split cleanly is grey and half see-through.
+     */
+    static boolean glassIcons;
+    private static final java.util.concurrent.ExecutorService GLYPHS = java.util.concurrent.Executors.newSingleThreadExecutor();
+    private final android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
     /**
      * CleanMySaluteTV: the small dock (DockStyle): square icon tiles of a fixed size, set once by MainActivity before
      * any tile is made, as MainActivity.COLUMNS is.
@@ -470,7 +483,9 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             View label = v.findViewById(R.id.label);
             label.setPadding(label.getPaddingLeft(), label.getPaddingTop(), label.getPaddingRight(), Math.round(4f * density));
         }
-        return new Holder(v, listener, animations, advancedEffects, reducedMotion, restNameAlpha, focusOvershoot);
+        Holder made = new Holder(v, listener, animations, advancedEffects, reducedMotion, restNameAlpha, focusOvershoot);
+        made.glass = this::applyGlass;
+        return made;
     }
 
     @Override
@@ -515,6 +530,9 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             if (e.backdrop == null) e.backdrop = backdrop(e.icon, ambientColorAt(position));
             h.card.setBackground(new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, e.backdrop));
         }
+        h.entry = e;
+        h.icon.setColorFilter(null);
+        h.icon.setImageAlpha(255);
         if (e.banner != null) {
             h.icon.setImageDrawable(null);
             h.banner.setImageDrawable(e.banner);
@@ -529,6 +547,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             h.label.setText(e.label);
             h.label.setVisibility(uniformTiles ? View.GONE : View.VISIBLE);
         }
+        applyGlass(h, focused);
         h.card.setOnClickListener(v -> launch(e));
         h.card.setOnLongClickListener(v -> {
             if (tileMenu) {
@@ -687,6 +706,97 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     String packageAt(int position) {
         return position >= 0 && position < items.size() ? items.get(position).pkg : null;
+    }
+
+    /** Glass icons: the tile at rest is glass and the glyph; focused, the app's own icon and colours. */
+    private void applyGlass(Holder h, boolean focused) {
+        Entry e = h.entry;
+        if (!glassIcons || !uniformTiles || e == null || e.banner != null || e.icon == null || e.kind == Entry.EMPTY) return;
+        if (focused) {
+            if (e.backdrop == null) e.backdrop = backdrop(e.icon, 0xFF444444);
+            h.card.setBackground(new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, e.backdrop));
+            h.icon.setColorFilter(null);
+            h.icon.setImageAlpha(255);
+            h.icon.setImageDrawable(e.icon);
+            return;
+        }
+        h.card.setBackground(glassTile());
+        if (e.glyph != null) {
+            h.icon.setColorFilter(null);
+            h.icon.setImageAlpha(235);
+            h.icon.setImageBitmap(e.glyph);
+        } else {
+            android.graphics.ColorMatrix grey = new android.graphics.ColorMatrix();
+            grey.setSaturation(0f);
+            h.icon.setColorFilter(new android.graphics.ColorMatrixColorFilter(grey));
+            h.icon.setImageAlpha(140);
+            h.icon.setImageDrawable(e.icon);
+            if (!e.glyphDone) askGlyph(e);
+        }
+    }
+
+    /** couch-tv's --gi-tint: a light diagonal sheen over a faint dark fill, a rim of light along the edge. */
+    private Drawable glassTile() {
+        float d = ctx.getResources().getDisplayMetrics().density;
+        GradientDrawable base = new GradientDrawable();
+        base.setColor(0x3316161E);
+        GradientDrawable sheen = new GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                new int[] {0x38FFFFFF, 0x0DFFFFFF, 0x17FFFFFF});
+        sheen.setStroke(Math.max(1, Math.round(d)), 0x4DFFFFFF);
+        return new android.graphics.drawable.LayerDrawable(new Drawable[] {base, sheen});
+    }
+
+    /** Works out an icon's glyph once, off the main thread, and keeps it in the cache folder for the next start. */
+    private void askGlyph(Entry e) {
+        if (e.glyphAsked) return;
+        e.glyphAsked = true;
+        Drawable.ConstantState state = e.icon.getConstantState();
+        if (state == null) { e.glyphDone = true; return; }
+        Drawable copy = state.newDrawable(ctx.getResources()).mutate();
+        long stamp;
+        try {
+            stamp = ctx.getPackageManager().getPackageInfo(e.pkg, 0).lastUpdateTime;
+        } catch (Exception ex) {
+            stamp = 0;
+        }
+        java.io.File dir = new java.io.File(ctx.getCacheDir(), "clearicon");
+        java.io.File png = new java.io.File(dir, e.pkg + "_" + stamp + ".png"), none = new java.io.File(dir, e.pkg + "_" + stamp + ".none");
+        GLYPHS.execute(() -> {
+            Bitmap glyph = null;
+            try {
+                if (png.isFile()) {
+                    glyph = android.graphics.BitmapFactory.decodeFile(png.getPath());
+                } else if (!none.isFile()) {
+                    int n = ClearIcon.N;
+                    Bitmap drawn = Bitmap.createBitmap(n, n, Bitmap.Config.ARGB_8888);
+                    copy.setBounds(0, 0, n, n);
+                    copy.draw(new android.graphics.Canvas(drawn));
+                    int[] px = new int[n * n];
+                    drawn.getPixels(px, 0, n, 0, 0, n, n);
+                    drawn.recycle();
+                    int[] alpha = ClearIcon.cut(px, 0, 0, n, n);
+                    dir.mkdirs();
+                    if (alpha != null) {
+                        for (int i = 0; i < px.length; i++) px[i] = (alpha[i] << 24) | 0xFFFFFF;
+                        glyph = Bitmap.createBitmap(px, n, n, Bitmap.Config.ARGB_8888);
+                        try (java.io.FileOutputStream out = new java.io.FileOutputStream(png)) {
+                            glyph.compress(Bitmap.CompressFormat.PNG, 100, out);
+                        }
+                    } else {
+                        none.createNewFile();
+                    }
+                }
+            } catch (Exception | OutOfMemoryError ex) {
+                glyph = null;
+            }
+            Bitmap result = glyph;
+            main.post(() -> {
+                e.glyph = result;
+                e.glyphDone = true;
+                int at = items.indexOf(e);
+                if (at >= 0) notifyItemChanged(at);
+            });
+        });
     }
 
     /** The tile's artwork, its banner or else its icon, for the cinematic shelf's backdrop (HeroArt). */
@@ -937,6 +1047,9 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         final boolean overshoot;
         /** A dock tile: it grows in place without advanced_effects' lift, which reads as off-centre in the band (#2135). */
         boolean inDock;
+        /** The bound entry and the adapter's glass-icons switch between glass and colour on focus. */
+        Entry entry;
+        java.util.function.BiConsumer<Holder, Boolean> glass;
 
         Holder(View v, TileListener listener, boolean animations, boolean advancedEffects,
                boolean reducedMotion, float restNameAlpha, boolean overshoot) {
@@ -972,6 +1085,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             });
 
             card.setOnFocusChangeListener((view, focused) -> {
+                if (glass != null) glass.accept(this, focused);
                 view.animate().cancel();
                 banner.animate().cancel();
                 name.animate().cancel();
