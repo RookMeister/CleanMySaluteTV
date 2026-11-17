@@ -377,11 +377,6 @@ public final class MenuSettingsActivity extends Activity {
 
     private void apps() {
         Config cfg = Config.load(this);
-        if (!DockStyle.small(this)) {
-            group(R.string.menu_group_layout);
-            row(getString(R.string.menu_rows), null, String.valueOf(cfg.rowsBelowDock), null, null,
-                    () -> choices.edit().putInt(Config.ROWS_BELOW_DOCK_KEY, (cfg.rowsBelowDock + 1) % 4).apply());
-        }
         if (plan == null) plan = loadPlan(cfg);
         // The dock's size, 4 to 9 apps: the dock's band is as long as the apps in it.
         group(R.string.menu_group_dock);

@@ -651,8 +651,9 @@ final class Config {
         if (mounted) syncThemeChoices(choices, dir, file);
         int chosenColumns = choices.getInt("columns", columns);
         if (chosenColumns >= DOCK_MIN && chosenColumns <= DOCK_MAX) columns = chosenColumns;
-        int chosenRows = choices.getInt(ROWS_BELOW_DOCK_KEY, rowsBelow);
-        if (chosenRows >= 0 && chosenRows <= 3) rowsBelow = chosenRows;
+        // CleanMySaluteTV: no rows of apps under the dock, the owner's wish: the dock sits low, the other apps wait
+        // below it (Down) and under "All apps".
+        rowsBelow = 0;
         animations = choices.getBoolean("animations", animations);
         // CleanMySaluteTV: no "every app in the dock" any more (the owner's wish): the dock holds the 4 to 9 apps chosen
         // in the settings menu, and "…" has the rest.
