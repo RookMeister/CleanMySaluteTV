@@ -689,15 +689,21 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // The small dock is the whole bottom of the screen, as in couch-tv: the other apps wait below it.
         if (dockBand != null && AppAdapter.smallDock) dockBand.setGapBelow(Math.round(160 * density));
         // CleanMySaluteTV: the small dock ends with a "…" tile that opens every app (couch-tv's), in the band.
-        boolean withMore = AppAdapter.smallDock && dockRow && !singleRow && appLibraryEnabled;
-        if (withMore) {
-            moreTile = MoreTile.create(this, density, root, () -> {
-                        onLibraryRequested();
-                        libraryFromMoreTile = true;   // closing it goes back to "…", not to the pill after the last row
-                    },
-                    () -> focusTile(Math.max(0, Math.min(adapter.dockFilled(), adapter.appCount()) - 1)),
-                    () -> findViewById(R.id.btnSettings).requestFocus());
-            dockBand.setExtraRight(AppAdapter.smallCellPx(density));
+        // CleanMySaluteTV: the small dock ends with a gear (the launcher's settings menu) and "…" (every app), as
+        // couch-tv's does, in the band.
+        if (AppAdapter.smallDock && dockRow && !singleRow) {
+            Runnable lastApp = () -> focusTile(Math.max(0, Math.min(adapter.dockFilled(), adapter.appCount()) - 1));
+            Runnable up = () -> findViewById(R.id.btnSettings).requestFocus();
+            if (appLibraryEnabled) {
+                moreTile = MoreTile.create(this, density, root, R.drawable.ic_cp_more, R.string.cp_all_apps, () -> {
+                            onLibraryRequested();
+                            libraryFromMoreTile = true;   // closing it goes back to "…", not to the pill after the last row
+                        }, () -> settingsTile.focus(), null, up);
+            }
+            settingsTile = MoreTile.create(this, density, root, R.drawable.ic_settings, R.string.menu_title,
+                    () -> startActivityForResult(new Intent(this, MenuSettingsActivity.class), LAUNCHER_SETTINGS_REQUEST),
+                    lastApp, moreTile != null ? () -> moreTile.focus() : null, up);
+            dockBand.setExtraRight(AppAdapter.smallCellPx(density) * extraTiles());
         }
         if (cfg.fadeRows) TopFade.attach(grid, 48 * density);
         // Reduced motion: the tiles are simply there, with no entrance (reloadApps skips it there too).
@@ -722,7 +728,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 // Centre the small dock: the grid's columns become just wide enough for its tiles.
                 int[] side = DockStyle.dockPadding(r - l, COLUMNS,
                         Math.min(adapter.dockFilled(), adapter.appCount()), AppAdapter.smallCellPx(density),
-                        moreTile != null ? 1 : 0);
+                        extraTiles());
                 if (grid.getPaddingLeft() != side[0] || grid.getPaddingRight() != side[1]) {
                     // A padding set from inside this layout pass is not laid out: set it on the next frame.
                     grid.post(() -> {
@@ -2495,9 +2501,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // escapes up into the top bar. Mid-row moves fall through to the default focus search.
         if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
             boolean forward = rtlAppGrid ? keyCode == KeyEvent.KEYCODE_DPAD_LEFT : keyCode == KeyEvent.KEYCODE_DPAD_RIGHT;
-            // The small dock's last app: Right goes on to the "…" tile.
-            if (forward && moreTile != null && position == Math.min(adapter.dockFilled(), count) - 1) {
-                moreTile.focus();
+            // The small dock's last app: Right goes on to the gear, then "…".
+            if (forward && settingsTile != null && position == Math.min(adapter.dockFilled(), count) - 1) {
+                settingsTile.focus();
                 return true;
             }
             if (forward && position == adapter.focusablePosition(count - 1) && adapter.isLibraryAt(count)) {
@@ -2730,20 +2736,30 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     /** The small dock's "…" tile (MoreTile), or null when the dock is large or the app library is off. */
     private MoreTile moreTile;
+    /** The small dock's gear: the launcher's settings menu. Null with the large dock. */
+    private MoreTile settingsTile;
 
-    /** Puts the "…" tile one cell after the dock's last app, where the band was made longer for it. */
+    /** How many of those tiles end the small dock: the band and the centring make room for each. */
+    private int extraTiles() {
+        return (settingsTile != null ? 1 : 0) + (moreTile != null ? 1 : 0);
+    }
+
+    /** Puts the gear and "…" in the cells after the dock's last app, where the band was made longer for them. */
     private void placeMoreTile() {
-        if (moreTile == null || adapter == null) return;
+        if (settingsTile == null || adapter == null) return;
         int n = Math.min(adapter.dockFilled(), adapter.appCount());
         RecyclerView.ViewHolder vh = n > 0 ? grid.findViewHolderForAdapterPosition(n - 1) : null;
         View card = vh == null ? null : vh.itemView.findViewById(R.id.card);
         if (card == null || card.getWidth() == 0) {
-            moreTile.hide();
+            settingsTile.hide();
+            if (moreTile != null) moreTile.hide();
             return;
         }
         Rect r = new Rect(0, 0, card.getWidth(), card.getHeight());
         root.offsetDescendantRectToMyCoords(card, r);
-        moreTile.place(r.left + AppAdapter.smallCellPx(density), r.top, card.getWidth());
+        int cell = AppAdapter.smallCellPx(density);
+        settingsTile.place(r.left + cell, r.top, card.getWidth());
+        if (moreTile != null) moreTile.place(r.left + 2 * cell, r.top, card.getWidth());
     }
 
     private void focusTile(int position) {
