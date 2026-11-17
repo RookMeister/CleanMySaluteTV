@@ -155,6 +155,21 @@ final class Scenes {
         return text.isEmpty() ? text : text.substring(0, 1).toUpperCase(locale) + text.substring(1);
     }
 
+    /**
+     * Scenes switched off: the big clock alone, over the wallpaper or the plain background. No picture to fill the
+     * glass with, so the digits are near-white with couch-tv's rim, sheen and shadow; drawn on a transparent layer.
+     */
+    static final Scene PLAIN;
+    static {
+        Builder plain = new Builder("plain").fill(1f, 1f, 1f, 0.82f).shadow(0x40000000, 6, 28);
+        plain.cutout = false;
+        PLAIN = plain.build();
+    }
+
+    static boolean isPlain(Scene s) {
+        return s == PLAIN;
+    }
+
     /** The scenes named in scene_list, in that order; unknown and repeated names are skipped. None named: all. */
     static List<Scene> select(List<String> ids) {
         if (ids == null || ids.isEmpty()) return ALL;

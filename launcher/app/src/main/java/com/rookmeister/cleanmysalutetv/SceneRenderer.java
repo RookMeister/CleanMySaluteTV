@@ -68,7 +68,16 @@ final class SceneRenderer {
                   Caption caption, String position) {
         String where = Scenes.placement(s, position);
         Bitmap out = null, glass = null, cutout = null;
+        boolean plain = Scenes.isPlain(s);
         try {
+            if (plain) {
+                // The clock alone on a transparent layer, over the wallpaper or the background colour.
+                out = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                Canvas c = new Canvas(out);
+                float[] clock = drawClock(c, s, null, time, width, height, limit, header, where);
+                if (caption != null) drawCaption(c, s, caption, clock[0], clock[1], clock[2], where, width, height);
+                return out;
+            }
             out = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
             Canvas c = new Canvas(out);
             drawCover(c, s.id + ".jpg", 1, brightness(s.photoBrightness), width, height, false);

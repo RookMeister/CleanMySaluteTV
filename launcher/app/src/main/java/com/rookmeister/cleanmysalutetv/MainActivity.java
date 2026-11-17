@@ -496,7 +496,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // the theme's background, so launch looks the same.
         getWindow().setBackgroundDrawable(null);
         scenePlayer = new ScenePlayer(this, root, reducedMotion || !animations);
-        wallpaperPlayer = new WallpaperPlayer(this, root, cfg, !scenePlayer.isOn());
+        wallpaperPlayer = new WallpaperPlayer(this, root, cfg, !scenePlayer.hasPhotos());
         weather = new WeatherClient(this, findViewById(R.id.weatherLine));
         if (scenePlayer.isOn()) {
             // As in couch-tv, the date and the weather go over the scene clock; the header keeps its place (so the

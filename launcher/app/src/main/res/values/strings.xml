@@ -154,7 +154,7 @@
     <string name="menu_dock_size">Dock size</string>
     <string name="menu_dock_opacity">Dock band opacity</string>
     <string name="menu_scenes">Scenes behind Home</string>
-    <string name="menu_scenes_sub">A big glass clock, scenes taking turns</string>
+    <string name="menu_scenes_sub">Pictures behind the big clock; off, the clock stays on a plain background</string>
     <string name="menu_scene_seconds">Each scene stays</string>
     <string name="menu_seconds">%1$d seconds</string>
     <string name="menu_minutes">%1$d minutes</string>

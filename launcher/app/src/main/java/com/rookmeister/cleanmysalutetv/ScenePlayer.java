@@ -39,6 +39,8 @@ final class ScenePlayer {
     private final String clockPosition;
     private final boolean fade;
     private final boolean enabled;
+    /** Scene pictures on (true) or the big clock alone (false). */
+    private final boolean photos;
     private final SceneRenderer renderer;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -79,8 +81,10 @@ final class ScenePlayer {
         this.root = root;
         Resources res = context.getResources();
         Settings set = Settings.load(context);
-        enabled = set.on;
-        scenes = Scenes.select(set.ids);
+        // Scenes off keeps the big clock, on its own over the wallpaper (Scenes.PLAIN); only the pictures go.
+        enabled = true;
+        photos = set.on;
+        scenes = photos ? Scenes.select(set.ids) : java.util.Collections.singletonList(Scenes.PLAIN);
         turnMs = Scenes.seconds(set.seconds) * 1000L;
         clockPosition = set.position;
         fade = !calm;
@@ -104,6 +108,9 @@ final class ScenePlayer {
     }
 
     boolean isOn() { return enabled; }
+
+    /** The scene pictures are on: they cover the screen, so no wallpaper is drawn under them. */
+    boolean hasPhotos() { return photos; }
 
     /** What the scenes are set to: config.xml, then config.json, then the settings menu on the TV (OnTvChoices). */
     static final class Settings {
@@ -261,7 +268,7 @@ final class ScenePlayer {
         index = i;
         shownTime = t;
         preferences.edit().putInt("index", i).apply();
-        root.setBackground(null);   // the scene covers the screen
+        if (photos) root.setBackground(null);   // the scene covers the screen; a clock alone leaves the background
         shown = b;
         if (!animate) {
             front.animate().cancel();
