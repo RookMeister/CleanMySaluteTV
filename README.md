@@ -58,8 +58,8 @@ bash scripts/install.sh                                # собрать, пос�
 
 ## Лицензии
 
-Код — MIT ([LICENSE](LICENSE)), включая части из трёх проектов выше: их уведомления в [NOTICE.md](NOTICE.md).
+Код — MIT ([LICENSE](LICENSE)), включая части из трёх проектов выше: их уведомления в [NOTICE](NOTICE), полные лицензии в [licenses/](licenses/).
 Шрифт Outfit — SIL OFL 1.1 (`launcher/FONT-LICENSE-OFL.txt`), шрифт часов Antonio — SIL OFL 1.1
 (`launcher/FONT-LICENSE-OFL-ANTONIO.txt`), картинки сцен — из couch-tv, сделаны для него и свободны
-к использованию (см. NOTICE.md), значки Fluent Emoji — MIT
+к использованию (см. NOTICE), значки Fluent Emoji — MIT
 (`launcher/ICONS-LICENSE-FLUENT-EMOJI.txt`).
