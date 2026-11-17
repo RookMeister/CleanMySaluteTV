@@ -27,5 +27,5 @@ home_resolved > "$B/home_resolved.txt"
   echo "private_dns_specifier=$(sh_ settings get global private_dns_specifier | tr -d '\r')"
 } > "$STATE/dns_orig.txt"
 
-say "Backup saved to ${B#$ROOT/}"
+say "Бэкап сохранён в ${B#$ROOT/}"
 wc -l "$B"/*.txt | tail -1

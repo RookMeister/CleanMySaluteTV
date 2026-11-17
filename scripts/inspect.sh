@@ -35,7 +35,7 @@ for p in $(sh_ pm list packages | sed 's/package://' | tr -d '\r' | sort); do
   fi
 done
 
-say "Report: state/inspect/report.tsv"
+say "Отчёт: state/inspect/report.tsv"
 awk -F'\t' 'NR>1{c[$2]++} END{for(k in c) printf "  %-8s %d\n", k, c[k]}' "$OUT/report.tsv"
-echo "Unclassified vendor packages (read state/inspect/unknown/<pkg>.txt before touching them):"
+echo "Неизвестные пакеты производителя (прочитай state/inspect/unknown/<pkg>.txt, прежде чем трогать):"
 awk -F'\t' '$2=="unknown"{print "  "$1}' "$OUT/report.tsv" | grep -vE '^  (android|com\.android\.|com\.google\.android\.(ext|overlay|modulemetadata|permissioncontroller|providers))' || true

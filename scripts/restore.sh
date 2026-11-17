@@ -8,7 +8,7 @@ need_tv
 "$ADB" connect "$TV" >/dev/null </dev/null
 
 if [ -f "$DISABLED_LOG" ]; then
-  say "Re-enabling disabled packages"
+  say "Включаю отключённые пакеты обратно"
   # newest first (stock launcher before the packages disabled earlier); tail -r is the macOS tac
   tac "$DISABLED_LOG" 2>/dev/null > "$STATE/.restore_order" || tail -r "$DISABLED_LOG" > "$STATE/.restore_order"
   while read -r p; do
@@ -39,4 +39,4 @@ fi
 
 [ "${1:-}" = --uninstall ] && sh_ pm uninstall $PKG
 key KEYCODE_HOME
-say "Restored. Home resolves to: $(home_resolved)"
+say "Восстановлено. Home ведёт на: $(home_resolved)"

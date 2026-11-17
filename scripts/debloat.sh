@@ -16,7 +16,7 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
-[ -f "$LIST" ] || die "usage: scripts/debloat.sh <list-file> [--batch N] [--dry-run]"
+[ -f "$LIST" ] || die "использование: scripts/debloat.sh <список> [--batch N] [--dry-run]"
 
 # (no mapfile: macOS ships bash 3.2)
 pkgs=()
@@ -25,18 +25,18 @@ installed=$(sh_ pm list packages | sed 's/package://' | tr -d '\r')
 
 n=0 b=1
 for p in "${pkgs[@]}"; do
-  grep -qxF "$p" <<<"$installed" || { echo "$p: not installed, skipping"; continue; }
-  if [ "$DRY" = 1 ]; then is_never "$p" && echo "$p: REFUSED (never list)" || echo "$p: would disable"; continue; fi
+  grep -qxF "$p" <<<"$installed" || { echo "$p: не установлен, пропускаю"; continue; }
+  if [ "$DRY" = 1 ]; then is_never "$p" && echo "$p: ОТКАЗ (в never.txt)" || echo "$p: будет отключён"; continue; fi
   dis "$p" || true
   n=$((n + 1))
   if [ $((n % BATCH)) -eq 0 ]; then
-    say "Batch $b done: checking Home and the input menu still work"
+    say "Пачка $b готова: проверяю, что Home и меню входов работают"
     key KEYCODE_HOME; sleep 3; shot "debloat_batch${b}_home"
     key KEYCODE_TV_INPUT; sleep 2; shot "debloat_batch${b}_input"; key KEYCODE_BACK
     b=$((b + 1))
   fi
 done
 if [ "$DRY" = 0 ] && [ $((n % BATCH)) -ne 0 ]; then
-  say "Batch $b done"; key KEYCODE_HOME; sleep 3; shot "debloat_batch${b}_home"
+  say "Пачка $b готова"; key KEYCODE_HOME; sleep 3; shot "debloat_batch${b}_home"
 fi
-[ "$DRY" = 1 ] || say "Disabled packages are logged in state/disabled_by_us.txt (restore.sh re-enables them)"
+[ "$DRY" = 1 ] || say "Отключённые пакеты записаны в state/disabled_by_us.txt (restore.sh включит их обратно)"

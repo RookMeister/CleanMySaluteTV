@@ -11,21 +11,21 @@ port_open() {   # $1 = ip; 1-second timeout on every OS
   else bash -c "exec 3<>/dev/tcp/$1/5555" 2>/dev/null; fi
 }
 
-say "Looking for TVs with network debugging (port 5555) on this network"
+say "Ищу в сети телевизоры с отладкой по сети (порт 5555)"
 ips=$(arp -a 2>/dev/null | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}' | grep -vE '\.(255|0)$|^(224|239|255)\.' | sort -u)
 found=0
 for ip in $ips; do
   if port_open "$ip"; then
     "$ADB" connect "$ip:5555" >/dev/null 2>&1 </dev/null
     model=$("$ADB" -s "$ip:5555" shell getprop ro.product.model </dev/null 2>/dev/null | tr -d '\r')
-    echo "  $ip  ${model:-(accept the prompt on the TV to see the model)}"
+    echo "  $ip  ${model:-(подтверди запрос на ТВ, чтобы увидеть модель)}"
     found=1
   fi
 done
 if [ "$found" = 0 ]; then
-  warn "No TV found. Check on the TV:"
-  echo "   1. It's on the SAME Wi-Fi/router as this computer (not a guest network or hotspot; pause any VPN)."
-  echo "   2. Developer options are on: Settings > System > About > press 'Android TV OS build' 7 times."
-  echo "   3. Settings > System > Developer options > USB debugging (and Network debugging, if shown) is ON."
-  echo "   4. The TV is awake. Then run this again, or put its IP (Settings > Network) in cleanmysalutetv.conf."
+  warn "ТВ не найден. Проверь на телевизоре:"
+  echo "   1. Он в ТОЙ ЖЕ сети, что и компьютер (не гостевая, не точка доступа; VPN на паузе)."
+  echo "   2. Меню разработчика включено: Настройки → Об устройстве → 7 раз OK на «Сборка» (если закрыто — docs/SBER.md)."
+  echo "   3. Для разработчиков → Отладка по USB (и отладка по сети, если есть) включена."
+  echo "   4. ТВ не спит. Запусти снова или впиши его IP (Настройки → Сеть) в cleanmysalutetv.conf."
 fi
