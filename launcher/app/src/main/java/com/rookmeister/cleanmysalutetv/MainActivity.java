@@ -683,8 +683,20 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             public void onChildViewDetachedFromWindow(@NonNull View v) {
             }
         });
-        if (dockRow) grid.addItemDecoration(new DockDecoration(COLUMNS, density, cinematic, cfg.alwaysShowNames, cfg.dockOpacity, cfg.dockGlass, cfg.dockEvenPadding, cfg.dockBand,
-                singleRow, cfg.dockBandAll));
+        DockDecoration dockBand = dockRow ? new DockDecoration(COLUMNS, density, cinematic, cfg.alwaysShowNames,
+                cfg.dockOpacity, cfg.dockGlass, cfg.dockEvenPadding, cfg.dockBand, singleRow, cfg.dockBandAll) : null;
+        if (dockBand != null) grid.addItemDecoration(dockBand);
+        // CleanMySaluteTV: the small dock ends with a "…" tile that opens every app (couch-tv's), in the band.
+        boolean withMore = AppAdapter.smallDock && dockRow && !singleRow && appLibraryEnabled;
+        if (withMore) {
+            moreTile = MoreTile.create(this, density, root, () -> {
+                        onLibraryRequested();
+                        libraryFromMoreTile = true;   // closing it goes back to "…", not to the pill after the last row
+                    },
+                    () -> focusTile(Math.max(0, Math.min(adapter.dockFilled(), adapter.appCount()) - 1)),
+                    () -> findViewById(R.id.btnSettings).requestFocus());
+            dockBand.setExtraRight(AppAdapter.smallCellPx(density));
+        }
         if (cfg.fadeRows) TopFade.attach(grid, 48 * density);
         // Reduced motion: the tiles are simply there, with no entrance (reloadApps skips it there too).
         if (animations && !reducedMotion) {
@@ -707,7 +719,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (AppAdapter.smallDock && !singleRow) {
                 // Centre the small dock: the grid's columns become just wide enough for its tiles.
                 int[] side = DockStyle.dockPadding(r - l, COLUMNS,
-                        Math.min(adapter.dockFilled(), adapter.appCount()), AppAdapter.smallCellPx(density));
+                        Math.min(adapter.dockFilled(), adapter.appCount()), AppAdapter.smallCellPx(density),
+                        moreTile != null ? 1 : 0);
                 if (grid.getPaddingLeft() != side[0] || grid.getPaddingRight() != side[1]) {
                     // A padding set from inside this layout pass is not laid out: set it on the next frame.
                     grid.post(() -> {
@@ -757,12 +770,14 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             // Cold start or column count > 4: the first focus can run before the grid has its final width or
             // padding, leaving the glass at the XML design size until a key is pressed.
             grid.post(this::refitGlass);
+            grid.post(this::placeMoreTile);
         });
 
         // Keep the glass glued to its tile while the grid scrolls.
         grid.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(@NonNull RecyclerView rv, int dx, int dy) {
+                placeMoreTile();
                 if (!glassShown) return;
                 glassTargetY -= dy;
                 glassScrollShift -= dy;
@@ -1772,6 +1787,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (openPopup != null) openPopup.dismiss();
         libraryFocusPending = false;
         libraryFromTopBar = false;
+        libraryFromMoreTile = false;
         libraryFromVpnPill = false;
         appLibrary = new AppLibraryDialog(this, animations, reducedMotion, appLibrarySelection, libraryOkOpens, adapter::containsPackage, () -> reloadApps(false), () -> {
             appLibrary = null;
@@ -1779,6 +1795,15 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (libraryFromTopBar) {
                 libraryFromTopBar = false;
                 btnLibraryTop.requestFocus();
+                return;
+            }
+            if (libraryFromMoreTile && moreTile != null) {
+                libraryFromMoreTile = false;
+                // reloadApps may have changed the dock: put "…" back after its last app first.
+                grid.post(() -> {
+                    placeMoreTile();
+                    moreTile.focus();
+                });
                 return;
             }
             boolean fromVpnPill = libraryFromVpnPill;
@@ -2468,6 +2493,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // escapes up into the top bar. Mid-row moves fall through to the default focus search.
         if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
             boolean forward = rtlAppGrid ? keyCode == KeyEvent.KEYCODE_DPAD_LEFT : keyCode == KeyEvent.KEYCODE_DPAD_RIGHT;
+            // The small dock's last app: Right goes on to the "…" tile.
+            if (forward && moreTile != null && position == Math.min(adapter.dockFilled(), count) - 1) {
+                moreTile.focus();
+                return true;
+            }
             if (forward && position == adapter.focusablePosition(count - 1) && adapter.isLibraryAt(count)) {
                 focusLibrary();
                 return true;
@@ -2684,6 +2714,24 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             pendingFocusScroll = null;
             grid.stopScroll();
         }
+    }
+
+    /** The small dock's "…" tile (MoreTile), or null when the dock is large or the app library is off. */
+    private MoreTile moreTile;
+
+    /** Puts the "…" tile one cell after the dock's last app, where the band was made longer for it. */
+    private void placeMoreTile() {
+        if (moreTile == null || adapter == null) return;
+        int n = Math.min(adapter.dockFilled(), adapter.appCount());
+        RecyclerView.ViewHolder vh = n > 0 ? grid.findViewHolderForAdapterPosition(n - 1) : null;
+        View card = vh == null ? null : vh.itemView.findViewById(R.id.card);
+        if (card == null || card.getWidth() == 0) {
+            moreTile.hide();
+            return;
+        }
+        Rect r = new Rect(0, 0, card.getWidth(), card.getHeight());
+        root.offsetDescendantRectToMyCoords(card, r);
+        moreTile.place(r.left + AppAdapter.smallCellPx(density), r.top, card.getWidth());
     }
 
     private void focusTile(int position) {
@@ -2909,6 +2957,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private View btnLibraryTop;
     /** The open library came from that button: closing it returns there instead of scrolling to the grid's end. */
     private boolean libraryFromTopBar;
+    /** The open library came from the small dock's "…" tile: closing it returns there. */
+    private boolean libraryFromMoreTile;
     /** The open library came from the VPN pill (vpn_pill, no VPN app): closing it returns there while the pill still shows. */
     private boolean libraryFromVpnPill;
 

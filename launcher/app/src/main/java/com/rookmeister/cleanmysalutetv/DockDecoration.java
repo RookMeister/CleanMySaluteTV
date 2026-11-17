@@ -22,6 +22,10 @@ public class DockDecoration extends RecyclerView.ItemDecoration {
 
     /** Extra band below the tiles for their names (always_show_names), in px. */
     private final float namesRoom;
+    /** CleanMySaluteTV: room after the last dock tile for the "…" tile, which is drawn over the grid by Home. */
+    private int extraRight;
+
+    void setExtraRight(int px) { extraRight = px; }
     /** Light glass like the top bar's pills (config.xml dock_glass): a white tint that fades downwards. */
     private final boolean lightGlass;
     /** Padding all round the tiles equal to the gap between them (config.xml dock_even_padding). */
@@ -110,6 +114,7 @@ public class DockDecoration extends RecyclerView.ItemDecoration {
             }
         }
         if (!any) return;
+        rect.right += extraRight;
         float pad = 14 * density;
         // The band can only draw inside the grid, and the first and last dock tiles sit 12dp in from its
         // edges: a full 14dp at the sides sliced the rounded ends flat (#454). Keep the sides, with the

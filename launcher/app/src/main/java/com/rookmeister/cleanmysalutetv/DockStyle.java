@@ -54,7 +54,12 @@ final class DockStyle {
      * apps: those are centred on the screen and the free cells run off to their right, out of sight.
      */
     static int[] dockPadding(int widthPx, int columns, int filled, int cellPx) {
-        int n = filled <= 0 || filled > columns ? columns : filled;
+        return dockPadding(widthPx, columns, filled, cellPx, 0);
+    }
+
+    /** The same with {@code extra} cells after the apps (the "…" tile) centred together with them. */
+    static int[] dockPadding(int widthPx, int columns, int filled, int cellPx, int extra) {
+        int n = (filled <= 0 || filled > columns ? columns : filled) + Math.max(0, extra);
         int left = Math.max(0, (widthPx - n * cellPx) / 2);
         int right = Math.max(0, widthPx - left - columns * cellPx);
         return new int[] {left, right};
