@@ -2510,9 +2510,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             return GridNavigation.atHorizontalEdge(position, rowCount, COLUMNS,
                     rtlAppGrid, keyCode == KeyEvent.KEYCODE_DPAD_LEFT);
         }
-        // The small dock is the whole Home, as in couch-tv: nothing below it to scroll to (the dock would ride up over
-        // the scene's clock); every other app is one press away behind "…".
-        if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && AppAdapter.smallDock && position < COLUMNS) return true;
+        // CleanMySaluteTV: Down from the small dock goes on to the other apps below it, as from the large one (the
+        // dock has no "…" any more, so this is the way to them).
         if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
             if (position < COLUMNS) return false;          // dock row: let focus move to the top bar
             target = position - COLUMNS;
