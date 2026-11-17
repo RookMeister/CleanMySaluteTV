@@ -255,4 +255,6 @@
     <string name="scene_paddy">Vang Vieng, Laos</string>
     <string name="menu_glass_icons">Glass app icons</string>
     <string name="menu_glass_icons_sub">The app symbol in white on glass; the focused app in its own colours</string>
+    <string name="keep_title">Keep watching</string>
+    <string name="menu_keep_sub">What the apps say you are part way through, over the dock</string>
 </resources>

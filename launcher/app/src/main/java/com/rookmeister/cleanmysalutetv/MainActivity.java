@@ -691,11 +691,25 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (dockBand != null) grid.addItemDecoration(dockBand);
         // The small dock is the whole bottom of the screen, as in couch-tv: the other apps wait below it.
         if (dockBand != null && AppAdapter.smallDock) dockBand.setGapBelow(Math.round(160 * density));
+        // CleanMySaluteTV: couch-tv's Keep watching cards over the dock (Android's Watch Next list).
+        if (dockRow && KeepWatching.enabled(this)) {
+            keepRow = new KeepRow(this, root, density, new KeepRow.Listener() {
+                @Override public void onOpen(KeepWatching.Item item) {
+                    Intent i = KeepWatching.intent(MainActivity.this, item);
+                    if (i != null) open(i);
+                }
+                @Override public void onUp() { barAnchor(findViewById(R.id.btnSettings)).requestFocus(); }
+                @Override public void onDown() { focusTile(singleRow ? lastFocused : lastFocused % COLUMNS); }
+            });
+        }
         // CleanMySaluteTV: the small dock ends with a gear (the launcher's settings menu) and "…" (every app), as
         // couch-tv's does, in the band. With every app in the dock (single_row) only the gear: there is no "other".
         if (AppAdapter.smallDock && dockRow) {
             Runnable lastApp = () -> focusTile(Math.max(0, dockAppCount() - 1));
-            Runnable up = () -> barAnchor(findViewById(R.id.btnSettings)).requestFocus();
+            Runnable up = () -> {
+                if (keepRow != null && keepRow.hasCards()) keepRow.focus();
+                else barAnchor(findViewById(R.id.btnSettings)).requestFocus();
+            };
             if (appLibraryEnabled && !singleRow) {
                 moreTile = MoreTile.create(this, density, root, R.drawable.ic_cp_more, R.string.cp_all_apps, () -> {
                             onLibraryRequested();
@@ -931,7 +945,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (keyCode == KeyEvent.KEYCODE_DPAD_UP) return true;
             if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
                 // Back to the dock tile Up came from, not wherever the focus finder lands.
-                focusTile(singleRow ? lastFocused : lastFocused % COLUMNS);
+                if (keepRow != null && keepRow.hasCards()) keepRow.focus();
+                else focusTile(singleRow ? lastFocused : lastFocused % COLUMNS);
                 return true;
             }
             // CleanMySaluteTV: the owner's buttons in the owner's order, so the ends are the bar's first and last shown.
@@ -1147,6 +1162,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 break;
         }
         if (openLiveTvAfterBoot()) return;
+        refreshKeepWatching();
         updateGreeting();
         // Back from an app opened from its tile, focus is still on that tile, so the cinematic "Last opened" line kept
         // the time from before this launch ("2 days ago" right after opening it). Refresh it.
@@ -1979,7 +1995,16 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         String label = adapter.labelAt(position);
         int color = adapter.ambientColorAt(position);
         float y = dockTopInRoot - 14 * density - 26 * density - hero.getHeight();
-        scenePlayer.setDockTop(Math.round(y));   // the scene clock stays above the app name over the dock
+        float clockLimit = y;
+        if (keepRow != null) {
+            keepRow.placeAbove(dockTopInRoot, root);
+            // The clock stays above the Keep watching cards too (their height before the first layout: about 110dp).
+            if (keepRow.hasCards()) {
+                float top = keepRow.top();
+                clockLimit = Math.min(y, top > 0 ? top : dockTopInRoot - 124 * density);
+            }
+        }
+        scenePlayer.setDockTop(Math.round(clockLimit));   // the scene clock stays above the app name over the dock
         boolean changed = !label.contentEquals(heroName.getText());
         if (cinematic && heroArtAlpha > 0f) showHeroArt(position);
 
@@ -2500,7 +2525,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (singleRow) {
             // One row: Up leaves for the top bar, Down has nowhere to go, and Left/Right walk the whole row,
             // stopping at its two ends (the default focus search scrolls the row to the next tile).
-            if (keyCode == KeyEvent.KEYCODE_DPAD_UP) return false;
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP) return keepUp();
             if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) return true;
             boolean forward = rtlAppGrid ? keyCode == KeyEvent.KEYCODE_DPAD_LEFT : keyCode == KeyEvent.KEYCODE_DPAD_RIGHT;
             int last = adapter.focusablePosition(count - 1);
@@ -2533,7 +2558,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // the scene's clock); every other app is one press away behind "…".
         if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && AppAdapter.smallDock && position < COLUMNS) return true;
         if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-            if (position < COLUMNS) return false;          // dock row: let focus move to the top bar
+            if (position < COLUMNS) return keepUp();       // dock row: Keep watching, else the top bar
             target = position - COLUMNS;
         } else {
             int lastRowStart = ((count - 1) / COLUMNS) * COLUMNS;
@@ -3008,6 +3033,68 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private boolean libraryFromMoreTile;
     /** The open library came from the VPN pill (vpn_pill, no VPN app): closing it returns there while the pill still shows. */
     private boolean libraryFromVpnPill;
+
+    // ---- CleanMySaluteTV: Keep watching (KeepWatching, KeepRow) ---------------------------------------
+
+    private KeepRow keepRow;
+    private static final int KEEP_PERMISSION_REQUEST = 4711;
+
+    /** Up from the dock: to the Keep watching cards when there are any. False lets the focus go on to the top bar. */
+    private boolean keepUp() {
+        if (keepRow == null || !keepRow.hasCards()) return false;
+        keepRow.focus();
+        return true;
+    }
+
+    /** Reads Watch Next off the main thread; asks once for the permission it needs. */
+    private void refreshKeepWatching() {
+        if (keepRow == null) return;
+        if (!KeepWatching.granted(this)) {
+            android.content.SharedPreferences p = OnTvChoices.prefs(this);
+            if (!p.getBoolean("keep_asked", false)) {
+                p.edit().putBoolean("keep_asked", true).apply();
+                try {
+                    requestPermissions(new String[] {KeepWatching.PERMISSION}, KEEP_PERMISSION_REQUEST);
+                } catch (RuntimeException ignored) {
+                    // no permission screen on this TV: install.sh grants it
+                }
+            }
+            return;
+        }
+        android.content.Context app = getApplicationContext();
+        new Thread(() -> {
+            java.util.List<KeepWatching.Item> items = KeepWatching.read(app);
+            runOnUiThread(() -> {
+                if (isFinishing() || keepRow == null) return;
+                keepRow.show(items);
+                // the clock makes room for the row once it has its size
+                root.post(() -> { if (lastFocused >= 0 && lastFocused < adapter.appCount()) refreshDockTop(); });
+            });
+        }, "keep-watching").start();
+    }
+
+    /** The scene clock's limit again, after the Keep watching row came or went. */
+    private void refreshDockTop() {
+        RecyclerView.ViewHolder vh = grid.findViewHolderForAdapterPosition(0);
+        View card = vh == null ? null : vh.itemView.findViewById(R.id.card);
+        if (card == null) return;
+        Rect r = new Rect(0, 0, card.getWidth(), card.getHeight());
+        root.offsetDescendantRectToMyCoords(card, r);
+        float dockTop = r.top;   // as showHero gets it: the dock tile's top
+        keepRow.placeAbove(dockTop, root);
+        float y = dockTop - 14 * density - 26 * density - hero.getHeight();
+        if (keepRow.hasCards()) {
+            float top = keepRow.top();
+            y = Math.min(y, top > 0 ? top : dockTop - 124 * density);
+        }
+        scenePlayer.setDockTop(Math.round(y));
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == KEEP_PERMISSION_REQUEST) refreshKeepWatching();
+    }
 
     // ---- CleanMySaluteTV: the owner's top buttons (TopButtons) ----------------------------------------
 

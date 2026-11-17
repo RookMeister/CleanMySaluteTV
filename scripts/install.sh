@@ -47,6 +47,7 @@ sh_ pm list packages "$PKG" | grep -q "$PKG" || die "CleanMySaluteTV не уст
 
 # ---------------------------------------------------------------- 3. разрешения
 sh_ pm grant $PKG android.permission.ACCESS_FINE_LOCATION 2>/dev/null   # имя Wi-Fi в кнопке сети
+sh_ pm grant $PKG android.permission.READ_TV_LISTINGS 2>/dev/null       # «Продолжить просмотр» (Watch Next)
 
 # AirPlay: полный перезапуск приёмника AirPlay Server требует DUMP (его просит приёмник настроек приложения).
 # DUMP открывает служебные дампы системы, поэтому выдаётся только по явному AIRPLAY=yes; иначе отзывается.

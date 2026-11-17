@@ -252,4 +252,6 @@
     <string name="scene_paddy">Ванвьенг, Лаос</string>
     <string name="menu_glass_icons">Стеклянные значки</string>
     <string name="menu_glass_icons_sub">Символ приложения белым на стекле; выбранное — в своих цветах</string>
+    <string name="keep_title">Продолжить просмотр</string>
+    <string name="menu_keep_sub">Что вы не досмотрели в приложениях — над доком</string>
 </resources>
