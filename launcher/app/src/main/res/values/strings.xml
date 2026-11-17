@@ -236,4 +236,6 @@
     <string name="cp_power_needed_short">Needs permission · OK</string>
     <string name="cp_power_needed">The launcher cannot turn the screen off: run install.sh with POWER=yes, or allow it as a device admin</string>
     <string name="cp_power_explain">Only to turn the screen off: the sleep timer and the Screen off tile. Nothing can be wiped or changed.</string>
+    <string name="menu_dock_all">Every app in the dock</string>
+    <string name="menu_dock_all_sub">One row with all apps, scrolling sideways</string>
 </resources>

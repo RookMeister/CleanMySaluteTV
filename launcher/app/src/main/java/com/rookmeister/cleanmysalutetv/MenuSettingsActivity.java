@@ -202,6 +202,8 @@ public final class MenuSettingsActivity extends Activity {
         group(R.string.menu_group_dock);
         row(getString(R.string.menu_dock_size), null, getString(small ? R.string.dock_small : R.string.dock_large), null, null,
                 () -> choices.edit().putString(DockStyle.KEY, small ? DockStyle.LARGE : DockStyle.SMALL).apply());
+        row(getString(R.string.menu_dock_all), getString(R.string.menu_dock_all_sub), onOff(cfg.singleRow), null, null,
+                () -> choices.edit().putBoolean(OnTvChoices.DOCK_ALL_APPS, !cfg.singleRow).apply());
         row(getString(R.string.menu_dock_opacity), null, cfg.dockOpacity + "%", null, null,
                 () -> choices.edit().putInt(Config.DOCK_OPACITY_KEY, next(OPACITIES, cfg.dockOpacity)).apply());
 

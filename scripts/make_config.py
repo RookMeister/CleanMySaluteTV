@@ -71,6 +71,7 @@ def main():
     if scene_list:
         cfg["scene_list"] = scene_list
     # Размер дока: small (маленькие иконки по центру внизу, как в couch-tv) или large (большие плитки).
+    cfg["single_row"] = env_yes("CMST_DOCK_ALL_APPS", False)
     dock = os.environ.get("CMST_DOCK_STYLE", "").strip().lower()
     if dock in ("small", "large"):
         cfg["dock_style"] = dock

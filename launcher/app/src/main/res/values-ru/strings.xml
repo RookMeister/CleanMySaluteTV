@@ -233,4 +233,6 @@
     <string name="cp_power_needed_short">Нужно разрешение · OK</string>
     <string name="cp_power_needed">Лаунчер не может выключить экран: запусти install.sh с POWER=yes или разреши ему роль администратора устройства</string>
     <string name="cp_power_explain">Только чтобы выключать экран: таймер сна и плитка «Выключить экран». Стереть или изменить что-либо через это нельзя.</string>
+    <string name="menu_dock_all">Все приложения в доке</string>
+    <string name="menu_dock_all_sub">Одна строка со всеми приложениями, прокрутка вбок</string>
 </resources>

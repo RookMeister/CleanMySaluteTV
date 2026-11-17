@@ -75,6 +75,7 @@ import androidx.dynamicanimation.animation.FloatPropertyCompat;
 import androidx.dynamicanimation.animation.SpringAnimation;
 import androidx.dynamicanimation.animation.SpringForce;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
@@ -684,17 +685,17 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             }
         });
         DockDecoration dockBand = dockRow ? new DockDecoration(COLUMNS, density, cinematic, cfg.alwaysShowNames,
-                cfg.dockOpacity, cfg.dockGlass, cfg.dockEvenPadding, cfg.dockBand, singleRow, cfg.dockBandAll) : null;
+                cfg.dockOpacity, cfg.dockGlass, cfg.dockEvenPadding, cfg.dockBand, singleRow,
+                cfg.dockBandAll || (singleRow && AppAdapter.smallDock)) : null;
         if (dockBand != null) grid.addItemDecoration(dockBand);
         // The small dock is the whole bottom of the screen, as in couch-tv: the other apps wait below it.
         if (dockBand != null && AppAdapter.smallDock) dockBand.setGapBelow(Math.round(160 * density));
-        // CleanMySaluteTV: the small dock ends with a "…" tile that opens every app (couch-tv's), in the band.
         // CleanMySaluteTV: the small dock ends with a gear (the launcher's settings menu) and "…" (every app), as
-        // couch-tv's does, in the band.
-        if (AppAdapter.smallDock && dockRow && !singleRow) {
-            Runnable lastApp = () -> focusTile(Math.max(0, Math.min(adapter.dockFilled(), adapter.appCount()) - 1));
+        // couch-tv's does, in the band. With every app in the dock (single_row) only the gear: there is no "other".
+        if (AppAdapter.smallDock && dockRow) {
+            Runnable lastApp = () -> focusTile(Math.max(0, dockAppCount() - 1));
             Runnable up = () -> findViewById(R.id.btnSettings).requestFocus();
-            if (appLibraryEnabled) {
+            if (appLibraryEnabled && !singleRow) {
                 moreTile = MoreTile.create(this, density, root, R.drawable.ic_cp_more, R.string.cp_all_apps, () -> {
                             onLibraryRequested();
                             libraryFromMoreTile = true;   // closing it goes back to "…", not to the pill after the last row
@@ -724,15 +725,23 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         int rowsBelowDock = AppAdapter.smallDock ? 0 : cfg.rowsBelowDock;
         grid.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
             int h = b - t;
-            if (AppAdapter.smallDock && !singleRow) {
-                // Centre the small dock: the grid's columns become just wide enough for its tiles.
-                int[] side = DockStyle.dockPadding(r - l, COLUMNS,
-                        Math.min(adapter.dockFilled(), adapter.appCount()), AppAdapter.smallCellPx(density),
-                        extraTiles());
+            if (AppAdapter.smallDock) {
+                // Centre the small dock: the grid's columns become just wide enough for its tiles. Every app in one
+                // row: centred while it fits, else from the left edge, scrolling, with room after it for the gear.
+                int[] side = singleRow
+                        ? DockStyle.rowPadding(r - l, adapter.appCount(), AppAdapter.smallCellPx(density), extraTiles(),
+                                Math.round(60 * density))
+                        : DockStyle.dockPadding(r - l, COLUMNS, Math.min(adapter.dockFilled(), adapter.appCount()),
+                                AppAdapter.smallCellPx(density), extraTiles());
                 if (grid.getPaddingLeft() != side[0] || grid.getPaddingRight() != side[1]) {
                     // A padding set from inside this layout pass is not laid out: set it on the next frame.
                     grid.post(() -> {
                         grid.setPadding(side[0], grid.getPaddingTop(), side[1], grid.getPaddingBottom());
+                        // A sideways row keeps its first tile where it was when the padding changes: start it again
+                        // from the new edge, so a row that fits stands centred.
+                        if (singleRow && grid.getLayoutManager() instanceof LinearLayoutManager) {
+                            ((LinearLayoutManager) grid.getLayoutManager()).scrollToPositionWithOffset(0, 0);
+                        }
                         grid.post(this::refitGlass);
                     });
                 }
@@ -754,7 +763,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (!MainActivity.this.dockRow) want = (int) (AppAdapter.TOP_ROOM_DP * density);
             // A single row never shows the names under its tiles (the title above the row names the app), so the
             // 7dp gap and 22dp label item_app.xml keeps for them would only lift the row: sit it that much lower.
-            if (singleRow && !cfg.alwaysShowNames) want += (int) (29 * density);
+            if (singleRow && !cfg.alwaysShowNames && !AppAdapter.smallDock) want += (int) (29 * density);
             if (grid.getPaddingTop() != want) {
                 grid.setPadding(grid.getPaddingLeft(), want, grid.getPaddingRight(), grid.getPaddingBottom());
                 // A vertical grid parks the dock on the new padding line by scrolling (onTileFocused); a sideways
@@ -2492,7 +2501,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             boolean forward = rtlAppGrid ? keyCode == KeyEvent.KEYCODE_DPAD_LEFT : keyCode == KeyEvent.KEYCODE_DPAD_RIGHT;
             int last = adapter.focusablePosition(count - 1);
             if (forward && position >= last) {
-                if (adapter.isLibraryAt(count)) focusLibrary();
+                if (settingsTile != null) settingsTile.focus();
+                else if (adapter.isLibraryAt(count)) focusLibrary();
                 return true;
             }
             return !forward && position == 0;
@@ -2739,6 +2749,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     /** The small dock's gear: the launcher's settings menu. Null with the large dock. */
     private MoreTile settingsTile;
 
+    /** The apps in the dock's row: every app with single_row, else the docked ones. */
+    private int dockAppCount() {
+        return singleRow ? adapter.appCount() : Math.min(adapter.dockFilled(), adapter.appCount());
+    }
+
     /** How many of those tiles end the small dock: the band and the centring make room for each. */
     private int extraTiles() {
         return (settingsTile != null ? 1 : 0) + (moreTile != null ? 1 : 0);
@@ -2747,7 +2762,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     /** Puts the gear and "…" in the cells after the dock's last app, where the band was made longer for them. */
     private void placeMoreTile() {
         if (settingsTile == null || adapter == null) return;
-        int n = Math.min(adapter.dockFilled(), adapter.appCount());
+        int n = dockAppCount();
         RecyclerView.ViewHolder vh = n > 0 ? grid.findViewHolderForAdapterPosition(n - 1) : null;
         View card = vh == null ? null : vh.itemView.findViewById(R.id.card);
         if (card == null || card.getWidth() == 0) {

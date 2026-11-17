@@ -44,6 +44,19 @@ final class DockStyle {
         return SMALL.equals(current(context));
     }
 
+    /**
+     * Left and right padding for every app in one sideways row: centred with the {@code extra} tiles after it while
+     * they fit in {@code widthPx}; otherwise from {@code margin} on the left, with room on the right for the extras.
+     */
+    static int[] rowPadding(int widthPx, int apps, int cellPx, int extra, int margin) {
+        int total = (Math.max(0, apps) + Math.max(0, extra)) * cellPx;
+        if (total + 2 * margin <= widthPx) {
+            int left = (widthPx - total) / 2;
+            return new int[] {left, widthPx - left - Math.max(0, apps) * cellPx};
+        }
+        return new int[] {margin, margin + Math.max(0, extra) * cellPx};
+    }
+
     /** The grid's left and right padding that centres {@code columns} cells of {@code cellPx} in {@code widthPx}. */
     static int centringPadding(int widthPx, int columns, int cellPx) {
         return Math.max(0, (widthPx - columns * cellPx) / 2);
