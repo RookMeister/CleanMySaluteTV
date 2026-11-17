@@ -56,6 +56,15 @@ else
   sh_ pm revoke $PKG android.permission.DUMP 2>/dev/null || true
 fi
 
+# Таймер сна и «Выключить экран»: лаунчер — администратор устройства только с политикой force-lock (гасить экран).
+if yes_ "${POWER:-yes}"; then
+  out=$(sh_ "dpm set-active-admin --user 0 '$PKG/.PowerControl\$Admin'" 2>&1 | tr -d '\r')
+  sh_ appops set $PKG SCHEDULE_EXACT_ALARM allow 2>/dev/null   # таймер срабатывает вовремя, а не «в окне» Android
+  case "$out" in *Success*|*already*) echo "Таймер сна: выключение экрана разрешено" ;; *) warn "Таймер сна: прошивка не дала роль администратора ($out). На ТВ: панель управления → «Таймер сна» → OK." ;; esac
+else
+  sh_ "am broadcast -n '$PKG/.PowerControl\$Release'" >/dev/null 2>&1 || true
+fi
+
 # ---------------------------------------------------------------- 4. тема: config.json и обои
 say "Применяю cleanmysalutetv.conf"
 sh_ am force-stop $PKG

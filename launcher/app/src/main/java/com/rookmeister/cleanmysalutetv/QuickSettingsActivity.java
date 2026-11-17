@@ -49,7 +49,7 @@ import java.util.Set;
 public final class QuickSettingsActivity extends Activity {
     private float dp;
     private Typeface medium, regular;
-    private TextView memoryStatus;
+    private TextView memoryStatus, timerStatus;
 
     @Override
     protected void attachBaseContext(Context base) {
@@ -100,6 +100,12 @@ public final class QuickSettingsActivity extends Activity {
         panel.addView(pair(wifi, bt), wrap);
         panel.addView(pair(sound, picture), new LinearLayout.LayoutParams(wrap));
         panel.addView(pair(memory, clock), new LinearLayout.LayoutParams(wrap));
+        View timer = tile(R.drawable.ic_cp_timer, getString(R.string.cp_timer), timerText(), this::stepTimer);
+        timerStatus = timer.findViewWithTag("status");
+        View off = tile(R.drawable.ic_cp_power, getString(R.string.cp_screen_off),
+                PowerControl.canSleep(this) ? getString(R.string.cp_screen_off_sub) : getString(R.string.cp_power_needed_short),
+                this::screenOff);
+        panel.addView(pair(timer, off), new LinearLayout.LayoutParams(wrap));
 
         LinearLayout round = new LinearLayout(this);
         round.setOrientation(LinearLayout.HORIZONTAL);
@@ -135,6 +141,42 @@ public final class QuickSettingsActivity extends Activity {
         super.onPause();
         finish();
         overridePendingTransition(0, 0);
+    }
+
+    // ---- sleep timer and screen off (PowerControl) -------------------------------------------
+
+    private String timerText() {
+        if (!PowerControl.canSleep(this)) return getString(R.string.cp_power_needed_short);
+        int left = PowerControl.minutesLeft(this);
+        return left == 0 ? getString(R.string.menu_off) : getString(R.string.cp_timer_left, left);
+    }
+
+    /** OK steps the timer: off, 15, 30, 60, 90 minutes, off. The panel stays open so the choice can be seen. */
+    private void stepTimer() {
+        if (!PowerControl.canSleep(this)) {
+            askForAdmin();
+            return;
+        }
+        PowerControl.set(this, PowerControl.next(PowerControl.minutesLeft(this)));
+        timerStatus.setText(timerText());
+    }
+
+    private void screenOff() {
+        if (!PowerControl.canSleep(this)) {
+            askForAdmin();
+            return;
+        }
+        finish();
+        PowerControl.sleepNow(this);
+    }
+
+    /** The TV's "Activate device admin app?" prompt; where the firmware has none, install.sh does it (POWER=yes). */
+    private void askForAdmin() {
+        try {
+            startActivity(PowerControl.activationIntent(this));
+        } catch (ActivityNotFoundException | SecurityException e) {
+            Toast.makeText(this, R.string.cp_power_needed, Toast.LENGTH_LONG).show();
+        }
     }
 
     // ---- statuses -------------------------------------------------------------------------------

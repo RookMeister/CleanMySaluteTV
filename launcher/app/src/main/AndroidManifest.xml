@@ -20,6 +20,9 @@
          it at install, only install.sh with AIRPLAY=yes does (pm grant), and without it the guard only starts a
          stopped receiver. -->
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <!-- CleanMySaluteTV sleep timer (PowerControl): on time rather than in Android's loose window. Not granted at
+         install from Android 13; install.sh allows it with POWER=yes (appops). -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.DUMP" tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -248,6 +251,30 @@
                 <action android:name="com.rookmeister.cleanmysalutetv.GUARD" />
             </intent-filter>
         </receiver>
+
+        <!-- CleanMySaluteTV PowerControl: device admin with only the force-lock policy (screen off, sleep timer),
+             and the sleep timer's alarm. -->
+        <receiver
+            android:name=".PowerControl$Admin"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".PowerControl$TimerReceiver"
+            android:exported="false" />
+        <!-- restore.sh and install.sh (POWER=no): give up the device admin role. The adb shell holds this permission,
+             ordinary apps cannot get it. -->
+        <receiver
+            android:name=".PowerControl$Release"
+            android:exported="true"
+            android:permission="android.permission.WRITE_SECURE_SETTINGS" />
 
         <service
             android:name=".InputKeyService"

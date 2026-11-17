@@ -226,4 +226,11 @@
     <string name="menu_pos_right">Справа</string>
     <string name="menu_group_all">ВСЕ ПРИЛОЖЕНИЯ</string>
     <string name="menu_all_apps_sub">Все установленные; убранное с главного экрана можно вернуть</string>
+    <string name="cp_timer">Таймер сна</string>
+    <string name="cp_timer_left">Через %1$d мин</string>
+    <string name="cp_screen_off">Выключить экран</string>
+    <string name="cp_screen_off_sub">Сейчас</string>
+    <string name="cp_power_needed_short">Нужно разрешение · OK</string>
+    <string name="cp_power_needed">Лаунчер не может выключить экран: запусти install.sh с POWER=yes или разреши ему роль администратора устройства</string>
+    <string name="cp_power_explain">Только чтобы выключать экран: таймер сна и плитка «Выключить экран». Стереть или изменить что-либо через это нельзя.</string>
 </resources>

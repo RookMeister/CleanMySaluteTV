@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- CleanMySaluteTV (PowerControl): the only policy is turning the screen off, for the sleep timer and the
+     control panel's Screen off tile. Nothing can be wiped, reset or changed through it. -->
+<device-admin>
+    <uses-policies>
+        <force-lock />
+    </uses-policies>
+</device-admin>

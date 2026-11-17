@@ -229,4 +229,11 @@
     <string name="menu_pos_right">Right</string>
     <string name="menu_group_all">ALL APPS</string>
     <string name="menu_all_apps_sub">Every installed app; put a removed one back on Home</string>
+    <string name="cp_timer">Sleep timer</string>
+    <string name="cp_timer_left">In %1$d min</string>
+    <string name="cp_screen_off">Screen off</string>
+    <string name="cp_screen_off_sub">Now</string>
+    <string name="cp_power_needed_short">Needs permission · OK</string>
+    <string name="cp_power_needed">The launcher cannot turn the screen off: run install.sh with POWER=yes, or allow it as a device admin</string>
+    <string name="cp_power_explain">Only to turn the screen off: the sleep timer and the Screen off tile. Nothing can be wiped or changed.</string>
 </resources>

@@ -37,6 +37,11 @@ if [ -f "$STATE/dns_orig.txt" ]; then
   else sh_ settings delete global private_dns_specifier >/dev/null; fi
 fi
 
-[ "${1:-}" = --uninstall ] && sh_ pm uninstall $PKG
+if [ "${1:-}" = --uninstall ]; then
+  # Администратора устройства Android не удаляет: лаунчер сначала сам снимает с себя эту роль.
+  sh_ "am broadcast -n '$PKG/.PowerControl\$Release'" >/dev/null 2>&1
+  sleep 1
+  sh_ pm uninstall $PKG
+fi
 key KEYCODE_HOME
 say "Восстановлено. Home ведёт на: $(home_resolved)"
