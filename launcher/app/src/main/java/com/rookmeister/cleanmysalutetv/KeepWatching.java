@@ -22,7 +22,10 @@ final class KeepWatching {
     private KeepWatching() {}
 
     static final String PERMISSION = "android.permission.READ_TV_LISTINGS";
-    private static final Uri WATCH_NEXT = Uri.parse("content://android.media.tv/watch_next_program");
+    /** A method, not a field: Uri is not there in the JVM tests, which only check the arithmetic. */
+    private static Uri watchNext() {
+        return Uri.parse("content://android.media.tv/watch_next_program");
+    }
     private static final String TAG = "CmstKeep";
     /** couch-tv's limits: twenty cards, five from one app. */
     static final int MAX = 20, PER_APP = 5;
@@ -58,7 +61,7 @@ final class KeepWatching {
                 "episode_display_number", "poster_art_uri", "thumbnail_uri", "last_playback_position_millis",
                 "duration_millis", "last_engagement_time_utc_millis"};
         Map<String, Integer> perApp = new HashMap<>();
-        try (Cursor q = c.getContentResolver().query(WATCH_NEXT, cols, null, null, "last_engagement_time_utc_millis DESC")) {
+        try (Cursor q = c.getContentResolver().query(watchNext(), cols, null, null, "last_engagement_time_utc_millis DESC")) {
             if (q == null) return out;
             while (q.moveToNext() && out.size() < MAX) {
                 String pkg = q.getString(1);
@@ -110,7 +113,7 @@ final class KeepWatching {
      */
     static Intent intent(Context c, Item item) {
         PackageManager pm = c.getPackageManager();
-        try (Cursor q = c.getContentResolver().query(ContentUris.withAppendedId(WATCH_NEXT, item.id),
+        try (Cursor q = c.getContentResolver().query(ContentUris.withAppendedId(watchNext(), item.id),
                 new String[] {"package_name", "intent_uri"}, null, null, null)) {
             if (q != null && q.moveToFirst() && item.pkg.equals(q.getString(0)) && !blank(q.getString(1))) {
                 Intent i = Intent.parseUri(q.getString(1), Intent.URI_INTENT_SCHEME);
