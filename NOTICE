@@ -40,3 +40,7 @@ This product includes third-party components under their own licences:
 - Weather data and place search — Open-Meteo (https://open-meteo.com); MET Norway as a fallback
 - AirPlay Server (https://github.com/jqssun/android-airplay-server) — not included; the launcher only
   talks to it when it is installed (GPL-3.0)
+- adb (Android SDK Platform-Tools) — bundled inside the Mac app (mac/build.sh); Apache License 2.0,
+  https://developer.android.com/tools/releases/platform-tools
+- The Mac app follows the idea of CleanMyTV's desktop app (https://github.com/wingedpanther/cleanmytv);
+  no code from it is used

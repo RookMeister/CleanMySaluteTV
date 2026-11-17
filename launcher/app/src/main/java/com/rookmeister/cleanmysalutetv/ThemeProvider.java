@@ -2,7 +2,9 @@ package com.rookmeister.cleanmysalutetv;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 
@@ -18,6 +20,10 @@ import java.io.FileNotFoundException;
  *   content write --uri content://com.rookmeister.cleanmysalutetv.theme/wallpapers/dusk.jpg < /data/local/tmp/dusk.jpg
  *   content delete --uri content://com.rookmeister.cleanmysalutetv.theme/config.json
  *   content delete --uri content://com.rookmeister.cleanmysalutetv.theme/wallpapers      (every image in the collection)
+ *
+ * CleanMySaluteTV: the Mac app (RemoteSettings) also reads and writes remote/ here, and calls
+ *   content call --uri content://com.rookmeister.cleanmysalutetv.theme --method export
+ *   content call --uri content://com.rookmeister.cleanmysalutetv.theme --method apply
  */
 public class ThemeProvider extends ContentProvider {
 
@@ -55,6 +61,27 @@ public class ThemeProvider extends ContentProvider {
         } catch (FileNotFoundException e) {
             return 0;
         }
+    }
+
+    /** CleanMySaluteTV: "export" and "apply" for the Mac app (RemoteSettings); "ok" true or an "error". */
+    @Override
+    public Bundle call(String method, String arg, Bundle extras) {
+        // call() gets no permission check of its own, unlike the files: the adb shell's, as for those.
+        if (getContext().checkCallingPermission(android.Manifest.permission.WRITE_SECURE_SETTINGS)
+                != PackageManager.PERMISSION_GRANTED) {
+            throw new SecurityException("WRITE_SECURE_SETTINGS required");
+        }
+        Bundle out = new Bundle();
+        try {
+            if ("export".equals(method)) RemoteSettings.export(getContext());
+            else if ("apply".equals(method)) RemoteSettings.apply(getContext());
+            else throw new IllegalArgumentException("unknown method " + method);
+            out.putBoolean("ok", true);
+        } catch (Exception e) {
+            out.putBoolean("ok", false);
+            out.putString("error", String.valueOf(e));
+        }
+        return out;
     }
 
     @Override public boolean onCreate() { return true; }

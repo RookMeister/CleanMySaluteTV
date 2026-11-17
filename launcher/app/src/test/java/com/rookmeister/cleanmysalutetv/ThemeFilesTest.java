@@ -44,6 +44,16 @@ public class ThemeFilesTest {
         assertNull(ThemeFiles.path(Arrays.asList("wallpapers", "sub", "dusk.jpg")));
     }
 
+    @Test public void theMacAppsFilesAreAllowedAndNothingElseUnderRemote() {
+        assertEquals("remote/state.json", ThemeFiles.path(Arrays.asList("remote", "state.json")));
+        assertEquals("remote/apply.json", ThemeFiles.path(Arrays.asList("remote", "apply.json")));
+        assertEquals("remote/icons/com.vk.tv.png", ThemeFiles.path(Arrays.asList("remote", "icons", "com.vk.tv.png")));
+        assertNull(ThemeFiles.path(Arrays.asList("remote", "run.sh")));
+        assertNull(ThemeFiles.path(Arrays.asList("remote", "icons", "../config.json")));
+        assertNull(ThemeFiles.path(Arrays.asList("remote", "icons", "a/b.png")));
+        assertNull(ThemeFiles.path(Arrays.asList("remote", "icons", "x.jpg")));
+    }
+
     @Test public void onlyTheBareFolderIsTheCollection() {
         assertTrue(ThemeFiles.isCollection(Collections.singletonList("wallpapers")));
         assertFalse(ThemeFiles.isCollection(Arrays.asList("wallpapers", "dusk.jpg")));

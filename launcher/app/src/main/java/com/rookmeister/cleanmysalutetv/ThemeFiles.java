@@ -10,6 +10,9 @@ final class ThemeFiles {
     private static final Pattern IMAGE = Pattern.compile("[A-Za-z0-9_.-]+\\.(jpg|jpeg|png|webp)",
             Pattern.CASE_INSENSITIVE);
 
+    /** An app icon the Mac app reads: a package name and .png. */
+    private static final Pattern ICON = Pattern.compile("[A-Za-z0-9_.]+\\.png");
+
     private ThemeFiles() {}
 
     /** The path relative to the theme directory, e.g. "config.json" or "wallpapers/dusk.jpg", or null if refused. */
@@ -19,6 +22,15 @@ final class ThemeFiles {
             String name = segments.get(0);
             return Config.FILE_NAME.equals(name) || "wallpaper.jpg".equals(name) || "theme_revision".equals(name)
                     ? name : null;
+        }
+        // CleanMySaluteTV: the Mac app's files (RemoteSettings): remote/state.json, remote/apply.json and the icons.
+        if (segments.size() == 2 && RemoteSettings.DIR.equals(segments.get(0))
+                && (RemoteSettings.STATE.equals(segments.get(1)) || RemoteSettings.APPLY.equals(segments.get(1)))) {
+            return RemoteSettings.DIR + "/" + segments.get(1);
+        }
+        if (segments.size() == 3 && RemoteSettings.DIR.equals(segments.get(0)) && RemoteSettings.ICONS.equals(segments.get(1))
+                && ICON.matcher(segments.get(2)).matches()) {
+            return RemoteSettings.DIR + "/" + RemoteSettings.ICONS + "/" + segments.get(2);
         }
         if (segments.size() == 2 && WALLPAPERS.equals(segments.get(0))
                 && (collectionImage(segments.get(1)) || WallpaperCaptions.FILE_NAME.equals(segments.get(1)))) {

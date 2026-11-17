@@ -366,7 +366,7 @@ public final class MenuSettingsActivity extends Activity {
 
     private void apps() {
         Config cfg = Config.load(this);
-        if (plan == null) plan = loadPlan(cfg);
+        if (plan == null) plan = HomeApps.load(this, cfg);
         // The dock's size, 4 to 9 apps: the dock's band is as long as the apps in it.
         group(R.string.menu_group_dock);
         row(getString(R.string.menu_columns), null, String.valueOf(plan.size), null, null, () -> {
@@ -401,9 +401,9 @@ public final class MenuSettingsActivity extends Activity {
         String where = key.equals(moving) ? getString(R.string.menu_apps_move_value)
                 : getString(state == AppsPlan.DOCK ? R.string.menu_apps_in_dock
                         : state == AppsPlan.MORE ? R.string.menu_apps_in_more : R.string.menu_apps_is_hidden);
-        String[] app = appInfo(key);
-        if (app == null) return;   // uninstalled since
-        View r = rowView(app[0], null, where, appIcon(key), null);
+        String name = HomeApps.label(this, key);
+        if (name == null) return;   // uninstalled since
+        View r = rowView(name, null, where, HomeApps.icon(this, key), null);
         r.setTag(key);
         if (key.equals(moving)) r.setActivated(true);
         r.setOnClickListener(v -> {
@@ -472,70 +472,12 @@ public final class MenuSettingsActivity extends Activity {
         focusList();
     }
 
-    private AppsPlan loadPlan(Config cfg) {
-        android.content.pm.PackageManager pm = getPackageManager();
-        List<String> home = new ArrayList<>();
-        java.util.Set<String> homePkgs = new java.util.HashSet<>();
-        for (String key : HomeTiles.load(this)) {
-            android.content.ComponentName cn = android.content.ComponentName.unflattenFromString(key);
-            if (cn == null || cn.getPackageName().equals(getPackageName()) || appInfo(key) == null) continue;
-            home.add(key);
-            homePkgs.add(cn.getPackageName());
-        }
-        java.util.TreeMap<String, String> hidden = new java.util.TreeMap<>();
-        java.util.Set<String> seen = new java.util.HashSet<>(homePkgs);
-        for (String category : new String[] {Intent.CATEGORY_LEANBACK_LAUNCHER, Intent.CATEGORY_LAUNCHER}) {
-            Intent probe = new Intent(Intent.ACTION_MAIN).addCategory(category);
-            for (android.content.pm.ResolveInfo r : pm.queryIntentActivities(probe, 0)) {
-                String pkg = r.activityInfo.packageName;
-                if (pkg.equals(getPackageName()) || !seen.add(pkg)) continue;
-                String key = new android.content.ComponentName(pkg, r.activityInfo.name).flattenToShortString();
-                hidden.put(String.valueOf(r.loadLabel(pm)).toLowerCase(java.util.Locale.ROOT) + "\u0000" + key, key);
-            }
-        }
-        return new AppsPlan(home, cfg.columns, new ArrayList<>(hidden.values()));
-    }
-
-    /** Saves a new plan: Order (and the dock size), and which apps left Home or came back to it; Home rebuilds. */
+    /** Saves a new plan (HomeApps); Home rebuilds with it. */
     private void setPlan(AppsPlan next) {
         AppsPlan before = plan;
         plan = next;
-        Config cfg = Config.load(this);
-        for (String key : before.hidden) {
-            if (!next.hidden.contains(key)) LibraryApps.save(this, pkgOf(key), true);
-        }
-        for (String key : next.hidden) {
-            if (!before.hidden.contains(key)) LibraryApps.save(this, pkgOf(key), false);
-        }
-        Order.save(Order.file(this), new Order(Order.dockKey(cfg.dockApps), next.home, cfg.fillDock ? -1 : next.docked));
-        HomeTiles.save(this, next.home);
+        HomeApps.save(this, before, next);
         changed();
-    }
-
-    private static String pkgOf(String key) {
-        int slash = key.indexOf('/');
-        return slash < 0 ? key : key.substring(0, slash);
-    }
-
-    /** {label} for a tile key, or null when its app is gone. */
-    private String[] appInfo(String key) {
-        android.content.ComponentName cn = android.content.ComponentName.unflattenFromString(key);
-        if (cn == null) return null;
-        android.content.pm.PackageManager pm = getPackageManager();
-        try {
-            return new String[] {String.valueOf(pm.getActivityInfo(cn, 0).loadLabel(pm))};
-        } catch (android.content.pm.PackageManager.NameNotFoundException e) {
-            return null;
-        }
-    }
-
-    private Drawable appIcon(String key) {
-        android.content.ComponentName cn = android.content.ComponentName.unflattenFromString(key);
-        try {
-            return getPackageManager().getActivityIcon(cn);
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     private void more() {

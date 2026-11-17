@@ -14,3 +14,7 @@ launcher/.idea/
 *.apk
 *.aab
 .DS_Store
+
+# Mac app
+mac/.build/
+mac/build/
