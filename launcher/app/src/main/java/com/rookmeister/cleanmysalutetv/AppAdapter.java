@@ -118,7 +118,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     static boolean smallDock;
     static final float SMALL_TILE_DP = 56f;
     /** The room between two small tiles, besides the focus zoom. */
-    static final float SMALL_GAP_DP = 18f;
+    // CleanMySaluteTV: 15, not 18: nine apps, the gear and "…" fit across the screen (couch-tv: 13).
+    static final float SMALL_GAP_DP = 15f;
 
     /** One column of the small dock: the tile, its focus zoom and the gap. */
     static int smallCellPx(float density) {

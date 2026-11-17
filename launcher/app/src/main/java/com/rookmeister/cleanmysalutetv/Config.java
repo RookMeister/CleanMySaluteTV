@@ -269,6 +269,8 @@ final class Config {
     final boolean clockGlow;
     /** Every app in the dock's row, which scrolls sideways, and no grid below it (config.xml, single_row); needs dock_row. */
     final boolean singleRow;
+    /** CleanMySaluteTV: how many apps the dock can be set to hold (the settings menu's Apps). */
+    static final int DOCK_MIN = 4, DOCK_MAX = 9;
     /** With single_row, the band runs behind every app in the row, not only the dock apps (config.xml, dock_band_all). */
     final boolean dockBandAll;
 
@@ -551,7 +553,7 @@ final class Config {
             inputAction = string(json, "input_action", inputAction);
             inputSources = stringList(json, "input_sources", inputSources);
             inputUriScheme = string(json, "input_uri_scheme", inputUriScheme).trim();
-            columns = integer(json, "columns", columns, 1, 8);
+            columns = integer(json, "columns", columns, 1, DOCK_MAX);
             rowsBelow = integer(json, "rows_below_dock", rowsBelow, 0, 3);
             animations = bool(json, "animations", animations);
             advancedEffects = bool(json, "advanced_effects", advancedEffects);
@@ -648,12 +650,13 @@ final class Config {
         // Unmounted storage looks like a theme reset; compare only once the file is readable.
         if (mounted) syncThemeChoices(choices, dir, file);
         int chosenColumns = choices.getInt("columns", columns);
-        if (chosenColumns >= 4 && chosenColumns <= 7) columns = chosenColumns;
+        if (chosenColumns >= DOCK_MIN && chosenColumns <= DOCK_MAX) columns = chosenColumns;
         int chosenRows = choices.getInt(ROWS_BELOW_DOCK_KEY, rowsBelow);
         if (chosenRows >= 0 && chosenRows <= 3) rowsBelow = chosenRows;
         animations = choices.getBoolean("animations", animations);
-        // CleanMySaluteTV: "Every app in the dock" in the settings menu (OnTvChoices.DOCK_ALL_APPS) is single_row.
-        singleRow = choices.getBoolean(OnTvChoices.DOCK_ALL_APPS, singleRow);
+        // CleanMySaluteTV: no "every app in the dock" any more (the owner's wish): the dock holds the 4 to 9 apps chosen
+        // in the settings menu, and "…" has the rest.
+        singleRow = false;
         // CleanMySaluteTV: the Buttons section. A ticked VPN button is the vpn_pill; the app it opens is the owner's.
         String buttons = choices.getString(TopButtons.KEY, null);
         if (buttons != null) vpnPill = TopButtons.parse(buttons).contains(TopButtons.VPN);

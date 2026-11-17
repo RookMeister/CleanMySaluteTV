@@ -261,4 +261,5 @@
     <string name="menu_apps_move_value">Вверх и вниз — переместить</string>
     <string name="menu_apps_note">OK переносит приложение: в док, в «Ещё» и в скрытые. Удерживайте OK, чтобы поменять порядок.</string>
     <string name="menu_apps_moving">Вверх и вниз — переместить, OK или Назад — готово.</string>
+    <string name="menu_columns_sub">От 4 до 9; по ним строится длина дока</string>
 </resources>

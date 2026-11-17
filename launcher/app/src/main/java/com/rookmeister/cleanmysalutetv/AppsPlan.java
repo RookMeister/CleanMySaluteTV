@@ -9,24 +9,25 @@ import java.util.List;
  * past the dock, behind "…") or hidden. OK moves an app on to the next of those, holding OK moves it up or down
  * among its neighbours.
  *
- * Home is one ordered list of tile keys (Order) whose first {@link #docked} are the dock; hidden apps are kept apart
+ * Home is one ordered list of tile keys (Order) whose first {@link #size} are the dock. The dock's size is the
+ * owner's choice (4 to 9, Config.DOCK_MIN..DOCK_MAX) and moving apps never changes it: an app leaving the dock lets
+ * the first of More apps in, and one coming in pushes the dock's last out to More apps. Hidden apps are kept apart
  * (LibraryApps' removed set). Pure lists, so the JVM tests check it; MenuSettingsActivity saves the result.
  */
 final class AppsPlan {
     static final int DOCK = 0, MORE = 1, HIDDEN = 2;
-    /** The dock keeps at least one app, and no more than fit across the screen. */
-    static final int MIN_DOCK = 1, MAX_DOCK = 10;
 
     final List<String> home;
+    /** The dock's size as chosen. */
+    final int size;
+    /** How many apps are in the dock: the size, or fewer when Home has fewer apps. */
     final int docked;
     final List<String> hidden;
-    /** Every Home app is in the dock (dock_all_apps): there is no More apps. */
-    final boolean allDocked;
 
-    AppsPlan(List<String> home, int docked, List<String> hidden, boolean allDocked) {
+    AppsPlan(List<String> home, int size, List<String> hidden) {
         this.home = Collections.unmodifiableList(new ArrayList<>(home));
-        this.allDocked = allDocked;
-        this.docked = allDocked ? this.home.size() : Math.max(0, Math.min(docked, this.home.size()));
+        this.size = Math.max(1, size);
+        this.docked = Math.min(this.size, this.home.size());
         this.hidden = Collections.unmodifiableList(new ArrayList<>(hidden));
     }
 
@@ -37,21 +38,20 @@ final class AppsPlan {
     }
 
     /**
-     * OK: dock, then More apps, then hidden, then the dock again (its end). With every app docked there is no More
-     * apps. The last app in the dock stays: an empty dock has nothing to focus.
+     * OK: dock, then More apps, then hidden, then the dock again (its end). With no More apps to step in, a docked app
+     * goes straight to hidden. The last app on Home stays: an empty dock has nothing to focus.
      */
     AppsPlan cycle(String key) {
         List<String> h = new ArrayList<>(home), x = new ArrayList<>(hidden);
-        int d = docked;
         switch (state(key)) {
             case DOCK:
-                if (docked <= MIN_DOCK) return this;
+                if (home.size() <= 1) return this;
                 h.remove(key);
-                d--;
-                if (allDocked) {
-                    x.add(0, key);
+                if (home.size() > size) {
+                    // the first of More apps has moved up into the dock: the key goes in just after it
+                    h.add(size, key);
                 } else {
-                    h.add(d, key);   // the first of More apps
+                    x.add(0, key);
                 }
                 break;
             case MORE:
@@ -59,18 +59,12 @@ final class AppsPlan {
                 x.add(0, key);
                 break;
             default:
-                if (!allDocked && docked >= MAX_DOCK) {
-                    // a full dock: back to Home as the first of More apps
-                    x.remove(key);
-                    h.add(docked, key);
-                    break;
-                }
                 x.remove(key);
-                h.add(d, key);
-                d++;
+                // the dock's end; a full dock's last app steps out to More apps
+                h.add(home.size() >= size ? size - 1 : home.size(), key);
                 break;
         }
-        return new AppsPlan(h, d, x, allDocked);
+        return new AppsPlan(h, size, x);
     }
 
     /** Holding OK: one step up ({@code -1}) or down ({@code 1}) inside the app's own group; hidden apps keep no order. */
@@ -82,6 +76,6 @@ final class AppsPlan {
         if (j < from || j >= to) return this;
         List<String> h = new ArrayList<>(home);
         Collections.swap(h, i, j);
-        return new AppsPlan(h, docked, hidden, allDocked);
+        return new AppsPlan(h, size, hidden);
     }
 }

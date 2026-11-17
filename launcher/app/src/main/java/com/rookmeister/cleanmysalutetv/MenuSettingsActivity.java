@@ -212,8 +212,6 @@ public final class MenuSettingsActivity extends Activity {
         group(R.string.menu_group_dock);
         row(getString(R.string.menu_dock_size), null, getString(small ? R.string.dock_small : R.string.dock_large), null, null,
                 () -> choices.edit().putString(DockStyle.KEY, small ? DockStyle.LARGE : DockStyle.SMALL).apply());
-        row(getString(R.string.menu_dock_all), getString(R.string.menu_dock_all_sub), onOff(cfg.singleRow), null, null,
-                () -> choices.edit().putBoolean(OnTvChoices.DOCK_ALL_APPS, !cfg.singleRow).apply());
         row(getString(R.string.menu_dock_opacity), null, cfg.dockOpacity + "%", null, null,
                 () -> choices.edit().putInt(Config.DOCK_OPACITY_KEY, next(OPACITIES, cfg.dockOpacity)).apply());
         boolean glass = choices.getBoolean(OnTvChoices.GLASS_ICONS, false);
@@ -336,9 +334,16 @@ public final class MenuSettingsActivity extends Activity {
                     () -> choices.edit().putInt(Config.ROWS_BELOW_DOCK_KEY, (cfg.rowsBelowDock + 1) % 4).apply());
         }
         if (plan == null) plan = loadPlan(cfg);
+        // The dock's size, 4 to 9 apps: the dock's band is as long as the apps in it.
+        group(R.string.menu_group_dock);
+        row(getString(R.string.menu_columns), getString(R.string.menu_columns_sub), String.valueOf(plan.size), null, null, () -> {
+            int next = plan.size >= Config.DOCK_MAX ? Config.DOCK_MIN : Math.max(Config.DOCK_MIN, plan.size + 1);
+            choices.edit().putInt("columns", next).apply();
+            plan = new AppsPlan(plan.home, next, plan.hidden);
+        });
         // couch-tv's Apps list: the dock, More apps (behind "…") and hidden, each app with its icon and where it is.
         appsGroup(getString(R.string.menu_apps_dock, plan.docked), plan.home.subList(0, plan.docked));
-        if (!plan.allDocked) appsGroup(getString(R.string.menu_apps_more), plan.home.subList(plan.docked, plan.home.size()));
+        appsGroup(getString(R.string.menu_apps_more), plan.home.subList(plan.docked, plan.home.size()));
         appsGroup(getString(R.string.menu_apps_hidden), plan.hidden);
         TextView note = text(getString(moving != null ? R.string.menu_apps_moving : R.string.menu_apps_note), 14, regular,
                 0xB3FFFFFF);
@@ -436,7 +441,7 @@ public final class MenuSettingsActivity extends Activity {
                 hidden.put(String.valueOf(r.loadLabel(pm)).toLowerCase(java.util.Locale.ROOT) + "\u0000" + key, key);
             }
         }
-        return new AppsPlan(home, Math.min(cfg.columns, home.size()), new ArrayList<>(hidden.values()), cfg.singleRow);
+        return new AppsPlan(home, cfg.columns, new ArrayList<>(hidden.values()));
     }
 
     /** Saves a new plan: Order (and the dock size), and which apps left Home or came back to it; Home rebuilds. */
@@ -451,7 +456,6 @@ public final class MenuSettingsActivity extends Activity {
             if (!before.hidden.contains(key)) LibraryApps.save(this, pkgOf(key), false);
         }
         Order.save(Order.file(this), new Order(Order.dockKey(cfg.dockApps), next.home, cfg.fillDock ? -1 : next.docked));
-        if (!next.allDocked && next.docked != before.docked) choices.edit().putInt("columns", next.docked).apply();
         HomeTiles.save(this, next.home);
         changed();
     }
