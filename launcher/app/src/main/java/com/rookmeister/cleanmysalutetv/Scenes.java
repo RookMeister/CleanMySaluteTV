@@ -167,6 +167,13 @@ final class Scenes {
         return POS_LEFT;
     }
 
+    /**
+     * CleanMySaluteTV: one place for the clock in every scene, the owner's wish: the scenes' own heights (150 to
+     * 268 px) put the date line under the top buttons on some. The date line's top lands 166 px down, clear of the
+     * 88 px buttons that end at 148.
+     */
+    static final float CLOCK_TOP = px(220), CLOCK_SIZE = px(430);
+
     /** couch-tv's date line sits this far above the clock's line box (96 px over 150 at 1080 lines). */
     static final float CAPTION_ABOVE = px(54);
 

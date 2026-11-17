@@ -521,27 +521,21 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                     root.offsetDescendantRectToMyCoords(line, one);
                     all.union(one);
                 }
-                // CleanMySaluteTV: the top buttons too, where they are drawn (alignDateBelowIconsWithClock moves
-                // them by translation): a long weather line under the clock ran under the timer button.
-                View bar = findViewById(R.id.topButtons);
-                // Each button, not the bar: the bar can be laid out shorter than its buttons, which then spill
-                // over its edges.
-                if (bar.getVisibility() == View.VISIBLE) {
-                    for (int k = 0; k < ((ViewGroup) bar).getChildCount(); k++) {
-                        View pill = ((ViewGroup) bar).getChildAt(k);
-                        if (pill.getVisibility() != View.VISIBLE || pill.getWidth() == 0) continue;
-                        one.set(0, 0, pill.getWidth(), pill.getHeight());
-                        root.offsetDescendantRectToMyCoords(pill, one);
-                        one.offset(0, Math.round(bar.getTranslationY() + pill.getTranslationY()));
-                        // only what is on the screen (a parked view sits far off to the side)
-                        if (one.intersect(0, 0, root.getWidth(), root.getHeight())) all.union(one);
-                    }
+                // CleanMySaluteTV: the top buttons too, where they are drawn (pinTopBar moves them by translation):
+                // a long weather line under the clock ran under the timer button.
+                android.graphics.Rect bar = topButtonsRect();
+                if (bar != null) {
+                    View buttons = findViewById(R.id.topButtons);
+                    bar.offset(Math.round(buttons.getTranslationX()), Math.round(buttons.getTranslationY()));
+                    all.union(bar);
                 }
                 if (!all.isEmpty()) scenePlayer.setHeader(all.left, all.right, all.bottom);
             };
             for (View line : lines) line.addOnLayoutChangeListener(header);
-            findViewById(R.id.topButtons).addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) ->
-                    v.post(() -> header.onLayoutChange(v, l, t, r, b, ol, ot, or, ob)));
+            findViewById(R.id.topButtons).addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> v.post(() -> {
+                pinTopBar();
+                header.onLayoutChange(v, l, t, r, b, ol, ot, or, ob);
+            }));
         }
         if (scenePlayer.isOn()) {
             // The scene's clock is the time: the small one in the header would say it twice.
@@ -709,25 +703,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (dockBand != null) grid.addItemDecoration(dockBand);
         // The small dock is the whole bottom of the screen, as in couch-tv: the other apps wait below it.
         if (dockBand != null && AppAdapter.smallDock) dockBand.setGapBelow(Math.round(160 * density));
-        // CleanMySaluteTV: couch-tv's Keep watching cards over the dock (Android's Watch Next list).
-        if (dockRow && KeepWatching.enabled(this)) {
-            keepRow = new KeepRow(this, root, density, new KeepRow.Listener() {
-                @Override public void onOpen(KeepWatching.Item item) {
-                    Intent i = KeepWatching.intent(MainActivity.this, item);
-                    if (i != null) open(i);
-                }
-                @Override public void onUp() { barAnchor(findViewById(R.id.btnSettings)).requestFocus(); }
-                @Override public void onDown() { focusTile(singleRow ? lastFocused : lastFocused % COLUMNS); }
-            });
-        }
         // CleanMySaluteTV: the small dock ends with a gear (the launcher's settings menu) and "…" (every app), as
         // couch-tv's does, in the band. With every app in the dock (single_row) only the gear: there is no "other".
         if (AppAdapter.smallDock && dockRow) {
             Runnable lastApp = () -> focusTile(Math.max(0, dockAppCount() - 1));
-            Runnable up = () -> {
-                if (keepRow != null && keepRow.hasCards()) keepRow.focus();
-                else barAnchor(findViewById(R.id.btnSettings)).requestFocus();
-            };
+            Runnable up = () -> barAnchor(findViewById(R.id.btnSettings)).requestFocus();
             if (appLibraryEnabled && !singleRow) {
                 moreTile = MoreTile.create(this, density, root, R.drawable.ic_cp_more, R.string.cp_all_apps, () -> {
                             onLibraryRequested();
@@ -788,7 +768,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             // Keep the hero below the header when the library is enabled on a short screen,
             // even when the theme requests an extra visible row below the dock.
             int shelfClearance = cfg.appLibrary ? hero.getMeasuredHeight() + (int) (40 * density) : 0;
-            int want = Math.max(shelfClearance, h - dockRow - gridRows - (int) (AppAdapter.BOTTOM_ROOM_DP * density));
+            // CleanMySaluteTV: the small dock sits low, as couch-tv's does (its band 46 px off the bottom edge).
+            int bottomRoom = AppAdapter.smallDock ? 0 : (int) (AppAdapter.BOTTOM_ROOM_DP * density);
+            int want = Math.max(shelfClearance, h - dockRow - gridRows - bottomRoom);
             // Where the rows cannot fit even at the smallest tile (3 rows with the title on), the title keeps its
             // room above the dock and the last rows run off the bottom instead of the title drawing over the clock.
             if (MainActivity.this.dockRow && cfg.dockTitle && rowsBelowDock > 0) want = Math.max(want, (int) (AppAdapter.TITLE_ROOM_DP * density));
@@ -963,8 +945,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (keyCode == KeyEvent.KEYCODE_DPAD_UP) return true;
             if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
                 // Back to the dock tile Up came from, not wherever the focus finder lands.
-                if (keepRow != null && keepRow.hasCards()) keepRow.focus();
-                else focusTile(singleRow ? lastFocused : lastFocused % COLUMNS);
+                focusTile(singleRow ? lastFocused : lastFocused % COLUMNS);
                 return true;
             }
             // CleanMySaluteTV: the owner's buttons in the owner's order, so the ends are the bar's first and last shown.
@@ -976,6 +957,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         };
         topPillKeys = pillKeys;
         applyTopButtons();
+        sizeTopIcons();
         btnInputs.setOnKeyListener(pillKeys);
         btnWifi.setOnKeyListener(pillKeys);
         btnVpn.setOnKeyListener(pillKeys);
@@ -1180,7 +1162,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 break;
         }
         if (openLiveTvAfterBoot()) return;
-        refreshKeepWatching();
         updateGreeting();
         // Back from an app opened from its tile, focus is still on that tile, so the cinematic "Last opened" line kept
         // the time from before this launch ("2 days ago" right after opening it). Refresh it.
@@ -2013,16 +1994,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         String label = adapter.labelAt(position);
         int color = adapter.ambientColorAt(position);
         float y = dockTopInRoot - 14 * density - 26 * density - hero.getHeight();
-        float clockLimit = y;
-        if (keepRow != null) {
-            keepRow.placeAbove(dockTopInRoot, root);
-            // The clock stays above the Keep watching cards too (their height before the first layout: about 110dp).
-            if (keepRow.hasCards()) {
-                float top = keepRow.top();
-                clockLimit = Math.min(y, top > 0 ? top : dockTopInRoot - 124 * density);
-            }
-        }
-        scenePlayer.setDockTop(Math.round(clockLimit));   // the scene clock stays above the app name over the dock
+        scenePlayer.setDockTop(Math.round(y));   // the scene clock stays above the app name over the dock
         boolean changed = !label.contentEquals(heroName.getText());
         if (cinematic && heroArtAlpha > 0f) showHeroArt(position);
 
@@ -2543,7 +2515,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (singleRow) {
             // One row: Up leaves for the top bar, Down has nowhere to go, and Left/Right walk the whole row,
             // stopping at its two ends (the default focus search scrolls the row to the next tile).
-            if (keyCode == KeyEvent.KEYCODE_DPAD_UP) return keepUp();
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP) return false;
             if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) return true;
             boolean forward = rtlAppGrid ? keyCode == KeyEvent.KEYCODE_DPAD_LEFT : keyCode == KeyEvent.KEYCODE_DPAD_RIGHT;
             int last = adapter.focusablePosition(count - 1);
@@ -2576,7 +2548,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // the scene's clock); every other app is one press away behind "…".
         if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && AppAdapter.smallDock && position < COLUMNS) return true;
         if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-            if (position < COLUMNS) return keepUp();       // dock row: Keep watching, else the top bar
+            if (position < COLUMNS) return false;          // dock row: let focus move to the top bar
             target = position - COLUMNS;
         } else {
             int lastRowStart = ((count - 1) / COLUMNS) * COLUMNS;
@@ -3021,6 +2993,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (icon != wifiIcon) {
             wifiIcon = icon;
             btnWifi.setCompoundDrawablesRelativeWithIntrinsicBounds(icon, 0, 0, 0);
+            sizeTopIcons();
         }
         ColorStateList tint = online ? wifiOnlineTint : wifiPlainTint;
         // wifi_status_warnings: orange while connected but not validated (a captive portal), red while offline.
@@ -3051,68 +3024,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private boolean libraryFromMoreTile;
     /** The open library came from the VPN pill (vpn_pill, no VPN app): closing it returns there while the pill still shows. */
     private boolean libraryFromVpnPill;
-
-    // ---- CleanMySaluteTV: Keep watching (KeepWatching, KeepRow) ---------------------------------------
-
-    private KeepRow keepRow;
-    private static final int KEEP_PERMISSION_REQUEST = 4711;
-
-    /** Up from the dock: to the Keep watching cards when there are any. False lets the focus go on to the top bar. */
-    private boolean keepUp() {
-        if (keepRow == null || !keepRow.hasCards()) return false;
-        keepRow.focus();
-        return true;
-    }
-
-    /** Reads Watch Next off the main thread; asks once for the permission it needs. */
-    private void refreshKeepWatching() {
-        if (keepRow == null) return;
-        if (!KeepWatching.granted(this)) {
-            android.content.SharedPreferences p = OnTvChoices.prefs(this);
-            if (!p.getBoolean("keep_asked", false)) {
-                p.edit().putBoolean("keep_asked", true).apply();
-                try {
-                    requestPermissions(new String[] {KeepWatching.PERMISSION}, KEEP_PERMISSION_REQUEST);
-                } catch (RuntimeException ignored) {
-                    // no permission screen on this TV: install.sh grants it
-                }
-            }
-            return;
-        }
-        android.content.Context app = getApplicationContext();
-        new Thread(() -> {
-            java.util.List<KeepWatching.Item> items = KeepWatching.read(app);
-            runOnUiThread(() -> {
-                if (isFinishing() || keepRow == null) return;
-                keepRow.show(items);
-                // the clock makes room for the row once it has its size
-                root.post(() -> { if (lastFocused >= 0 && lastFocused < adapter.appCount()) refreshDockTop(); });
-            });
-        }, "keep-watching").start();
-    }
-
-    /** The scene clock's limit again, after the Keep watching row came or went. */
-    private void refreshDockTop() {
-        RecyclerView.ViewHolder vh = grid.findViewHolderForAdapterPosition(0);
-        View card = vh == null ? null : vh.itemView.findViewById(R.id.card);
-        if (card == null) return;
-        Rect r = new Rect(0, 0, card.getWidth(), card.getHeight());
-        root.offsetDescendantRectToMyCoords(card, r);
-        float dockTop = r.top;   // as showHero gets it: the dock tile's top
-        keepRow.placeAbove(dockTop, root);
-        float y = dockTop - 14 * density - 26 * density - hero.getHeight();
-        if (keepRow.hasCards()) {
-            float top = keepRow.top();
-            y = Math.min(y, top > 0 ? top : dockTop - 124 * density);
-        }
-        scenePlayer.setDockTop(Math.round(y));
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == KEEP_PERMISSION_REQUEST) refreshKeepWatching();
-    }
 
     // ---- CleanMySaluteTV: the owner's top buttons (TopButtons) ----------------------------------------
 
@@ -3151,7 +3062,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private View extraButton(String kind) {
         TextView b = (TextView) getLayoutInflater().inflate(R.layout.top_button, findViewById(R.id.topButtons), false);
         android.graphics.drawable.Drawable icon = getDrawable(TopButtons.icon(kind));
-        int size = Math.round(22 * density);   // the built-in buttons' icon size, whatever the drawable says
+        int size = Math.round(TOP_ICON_DP * density);   // the built-in buttons' icon size, whatever the drawable says
         icon.setBounds(0, 0, size, size);
         b.setCompoundDrawablesRelative(icon, null, null, null);
         b.setContentDescription(getString(TopButtons.label(kind)));
@@ -3227,6 +3138,60 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     }
 
     /** Turns a labelled top pill into the round TopButtonIcon shape: no text, the icon centred by even padding. */
+    /** couch-tv's quick buttons: an 18dp icon (36 px at 1080 lines) in a 44dp round button. */
+    private static final float TOP_ICON_DP = 18;
+
+    /**
+     * The shown top buttons' bounds in root coordinates, leaving out the bar's own translation; null when none is
+     * shown. Each button, not the bar: the bar can be laid out shorter than its buttons, which then spill over it.
+     */
+    private Rect topButtonsRect() {
+        ViewGroup bar = findViewById(R.id.topButtons);
+        if (bar.getVisibility() != View.VISIBLE) return null;
+        Rect all = new Rect(), one = new Rect();
+        for (int k = 0; k < bar.getChildCount(); k++) {
+            View pill = bar.getChildAt(k);
+            if (pill.getVisibility() != View.VISIBLE || pill.getWidth() == 0) continue;
+            one.set(0, 0, pill.getWidth(), pill.getHeight());
+            root.offsetDescendantRectToMyCoords(pill, one);
+            one.offset(0, Math.round(pill.getTranslationY()));
+            // only what is on the screen (a parked view sits far off to the side)
+            if (one.intersect(0, 0, root.getWidth(), root.getHeight())) all.union(one);
+        }
+        return all.isEmpty() ? null : all;
+    }
+
+    /**
+     * Scenes: the top buttons where couch-tv has its quick buttons, 60 px from the top and 80 px in from the right
+     * at 1080 lines, whatever the header around them does.
+     */
+    private void pinTopBar() {
+        View bar = findViewById(R.id.topButtons);
+        Rect r = topButtonsRect();
+        if (r == null || root.getHeight() == 0) return;
+        float unit = root.getHeight() / 1080f;
+        bar.setTranslationX(root.getWidth() - 80 * unit - r.right);
+        bar.setTranslationY(60 * unit - r.top);
+    }
+
+    /** Every top button's own icon at couch-tv's size, whatever size its drawable has. */
+    private void sizeTopIcons() {
+        ViewGroup bar = findViewById(R.id.topButtons);
+        int size = Math.round(TOP_ICON_DP * density);
+        for (int k = 0; k < bar.getChildCount(); k++) {
+            if (!(bar.getChildAt(k) instanceof TextView)) continue;
+            TextView pill = (TextView) bar.getChildAt(k);
+            Drawable[] d = pill.getCompoundDrawablesRelative();
+            boolean any = false;
+            for (Drawable icon : d) {
+                if (icon == null) continue;
+                icon.setBounds(0, 0, size, size);
+                any = true;
+            }
+            if (any) pill.setCompoundDrawablesRelative(d[0], d[1], d[2], d[3]);
+        }
+    }
+
     private void makeIconOnly(TextView pill) {
         pill.setContentDescription(pill.getText());
         pill.setText(null);
@@ -3234,7 +3199,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         int pad = Math.round(13 * density);
         pill.setPaddingRelative(pad, 0, pad, 0);
         pill.setCompoundDrawablePadding(0);
-        pill.getLayoutParams().width = Math.round(48 * density);
+        pill.getLayoutParams().width = Math.round(44 * density);
     }
 
     /**
@@ -3291,6 +3256,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 btnVpn.setContentDescription(getString(up ? R.string.vpn : R.string.vpn_off));
                 btnVpn.setBackground(up ? VpnBadge.pillBackground(true, density) : vpnPlainBackground.newDrawable());
                 btnVpn.setCompoundDrawablesRelativeWithIntrinsicBounds(VpnBadge.iconOnlyLock(up), 0, 0, 0);
+                sizeTopIcons();
                 btnVpn.setCompoundDrawableTintList(up ? ink : vpnPlainInk);
                 btnVpn.setVisibility(View.VISIBLE);
                 return;
@@ -3299,6 +3265,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             btnVpn.setTextColor(ink);
             btnVpn.setBackground(VpnBadge.pillBackground(up, density));
             btnVpn.setCompoundDrawablesRelativeWithIntrinsicBounds(up ? R.drawable.ic_lock : 0, 0, 0, 0);
+            sizeTopIcons();
             btnVpn.setCompoundDrawableTintList(ink);
         }
         btnVpn.setVisibility(View.VISIBLE);

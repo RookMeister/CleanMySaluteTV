@@ -139,9 +139,9 @@ final class SceneRenderer {
             text.setTextAlign(Paint.Align.CENTER);
             x = width / 2f;
         }
-        float top = s.top * height;
+        float top = Scenes.CLOCK_TOP * height;
         // The digits' ink ends about 0.92 of the font size under the top of the line box (Antonio, line-height 0.82).
-        float size = Scenes.fitSize(s.top, s.size, 0.92f, limit) * height;
+        float size = Scenes.fitSize(Scenes.CLOCK_TOP, Scenes.CLOCK_SIZE, 0.92f, limit) * height;
         RectF box = new RectF();
         float baseline = place(text, time, x, top, size, box);
         if (header != null) {
@@ -149,7 +149,7 @@ final class SceneRenderer {
                     header[0] * width, header[1] * width, header[2] * height, 14f * height / 1080f);
             if (moved != top) {
                 top = moved;
-                size = Scenes.fitSize(top / height, s.size, 0.92f, limit) * height;
+                size = Scenes.fitSize(top / height, Scenes.CLOCK_SIZE, 0.92f, limit) * height;
                 baseline = place(text, time, x, top, size, box);
             }
             // CleanMySaluteTV: the date line over the digits too, placed as drawCaption places it; a long weather
@@ -163,7 +163,7 @@ final class SceneRenderer {
                         header[0] * width, header[1] * width, header[2] * height, 8f * unit);
                 if (lowered != top) {
                     top = lowered;
-                    size = Scenes.fitSize(top / height, s.size, 0.92f, limit) * height;
+                    size = Scenes.fitSize(top / height, Scenes.CLOCK_SIZE, 0.92f, limit) * height;
                     baseline = place(text, time, x, top, size, box);
                 }
             }

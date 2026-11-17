@@ -90,7 +90,8 @@ public class DockDecoration extends RecyclerView.ItemDecoration {
         int pos = parent.getChildAdapterPosition(view);
         if (pos >= 0 && (singleRow || pos < dockSize)) {
             outRect.top = (int) (6 * density);
-            outRect.bottom = (int) (12 * density) + (singleRow ? 0 : gapBelow);
+            // CleanMySaluteTV: none under the small dock, which sits low like couch-tv's.
+            outRect.bottom = (AppAdapter.smallDock ? 0 : (int) (12 * density)) + (singleRow ? 0 : gapBelow);
         }
     }
 

@@ -211,9 +211,6 @@ public final class MenuSettingsActivity extends Activity {
                 () -> choices.edit().putBoolean(OnTvChoices.DOCK_ALL_APPS, !cfg.singleRow).apply());
         row(getString(R.string.menu_dock_opacity), null, cfg.dockOpacity + "%", null, null,
                 () -> choices.edit().putInt(Config.DOCK_OPACITY_KEY, next(OPACITIES, cfg.dockOpacity)).apply());
-        boolean keep = KeepWatching.enabled(this);
-        row(getString(R.string.keep_title), getString(R.string.menu_keep_sub), onOff(keep), null, null,
-                () -> choices.edit().putBoolean(OnTvChoices.KEEP_WATCHING, !keep).remove("keep_asked").apply());
         boolean glass = choices.getBoolean(OnTvChoices.GLASS_ICONS, false);
         row(getString(R.string.menu_glass_icons), getString(R.string.menu_glass_icons_sub), onOff(glass), null, null,
                 () -> choices.edit().putBoolean(OnTvChoices.GLASS_ICONS, !glass).apply());

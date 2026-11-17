@@ -9,8 +9,8 @@
     <!-- Frosted pill, tvOS style. -->
     <style name="TopButtonBase">
         <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">48dp</item>
-        <item name="android:layout_marginStart">10dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:layout_marginStart">6dp</item>
         <item name="android:paddingStart">16dp</item>
         <item name="android:paddingEnd">20dp</item>
         <item name="android:gravity">center</item>
@@ -26,10 +26,10 @@
     </style>
     <style name="TopButton" parent="TopButtonBase" />
 
-    <!-- Icon-only pill: a 42dp circle (pill_bg's 21dp corners) with the 22dp icon centred by even padding. Give it a
+    <!-- Icon-only pill: couch-tv's 88 px round quick button, a 44dp circle (pill_bg's 22dp corners) with the 18dp icon centred by even padding. Give it a
          contentDescription, since there is no text. -->
     <style name="TopButtonIcon" parent="TopButtonBase">
-        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_width">44dp</item>
         <item name="android:paddingStart">13dp</item>
         <item name="android:paddingEnd">13dp</item>
         <item name="android:drawablePadding">0dp</item>

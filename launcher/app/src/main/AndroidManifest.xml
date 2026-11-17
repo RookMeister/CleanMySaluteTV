@@ -23,8 +23,6 @@
     <!-- CleanMySaluteTV sleep timer (PowerControl): on time rather than in Android's loose window. Not granted at
          install from Android 13; install.sh allows it with POWER=yes (appops). -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <!-- Keep watching: Android's Watch Next list (KeepWatching), read only. -->
-    <uses-permission android:name="android.permission.READ_TV_LISTINGS" />
     <uses-permission android:name="android.permission.DUMP" tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
