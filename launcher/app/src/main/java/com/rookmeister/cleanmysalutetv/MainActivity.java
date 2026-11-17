@@ -1347,6 +1347,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         cancelHoldOk();
         root.removeCallbacks(showIdleClock);
         endReorder();   // Home or another app while reordering keeps the order so far
+        // CleanMySaluteTV: the settings menu's Apps list shows Home as it is now (AppsPlan).
+        if (adapter != null && adapter.movableCount() > 0) HomeTiles.save(this, adapter.movableKeys());
         wallpaperPlayer.stop();
         scenePlayer.stop();
         weather.stop();

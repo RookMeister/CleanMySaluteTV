@@ -252,4 +252,13 @@
     <string name="scene_paddy">Ванвьенг, Лаос</string>
     <string name="menu_glass_icons">Стеклянные значки</string>
     <string name="menu_glass_icons_sub">Символ приложения белым на стекле; выбранное — в своих цветах</string>
+    <string name="menu_apps_dock">В доке (%1$d)</string>
+    <string name="menu_apps_more">Ещё приложения</string>
+    <string name="menu_apps_hidden">Скрытые</string>
+    <string name="menu_apps_in_dock">В доке</string>
+    <string name="menu_apps_in_more">Ещё</string>
+    <string name="menu_apps_is_hidden">Скрыто</string>
+    <string name="menu_apps_move_value">Вверх и вниз — переместить</string>
+    <string name="menu_apps_note">OK переносит приложение: в док, в «Ещё» и в скрытые. Удерживайте OK, чтобы поменять порядок.</string>
+    <string name="menu_apps_moving">Вверх и вниз — переместить, OK или Назад — готово.</string>
 </resources>

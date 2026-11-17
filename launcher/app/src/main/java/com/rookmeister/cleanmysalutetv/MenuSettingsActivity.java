@@ -74,6 +74,10 @@ public final class MenuSettingsActivity extends Activity {
     private boolean searching;
     /** The Buttons section's app list for the VPN button is open. */
     private boolean pickingVpn;
+    /** The Apps list: where every app is; null until the section is first drawn. */
+    private AppsPlan plan;
+    /** The app being moved with Up and Down (held OK), or null. */
+    private String moving;
     /** True while the right pane is being drawn again: focus moves made for it are not section changes. */
     private boolean rebuilding;
     private List<String[]> found;
@@ -170,6 +174,7 @@ public final class MenuSettingsActivity extends Activity {
     private void show(int s, int keepRow) {
         if (s != WEATHER) searching = false;
         if (s != BUTTONS) pickingVpn = false;
+        if (s != APPS) moving = null;
         rebuilding = true;
         // The focused row is about to go: park the focus on this section's own item first, or Android hands it to
         // the first item on the left, which would switch the section.
@@ -325,28 +330,156 @@ public final class MenuSettingsActivity extends Activity {
 
     private void apps() {
         Config cfg = Config.load(this);
-        boolean small = DockStyle.small(this);
-        group(R.string.menu_group_layout);
-        row(getString(R.string.menu_columns), null, String.valueOf(cfg.columns), null, null,
-                () -> choices.edit().putInt("columns", cfg.columns >= 7 ? 4 : cfg.columns + 1).apply());
-        if (small) {
-            info(getString(R.string.menu_rows), getString(R.string.menu_rows_small), "0");
-        } else {
+        if (!DockStyle.small(this)) {
+            group(R.string.menu_group_layout);
             row(getString(R.string.menu_rows), null, String.valueOf(cfg.rowsBelowDock), null, null,
                     () -> choices.edit().putInt(Config.ROWS_BELOW_DOCK_KEY, (cfg.rowsBelowDock + 1) % 4).apply());
         }
-        group(R.string.menu_group_all);
-        rowAction(getString(R.string.cp_all_apps), getString(R.string.menu_all_apps_sub), null, () -> {
-            // Through Home, which owns the app library and rebuilds with what changes there.
-            open(new Intent(this, MainActivity.class).setAction(MainActivity.ACTION_APP_LIBRARY)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-            finish();
+        if (plan == null) plan = loadPlan(cfg);
+        // couch-tv's Apps list: the dock, More apps (behind "…") and hidden, each app with its icon and where it is.
+        appsGroup(getString(R.string.menu_apps_dock, plan.docked), plan.home.subList(0, plan.docked));
+        if (!plan.allDocked) appsGroup(getString(R.string.menu_apps_more), plan.home.subList(plan.docked, plan.home.size()));
+        appsGroup(getString(R.string.menu_apps_hidden), plan.hidden);
+        TextView note = text(getString(moving != null ? R.string.menu_apps_moving : R.string.menu_apps_note), 14, regular,
+                0xB3FFFFFF);
+        note.setPadding(px(16), px(10), px(16), px(6));
+        list.addView(note);
+    }
+
+    private void appsGroup(String name, List<String> keys) {
+        if (keys.isEmpty()) return;
+        TextView g = text(name.toUpperCase(java.util.Locale.getDefault()), 12, medium, 0x99FFFFFF);
+        g.setLetterSpacing(0.08f);
+        g.setPadding(px(16), px(14), 0, px(6));
+        list.addView(g);
+        for (String key : keys) appRow(key);
+    }
+
+    private void appRow(String key) {
+        int state = plan.state(key);
+        String where = key.equals(moving) ? getString(R.string.menu_apps_move_value)
+                : getString(state == AppsPlan.DOCK ? R.string.menu_apps_in_dock
+                        : state == AppsPlan.MORE ? R.string.menu_apps_in_more : R.string.menu_apps_is_hidden);
+        String[] app = appInfo(key);
+        if (app == null) return;   // uninstalled since
+        View r = rowView(app[0], null, where, appIcon(key), null);
+        r.setTag(key);
+        if (key.equals(moving)) r.setActivated(true);
+        r.setOnClickListener(v -> {
+            if (moving != null) {
+                moving = null;
+                showApp(key);
+                return;
+            }
+            setPlan(plan.cycle(key));
+            showApp(key);
         });
-        group(R.string.menu_group_order);
-        rowAction(getString(R.string.menu_reorder), getString(R.string.menu_reorder_sub), null, () -> {
-            setResult(RESULT_OK, new Intent().putExtra(LauncherSettingsActivity.EXTRA_REORDER, true));
-            finish();
+        r.setOnLongClickListener(v -> {
+            if (plan.state(key) == AppsPlan.HIDDEN) return true;   // hidden apps keep no order
+            moving = key;
+            showApp(key);
+            return true;
         });
+        View.OnKeyListener left = (v, code, event) -> {
+            if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
+            if (key.equals(moving) && (code == KeyEvent.KEYCODE_DPAD_UP || code == KeyEvent.KEYCODE_DPAD_DOWN)) {
+                AppsPlan next = plan.move(key, code == KeyEvent.KEYCODE_DPAD_UP ? -1 : 1);
+                if (next != plan) {
+                    setPlan(next);
+                    showApp(key);
+                }
+                return true;
+            }
+            if (moving != null && code != KeyEvent.KEYCODE_DPAD_CENTER && code != KeyEvent.KEYCODE_ENTER) return true;
+            if (code == KeyEvent.KEYCODE_DPAD_LEFT) {
+                sideItems.get(section).requestFocus();
+                return true;
+            }
+            return false;
+        };
+        r.setOnKeyListener(left);
+        list.addView(r, rowParams());
+    }
+
+    /** The Apps list again, the focus on {@code key}'s row (where the app now is). */
+    private void showApp(String key) {
+        show(APPS, -1);
+        for (int i = 0; i < list.getChildCount(); i++) {
+            View v = list.getChildAt(i);
+            if (key.equals(v.getTag())) {
+                v.requestFocus();
+                v.post(() -> scroller.smoothScrollTo(0, Math.max(0, v.getTop() - scroller.getHeight() / 3)));
+                return;
+            }
+        }
+        focusList();
+    }
+
+    private AppsPlan loadPlan(Config cfg) {
+        android.content.pm.PackageManager pm = getPackageManager();
+        List<String> home = new ArrayList<>();
+        java.util.Set<String> homePkgs = new java.util.HashSet<>();
+        for (String key : HomeTiles.load(this)) {
+            android.content.ComponentName cn = android.content.ComponentName.unflattenFromString(key);
+            if (cn == null || cn.getPackageName().equals(getPackageName()) || appInfo(key) == null) continue;
+            home.add(key);
+            homePkgs.add(cn.getPackageName());
+        }
+        java.util.TreeMap<String, String> hidden = new java.util.TreeMap<>();
+        java.util.Set<String> seen = new java.util.HashSet<>(homePkgs);
+        for (String category : new String[] {Intent.CATEGORY_LEANBACK_LAUNCHER, Intent.CATEGORY_LAUNCHER}) {
+            Intent probe = new Intent(Intent.ACTION_MAIN).addCategory(category);
+            for (android.content.pm.ResolveInfo r : pm.queryIntentActivities(probe, 0)) {
+                String pkg = r.activityInfo.packageName;
+                if (pkg.equals(getPackageName()) || !seen.add(pkg)) continue;
+                String key = new android.content.ComponentName(pkg, r.activityInfo.name).flattenToShortString();
+                hidden.put(String.valueOf(r.loadLabel(pm)).toLowerCase(java.util.Locale.ROOT) + "\u0000" + key, key);
+            }
+        }
+        return new AppsPlan(home, Math.min(cfg.columns, home.size()), new ArrayList<>(hidden.values()), cfg.singleRow);
+    }
+
+    /** Saves a new plan: Order (and the dock size), and which apps left Home or came back to it; Home rebuilds. */
+    private void setPlan(AppsPlan next) {
+        AppsPlan before = plan;
+        plan = next;
+        Config cfg = Config.load(this);
+        for (String key : before.hidden) {
+            if (!next.hidden.contains(key)) LibraryApps.save(this, pkgOf(key), true);
+        }
+        for (String key : next.hidden) {
+            if (!before.hidden.contains(key)) LibraryApps.save(this, pkgOf(key), false);
+        }
+        Order.save(Order.file(this), new Order(Order.dockKey(cfg.dockApps), next.home, cfg.fillDock ? -1 : next.docked));
+        if (!next.allDocked && next.docked != before.docked) choices.edit().putInt("columns", next.docked).apply();
+        HomeTiles.save(this, next.home);
+        changed();
+    }
+
+    private static String pkgOf(String key) {
+        int slash = key.indexOf('/');
+        return slash < 0 ? key : key.substring(0, slash);
+    }
+
+    /** {label} for a tile key, or null when its app is gone. */
+    private String[] appInfo(String key) {
+        android.content.ComponentName cn = android.content.ComponentName.unflattenFromString(key);
+        if (cn == null) return null;
+        android.content.pm.PackageManager pm = getPackageManager();
+        try {
+            return new String[] {String.valueOf(pm.getActivityInfo(cn, 0).loadLabel(pm))};
+        } catch (android.content.pm.PackageManager.NameNotFoundException e) {
+            return null;
+        }
+    }
+
+    private Drawable appIcon(String key) {
+        android.content.ComponentName cn = android.content.ComponentName.unflattenFromString(key);
+        try {
+            return getPackageManager().getActivityIcon(cn);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private void more() {
@@ -391,6 +524,12 @@ public final class MenuSettingsActivity extends Activity {
     @Override
     public void onBackPressed() {
         // Back leaves a sub-page (the city search, the VPN app list) for its section first, as couch-tv's do.
+        if (moving != null) {
+            String key = moving;
+            moving = null;
+            showApp(key);
+            return;
+        }
         if (pickingVpn) {
             pickingVpn = false;
             show(BUTTONS, 0);
@@ -587,7 +726,8 @@ public final class MenuSettingsActivity extends Activity {
             GradientDrawable shape = new GradientDrawable();
             shape.setCornerRadius(px(6));
             t.setBackground(shape);
-            LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(px(58), px(32));
+            // an app icon in a square, as couch-tv's Apps list has it; a glyph or a scene photo in the wide frame
+            LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(photo || glyph ? px(58) : px(32), px(32));
             tp.setMarginEnd(px(16));
             r.addView(t, tp);
         }
