@@ -706,7 +706,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // CleanMySaluteTV: the small dock ends with a gear (the launcher's settings menu) and "…" (every app), as
         // couch-tv's does, in the band. "…" stays with every app in the dock (single_row) too: the owner wants it there,
         // and it is the way to the apps that are not on Home.
-        if (AppAdapter.smallDock && dockRow) {
+        // CleanMySaluteTV: off, the owner's wish: the dock holds only apps. The settings menu is the top gear and every
+        // app the top bar's Apps button (TopButtons.APPS). Kept behind this switch should they come back.
+        if (DOCK_EXTRA_TILES && AppAdapter.smallDock && dockRow) {
             Runnable lastApp = () -> focusTile(Math.max(0, dockAppCount() - 1));
             Runnable up = () -> barAnchor(findViewById(R.id.btnSettings)).requestFocus();
             if (appLibraryEnabled) {
@@ -2763,6 +2765,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             grid.stopScroll();
         }
     }
+
+    /** CleanMySaluteTV: the gear and "…" after the small dock's apps; off. */
+    private static final boolean DOCK_EXTRA_TILES = false;
 
     /** The small dock's "…" tile (MoreTile), or null when the dock is large or the app library is off. */
     private MoreTile moreTile;

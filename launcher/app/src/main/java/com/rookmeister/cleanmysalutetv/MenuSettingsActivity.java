@@ -385,11 +385,14 @@ public final class MenuSettingsActivity extends Activity {
         if (plan == null) plan = loadPlan(cfg);
         // The dock's size, 4 to 9 apps: the dock's band is as long as the apps in it.
         group(R.string.menu_group_dock);
-        row(getString(R.string.menu_columns), getString(R.string.menu_columns_sub), String.valueOf(plan.size), null, null, () -> {
+        row(getString(R.string.menu_columns), null, String.valueOf(plan.size), null, null, () -> {
             int next = plan.size >= Config.DOCK_MAX ? Config.DOCK_MIN : Math.max(Config.DOCK_MIN, plan.size + 1);
             choices.edit().putInt("columns", next).apply();
             plan = new AppsPlan(plan.home, next, plan.hidden);
         });
+        boolean libraryTile = choices.getBoolean(OnTvChoices.LIBRARY_TILE, true);
+        row(getString(R.string.menu_library_tile), null, onOff(libraryTile), null, null,
+                () -> choices.edit().putBoolean(OnTvChoices.LIBRARY_TILE, !libraryTile).apply());
         // couch-tv's Apps list: the dock, More apps (behind "…") and hidden, each app with its icon and where it is.
         appsGroup(getString(R.string.menu_apps_dock, plan.docked), plan.home.subList(0, plan.docked));
         appsGroup(getString(R.string.menu_apps_more), plan.home.subList(plan.docked, plan.home.size()));

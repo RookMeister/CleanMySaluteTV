@@ -156,7 +156,7 @@ final class ScenePlayer {
     void setDockTop(int pixels) {
         int screen = root.getHeight();
         if (screen <= 0 || pixels <= 0) return;
-        float l = Math.max(0.3f, pixels / (float) screen - 0.02f);
+        float l = Math.max(0.25f, pixels / (float) screen - 0.02f);
         if (Math.abs(l - limit) > 0.005f) {
             limit = l;
             if (active) draw(index, false);

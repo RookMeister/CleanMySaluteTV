@@ -264,7 +264,9 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         this.showHomeSettings = cfg.showHomeSettingsShortcut;
         // Every app already in the small dock's row: no library pill after them (the gear ends the row).
         this.showLibrary = LibraryApps.showPill(cfg.appLibrary, cfg.libraryButton, cfg.showLibraryPill)
-                && !(cfg.singleRow && smallDock);
+                && !(cfg.singleRow && smallDock)
+                // CleanMySaluteTV: the owner can take the tile off (the settings menu's Apps)
+                && OnTvChoices.prefs(ctx).getBoolean(OnTvChoices.LIBRARY_TILE, true);
         this.reducedMotion = cfg.reducedMotion;
         this.focusOvershoot = cfg.focusOvershoot;
         this.rowsBelowDock = cfg.rowsBelowDock;

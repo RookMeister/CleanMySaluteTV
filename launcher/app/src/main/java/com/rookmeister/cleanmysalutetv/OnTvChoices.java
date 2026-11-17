@@ -28,9 +28,11 @@ final class OnTvChoices {
     static final String VPN_APP = "vpn_app";
     /** Glass app icons (AppAdapter.glassIcons): the dock's icons as white glyphs on glass, couch-tv's look. */
     static final String GLASS_ICONS = "glass_icons";
+    /** The "App library" tile after Home's apps; on by default (the settings menu's Apps). */
+    static final String LIBRARY_TILE = "library_tile";
     /** Every key above plus the dock's: what a theme push or "follow the theme" removes. */
     static final String[] ALL = {SCENES, SCENE_SECONDS, SCENE_LIST, CLOCK_POSITION, DOCK_ALL_APPS, WEATHER, WEATHER_LAT, WEATHER_LON, WEATHER_PLACE,
-            DockStyle.KEY, AirPlayGuard.KEY, TopButtons.KEY, VPN_APP, GLASS_ICONS};
+            DockStyle.KEY, AirPlayGuard.KEY, TopButtons.KEY, VPN_APP, GLASS_ICONS, LIBRARY_TILE};
 
     static SharedPreferences prefs(Context context) {
         return context.getSharedPreferences(Config.SETTINGS_NAME, Context.MODE_PRIVATE);

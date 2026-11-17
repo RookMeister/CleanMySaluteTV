@@ -81,7 +81,7 @@ public class ScenesTest {
         assertEquals(0.37f, Scenes.fitSize(0.14f, 0.37f, 0.92f, 0f), 1e-6);
         assertEquals(0.37f, Scenes.fitSize(0.14f, 0.37f, 0.92f, 0.6f), 1e-6);
         assertEquals((0.4f - 0.14f) / 0.92f, Scenes.fitSize(0.14f, 0.37f, 0.92f, 0.4f), 1e-6);
-        assertEquals(0.37f * 0.6f, Scenes.fitSize(0.14f, 0.37f, 0.92f, 0.2f), 1e-6);
+        assertEquals(0.37f * 0.25f, Scenes.fitSize(0.14f, 0.37f, 0.92f, 0.15f), 1e-6);
     }
 
     @Test

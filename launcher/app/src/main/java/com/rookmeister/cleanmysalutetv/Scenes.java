@@ -253,11 +253,13 @@ final class Scenes {
 
     /**
      * Keeps the clock's digits above the row that starts at {@code limit} (a share of the height): returns the
-     * font size to use, never larger than the scene's own and never under 60% of it.
+     * font size to use, never larger than the scene's own and never under a quarter of it.
      */
     static float fitSize(float top, float size, float inkBelowTop, float limit) {
         if (limit <= 0f || top + inkBelowTop * size <= limit) return size;
         float fitted = (limit - top) / inkBelowTop;
-        return Math.max(size * 0.6f, Math.min(size, fitted));
+        // CleanMySaluteTV: down to a quarter (was 60%): the large dock with a row of apps under it stands high, and
+        // the clock now stays clear of it rather than running into it.
+        return Math.max(size * 0.25f, Math.min(size, fitted));
     }
 }
