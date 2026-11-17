@@ -655,6 +655,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         libraryExcludedApps = new HashSet<>(cfg.libraryExcludedApps);
 
         grid = findViewById(R.id.grid);
+        // CleanMySaluteTV: small or large dock (DockStyle), for every tile size worked out from here on.
+        AppAdapter.smallDock = DockStyle.small(this);
         rtlAppGrid = getResources().getBoolean(R.bool.rtl_app_grid);
         // Mirror only the app grid; the header and other locales keep their own layouts.
         // single_row: one span laid out sideways, so the same adapter, glass and dock band serve a scrolling row.
@@ -744,9 +746,22 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
         // tvOS layout: push the dock row towards the bottom of the screen, leaving room for
         // rows_below_dock grid rows under it; the rest of the grid stays below until you press Down.
-        int rowsBelowDock = cfg.rowsBelowDock;
+        // The small dock sits at the bottom like couch-tv's, with no grid rows showing under it.
+        int rowsBelowDock = AppAdapter.smallDock ? 0 : cfg.rowsBelowDock;
         grid.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
             int h = b - t;
+            if (AppAdapter.smallDock && !singleRow) {
+                // Centre the small dock: the grid's columns become just wide enough for its tiles.
+                int[] side = DockStyle.dockPadding(r - l, COLUMNS,
+                        Math.min(adapter.dockFilled(), adapter.appCount()), AppAdapter.smallCellPx(density));
+                if (grid.getPaddingLeft() != side[0] || grid.getPaddingRight() != side[1]) {
+                    // A padding set from inside this layout pass is not laid out: set it on the next frame.
+                    grid.post(() -> {
+                        grid.setPadding(side[0], grid.getPaddingTop(), side[1], grid.getPaddingBottom());
+                        grid.post(this::refitGlass);
+                    });
+                }
+            }
             // Item height follows the tile size, which follows the columns and the rows that must fit (AppAdapter.tileWidthPx).
             int inner = (r - l) - grid.getPaddingLeft() - grid.getPaddingRight();
             int tileW = AppAdapter.tileWidthPx(inner, h, COLUMNS, rowsBelowDock, cfg.dockTitle, cfg.dockRow, density);

@@ -98,6 +98,19 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     static final float FOCUS_SCALE = 1.10f;
+    /**
+     * CleanMySaluteTV: the small dock (DockStyle): square icon tiles of a fixed size, set once by MainActivity before
+     * any tile is made, as MainActivity.COLUMNS is.
+     */
+    static boolean smallDock;
+    static final float SMALL_TILE_DP = 56f;
+    /** The room between two small tiles, besides the focus zoom. */
+    static final float SMALL_GAP_DP = 18f;
+
+    /** One column of the small dock: the tile, its focus zoom and the gap. */
+    static int smallCellPx(float density) {
+        return Math.round(SMALL_TILE_DP * density * FOCUS_SCALE + SMALL_GAP_DP * density);
+    }
     /** Design size of a tile (dp); tiles shrink from here when the columns don't fit, see tileWidthPx. */
     static final float DESIGN_W_DP = 180f, DESIGN_H_DP = 101f;
 
@@ -106,6 +119,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
      * highlight, capped at the design size so 4 columns on a 1080p TV look exactly as before.
      */
     static int tileWidthPx(int innerWidthPx, int columns, float density) {
+        if (smallDock) return Math.round(SMALL_TILE_DP * density);
         int design = Math.round(DESIGN_W_DP * density);
         if (innerWidthPx <= 0 || columns <= 0) return design;
         int cell = innerWidthPx / columns;
@@ -114,6 +128,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     static int tileHeightPx(int tileWidthPx) {
+        if (smallDock) return tileWidthPx;   // square
         return Math.round(tileWidthPx * DESIGN_H_DP / DESIGN_W_DP);
     }
 
@@ -156,7 +171,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     static int tileWidthPx(int innerWidthPx, int gridHeightPx, int columns, int rowsBelowDock, boolean dockTitle,
                            boolean dockRow, float density) {
         int w = tileWidthPx(innerWidthPx, columns, density);
-        if (gridHeightPx <= 0 || rowsBelowDock <= 0) return w;
+        if (smallDock || gridHeightPx <= 0 || rowsBelowDock <= 0) return w;
         float reserved = (dockRow ? DOCK_EXTRA_DP + BOTTOM_ROOM_DP + (dockTitle ? TITLE_ROOM_DP : 0)
                 : TOP_ROOM_DP + COMPACT_BOTTOM_ROOM_DP) * density;
         float perItem = (gridHeightPx - reserved) / (rowsBelowDock + 1);
@@ -423,7 +438,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         card.setLayoutParams(cardLp);
         View name = v.findViewById(R.id.name);
         ViewGroup.MarginLayoutParams nameLp = (ViewGroup.MarginLayoutParams) name.getLayoutParams();
-        nameLp.width = w;
+        // A small tile is narrower than most app names: the name under it may spill past its cell.
+        nameLp.width = smallDock ? Math.round(170 * density) : w;
         nameLp.topMargin = h + Math.round((dockRow ? 7 : 4) * density);
         if (!dockRow) {
             // Compact spacing (COMPACT_ITEM_EXTRA_DP): 4dp item padding and a 20dp name instead of 8dp and 22dp.
@@ -478,7 +494,9 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         // The dock has no labels, unless always_show_names asks for them (DockDecoration then makes room in the band).
         // In a single row every tile is the dock's kind: the big title above names it.
         boolean dockKind = DockSlots.inDockRow(dockRow, singleRow, position, dockSize);
-        h.name.setVisibility(dockKind && restNameAlpha == 0f ? View.INVISIBLE : View.VISIBLE);
+        // The dock's names are the title's job; with dock_title off (CleanMySaluteTV's default) the focused tile shows
+        // its own name under it, as in couch-tv.
+        h.name.setVisibility(dockKind && restNameAlpha == 0f && dockTitle ? View.INVISIBLE : View.VISIBLE);
         h.inDock = dockKind;
         boolean focused = h.card.isFocused();   // a rebind after reload() can hit the focused tile
         h.name.setAlpha(focused ? 1f : restNameAlpha);
@@ -897,6 +915,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     /** Corner radius for a tile of this width: 16dp at the design width, proportionally less when smaller. */
     static float cornerRadius(int tileWidthPx, float density) {
+        if (smallDock) return 12f * density;   // couch-tv's app icons
         return 16f * density * Math.min(1f, tileWidthPx / (DESIGN_W_DP * density));
     }
 

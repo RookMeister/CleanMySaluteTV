@@ -173,4 +173,7 @@
     <string name="wx_showers">Showers</string>
     <string name="wx_heavy_showers">Heavy showers</string>
     <string name="wx_storms">Thunderstorms</string>
+    <string name="dock_size_label">Dock size</string>
+    <string name="dock_small">Small</string>
+    <string name="dock_large">Large</string>
 </resources>

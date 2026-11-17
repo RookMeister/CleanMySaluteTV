@@ -170,4 +170,7 @@
     <string name="wx_showers">Ливень</string>
     <string name="wx_heavy_showers">Сильный ливень</string>
     <string name="wx_storms">Гроза</string>
+    <string name="dock_size_label">Размер дока</string>
+    <string name="dock_small">Маленький</string>
+    <string name="dock_large">Большой</string>
 </resources>

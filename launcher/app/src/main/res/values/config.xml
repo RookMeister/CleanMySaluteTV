@@ -575,5 +575,9 @@
          Home is on screen. config.json: "weather" true/false, "weather_lat" and "weather_lon" (numbers; without
          them it stays off), "weather_place" (the name before the temperature). -->
     <bool name="weather">true</bool>
+
+    <!-- CleanMySaluteTV dock size (DockStyle): "small", couch-tv's small icons centred at the bottom, or "large",
+         the wide banner tiles. config.json "dock_style"; Launcher settings on the TV overrides both. -->
+    <string name="dock_style" translatable="false">small</string>
     <string name="weather_place" translatable="false"></string>
 </resources>

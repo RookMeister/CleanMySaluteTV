@@ -34,6 +34,10 @@ public final class LauncherSettingsActivity extends Activity {
     private final TextView[] dockChoices = new TextView[DOCK_OPACITIES.length];
     private static final String[] CLOCK_FORMATS = {"system", "12", "24"};
     private final TextView[] clockChoices = new TextView[CLOCK_FORMATS.length];
+    /** CleanMySaluteTV: small or large dock (DockStyle). */
+    private final TextView[] dockSizeChoices = new TextView[2];
+    private static final String[] DOCK_SIZES = {DockStyle.SMALL, DockStyle.LARGE};
+    private String dockSize;
     private TextView wallpaperChoice;
     private TextView animationsChoice;
     private TextView advancedChoice;
@@ -101,6 +105,19 @@ public final class LauncherSettingsActivity extends Activity {
                 refresh();
             });
         }
+        dockSize = DockStyle.current(this);
+        int[] dockSizeIds = {R.id.dockSmall, R.id.dockLarge};
+        for (int i = 0; i < dockSizeIds.length; i++) {
+            final String value = DOCK_SIZES[i];
+            dockSizeChoices[i] = findViewById(dockSizeIds[i]);
+            dockSizeChoices[i].setOnClickListener(v -> {
+                if (value.equals(dockSize)) return;
+                dockSize = value;
+                choices.edit().putString(DockStyle.KEY, value).apply();
+                changed();
+                refresh();
+            });
+        }
         int[] clockIds = {R.id.clockSystem, R.id.clock12, R.id.clock24};
         for (int i = 0; i < clockIds.length; i++) {
             final String value = CLOCK_FORMATS[i];
@@ -121,6 +138,7 @@ public final class LauncherSettingsActivity extends Activity {
             reverseRow(columnChoices);
             reverseRow(rowChoices);
             reverseRow(dockChoices);
+            reverseRow(dockSizeChoices);
             reverseRow(clockChoices);
         }
         wallpaperChoice = findViewById(R.id.wallpaperChoice);
@@ -157,7 +175,9 @@ public final class LauncherSettingsActivity extends Activity {
             if (!hasOnTvChoices()) return;
             choices.edit().remove("columns").remove(Config.ROWS_BELOW_DOCK_KEY).remove("animations")
                     .remove("advanced_effects").remove(Config.WALLPAPER_CHOICE_KEY)
-                    .remove(Config.DOCK_OPACITY_KEY).remove(Config.CLOCK_FORMAT_KEY).remove(OpenOnStart.KEY).commit();
+                    .remove(Config.DOCK_OPACITY_KEY).remove(Config.CLOCK_FORMAT_KEY).remove(OpenOnStart.KEY)
+                    .remove(DockStyle.KEY).commit();
+            dockSize = DockStyle.current(this);
             Config current = Config.load(this);
             columns = current.columns;
             rowsBelowDock = current.rowsBelowDock;
@@ -302,6 +322,9 @@ public final class LauncherSettingsActivity extends Activity {
         for (int i = 0; i < dockChoices.length; i++) {
             dockChoices[i].setSelected(dockOpacity == DOCK_OPACITIES[i]);
         }
+        for (int i = 0; i < dockSizeChoices.length; i++) {
+            dockSizeChoices[i].setSelected(DOCK_SIZES[i].equals(dockSize));
+        }
         for (int i = 0; i < clockChoices.length; i++) {
             clockChoices[i].setSelected(CLOCK_FORMATS[i].equals(clockFormat));
         }
@@ -324,7 +347,8 @@ public final class LauncherSettingsActivity extends Activity {
         return choices.contains("columns") || choices.contains(Config.ROWS_BELOW_DOCK_KEY)
                 || choices.contains("animations") || choices.contains("advanced_effects")
                 || choices.contains(Config.WALLPAPER_CHOICE_KEY) || choices.contains(Config.DOCK_OPACITY_KEY)
-                || choices.contains(Config.CLOCK_FORMAT_KEY) || choices.contains(OpenOnStart.KEY);
+                || choices.contains(Config.CLOCK_FORMAT_KEY) || choices.contains(OpenOnStart.KEY)
+                || choices.contains(DockStyle.KEY);
     }
 
     private void open(Intent intent) {

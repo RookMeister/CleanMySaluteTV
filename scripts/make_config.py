@@ -67,6 +67,10 @@ def main():
     scene_list = env_list("CMST_SCENE_LIST")
     if scene_list:
         cfg["scene_list"] = scene_list
+    # Размер дока: small (маленькие иконки по центру внизу, как в couch-tv) или large (большие плитки).
+    dock = os.environ.get("CMST_DOCK_STYLE", "").strip().lower()
+    if dock in ("small", "large"):
+        cfg["dock_style"] = dock
     # Погода под датой (WeatherClient в лаунчере). Без координат лаунчер её не показывает.
     cfg["weather"] = env_yes("CMST_WEATHER", True)
     lat, lon = os.environ.get("CMST_WEATHER_LAT", "").strip(), os.environ.get("CMST_WEATHER_LON", "").strip()

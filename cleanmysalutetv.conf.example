@@ -9,6 +9,9 @@ TV_IP=192.168.1.50                 # bash scripts/find_tv.sh покажет ТВ
 # Список установленных:  adb shell pm list packages -3
 DOCK="ru.kinopoisk.tv,ru.rt.video.app.tv,com.vk.tv,ru.rutube.app"
 
+# Док: small — маленькие иконки по центру внизу (как в couch-tv), large — большие плитки во всю ширину.
+# На ТВ меняется в настройках лаунчера (удержать OK на кнопке настроек) — выбор на ТВ главнее этого.
+DOCK_STYLE=small
 GREETING_NAME=""                   # имя в приветствии: «Добрый вечер, Саша»
 COLUMNS_PER_ROW=5                  # плиток в ряду, 4–7
 HIDDEN_APPS=""                     # спрятать ещё приложения (через запятую); приложения Sber,
