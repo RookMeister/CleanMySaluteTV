@@ -138,7 +138,13 @@ final class KeepRow {
         }
         for (int i = 0; i < items.size(); i++) cards.addView(card(items.get(i), i, items.size()));
         box.setVisibility(View.VISIBLE);
-        if (hadFocus) focus();
+        if (hadFocus) {
+            focus();
+        } else {
+            // A fresh list starts at the newest card: the old place no longer means the same thing.
+            lastFocused = 0;
+            scroller.scrollTo(0, 0);
+        }
     }
 
     private View card(KeepWatching.Item item, int index, int count) {

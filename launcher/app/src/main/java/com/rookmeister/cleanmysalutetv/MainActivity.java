@@ -521,9 +521,27 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                     root.offsetDescendantRectToMyCoords(line, one);
                     all.union(one);
                 }
+                // CleanMySaluteTV: the top buttons too, where they are drawn (alignDateBelowIconsWithClock moves
+                // them by translation): a long weather line under the clock ran under the timer button.
+                View bar = findViewById(R.id.topButtons);
+                // Each button, not the bar: the bar can be laid out shorter than its buttons, which then spill
+                // over its edges.
+                if (bar.getVisibility() == View.VISIBLE) {
+                    for (int k = 0; k < ((ViewGroup) bar).getChildCount(); k++) {
+                        View pill = ((ViewGroup) bar).getChildAt(k);
+                        if (pill.getVisibility() != View.VISIBLE || pill.getWidth() == 0) continue;
+                        one.set(0, 0, pill.getWidth(), pill.getHeight());
+                        root.offsetDescendantRectToMyCoords(pill, one);
+                        one.offset(0, Math.round(bar.getTranslationY() + pill.getTranslationY()));
+                        // only what is on the screen (a parked view sits far off to the side)
+                        if (one.intersect(0, 0, root.getWidth(), root.getHeight())) all.union(one);
+                    }
+                }
                 if (!all.isEmpty()) scenePlayer.setHeader(all.left, all.right, all.bottom);
             };
             for (View line : lines) line.addOnLayoutChangeListener(header);
+            findViewById(R.id.topButtons).addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) ->
+                    v.post(() -> header.onLayoutChange(v, l, t, r, b, ol, ot, or, ob)));
         }
         if (scenePlayer.isOn()) {
             // The scene's clock is the time: the small one in the header would say it twice.

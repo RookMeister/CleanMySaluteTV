@@ -76,7 +76,7 @@ final class SceneRenderer {
                 // The clock alone on a transparent layer, over the wallpaper or the background colour.
                 out = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
                 Canvas c = new Canvas(out);
-                float[] clock = drawClock(c, s, null, time, width, height, limit, header, where);
+                float[] clock = drawClock(c, s, null, time, width, height, limit, header, where, captionWidth(caption, height));
                 if (caption != null) drawCaption(c, s, caption, clock[0], clock[1], clock[2], where, width, height);
                 return out;
             }
@@ -91,7 +91,7 @@ final class SceneRenderer {
 
             // The glass is a blur: half size is plenty, and a quarter of the memory.
             glass = decode(s.id + "-glass.jpg", 2, Bitmap.Config.RGB_565);
-            float[] clock = drawClock(c, s, glass, time, width, height, limit, header, where);
+            float[] clock = drawClock(c, s, glass, time, width, height, limit, header, where, captionWidth(caption, height));
             if (glass != null) { glass.recycle(); glass = null; }
 
             if (s.cutout) {
@@ -124,7 +124,7 @@ final class SceneRenderer {
 
     /** @return the clock's line-box top and the left and right edges of its ink, for the date line over it */
     private float[] drawClock(Canvas c, Scenes.Scene s, Bitmap glass, String time, int width, int height, float limit,
-                              float[] header, String where) {
+                              float[] header, String where, float captionW) {
         Paint text = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
         text.setTypeface(font);
         text.setLetterSpacing(Scenes.LETTER_SPACING);
@@ -152,6 +152,21 @@ final class SceneRenderer {
                 size = Scenes.fitSize(top / height, s.size, 0.92f, limit) * height;
                 baseline = place(text, time, x, top, size, box);
             }
+            // CleanMySaluteTV: the date line over the digits too, placed as drawCaption places it; a long weather
+            // line ran under the top buttons, which are part of the header.
+            if (captionW > 0f) {
+                float unit = height / 1080f;
+                float lineTop = top - Scenes.CAPTION_ABOVE * height;
+                float cl = Scenes.POS_LEFT.equals(where) ? box.left + 8f * unit
+                        : Scenes.POS_RIGHT.equals(where) ? box.right - 8f * unit - captionW : (width - captionW) / 2f;
+                float lowered = Scenes.clearOfHeader(cl, lineTop, cl + captionW, top,
+                        header[0] * width, header[1] * width, header[2] * height, 8f * unit);
+                if (lowered != top) {
+                    top = lowered;
+                    size = Scenes.fitSize(top / height, s.size, 0.92f, limit) * height;
+                    baseline = place(text, time, x, top, size, box);
+                }
+            }
         }
 
         if (s.water > 0f) {
@@ -174,6 +189,24 @@ final class SceneRenderer {
      * couch-tv's .date over the clock: 34 px type on a 1080 screen, centred over a centred clock, from a left clock's
      * left edge, ending at a right clock's right edge; the weather follows after a gap, its icon tinted like its words.
      */
+    /** The date line's width as drawCaption lays it out: date, gap, weather icon, gap, weather; 0 when empty. */
+    private static float captionWidth(Caption cap, int height) {
+        if (cap == null) return 0f;
+        float unit = height / 1080f;
+        boolean hasDate = cap.date != null && !cap.date.isEmpty();
+        boolean hasWeather = cap.weather != null && !cap.weather.isEmpty();
+        if (!hasDate && !hasWeather) return 0f;
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+        p.setTextSize(34f * unit);
+        p.setTypeface(cap.dateFont);
+        float dateW = hasDate ? p.measureText(cap.date) : 0f;
+        p.setTypeface(cap.weatherFont);
+        float wxW = hasWeather ? p.measureText(cap.weather) : 0f;
+        float iconSize = cap.icon != null && hasWeather ? 30f * unit : 0f;
+        float gapBefore = hasDate && hasWeather ? 16f * unit : 0f, gapIcon = iconSize > 0 ? 7f * unit : 0f;
+        return dateW + gapBefore + iconSize + gapIcon + wxW;
+    }
+
     private static void drawCaption(Canvas c, Scenes.Scene s, Caption cap, float clockTop, float clockLeft,
                                     float clockRight, String where, int width, int height) {
         float unit = height / 1080f;
@@ -195,7 +228,7 @@ final class SceneRenderer {
         float gapBefore = hasDate && hasWeather ? 16f * unit : 0f, gapIcon = iconSize > 0 ? 7f * unit : 0f;
         float dateW = hasDate ? date.measureText(cap.date) : 0f;
         float wxW = hasWeather ? wx.measureText(cap.weather) : 0f;
-        float total = dateW + gapBefore + iconSize + gapIcon + wxW;
+        float total = captionWidth(cap, height);
         float x = Scenes.POS_LEFT.equals(where) ? clockLeft + 8f * unit
                 : Scenes.POS_RIGHT.equals(where) ? clockRight - 8f * unit - total : (width - total) / 2f;
         Paint.FontMetrics fm = date.getFontMetrics();
