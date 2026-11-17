@@ -103,7 +103,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
 
     private static final int LAUNCHER_SETTINGS_REQUEST = 42;
-    /** Sent by QuickSettingsActivity: open Launcher settings from here so Home rebuilds when they close. */
+    /** Open Launcher settings from here so Home rebuilds when they close. */
     static final String ACTION_LAUNCHER_SETTINGS = "com.rookmeister.cleanmysalutetv.action.LAUNCHER_SETTINGS";
     /** Sent by the "library" action word of app_keys: open the App library over Home (needs app_library). */
     static final String ACTION_APP_LIBRARY = "com.rookmeister.cleanmysalutetv.action.APP_LIBRARY";
@@ -873,12 +873,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             ((TextView) btnSettings).setText(R.string.launcher_settings);
             ((TextView) btnSettings).setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_home_settings_pill, 0, 0, 0);
         }
-        btnSettings.setOnClickListener(v -> {
-            if (launcherSettingsButton) startActivityForResult(
-                    new Intent(this, MenuSettingsActivity.class), LAUNCHER_SETTINGS_REQUEST);
-            // CleanMySaluteTV: the gear opens the control panel; holding OK still opens the menu of settings.
-            else open(new Intent(this, QuickSettingsActivity.class));
-        });
+        // CleanMySaluteTV: the gear opens the launcher's settings menu, as the dock's gear does. The control panel it
+        // opened is gone (the owner's wish): each of its tiles is a top button of its own now (TopButtons).
+        btnSettings.setOnClickListener(v -> startActivityForResult(
+                new Intent(this, MenuSettingsActivity.class), LAUNCHER_SETTINGS_REQUEST));
         btnReorder = findViewById(R.id.btnReorder);
         btnReorder.setOnClickListener(v -> toggleReorder());
         btnReorder.setVisibility(cfg.reorderButton ? View.VISIBLE : View.GONE);
@@ -1452,7 +1450,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         for (int code : settingsKeycodes) {
             if (event.getKeyCode() != code) continue;
             if (event.getAction() == KeyEvent.ACTION_UP && !event.isCanceled()) {
-                Intent settings = settingsKeyPanel ? new Intent(this, QuickSettingsActivity.class)
+                Intent settings = settingsKeyPanel ? new Intent(this, MenuSettingsActivity.class)
                         : systemIntent(Settings.ACTION_SETTINGS);
                 // settings_key_clear_task, as in HomeKeyService: Back from Settings goes Home, not to a vendor page.
                 if (settingsKeyClearTask && !settingsKeyPanel) settings.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);

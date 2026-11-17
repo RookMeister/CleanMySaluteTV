@@ -236,7 +236,7 @@
     <string name="menu_dock_all">Все приложения в доке</string>
     <string name="menu_dock_all_sub">Одна строка со всеми приложениями, прокрутка вбок</string>
     <string name="tb_vpn">VPN</string>
-    <string name="tb_panel">Панель управления</string>
+    <string name="tb_panel">Настройки</string>
     <string name="tb_minutes">%1$d мин</string>
     <string name="menu_buttons">Кнопки</string>
     <string name="menu_group_buttons">Верхние кнопки</string>

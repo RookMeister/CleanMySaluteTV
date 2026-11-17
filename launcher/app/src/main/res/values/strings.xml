@@ -239,7 +239,7 @@
     <string name="menu_dock_all">Every app in the dock</string>
     <string name="menu_dock_all_sub">One row with all apps, scrolling sideways</string>
     <string name="tb_vpn">VPN</string>
-    <string name="tb_panel">Control panel</string>
+    <string name="tb_panel">Settings</string>
     <string name="tb_minutes">%1$d min</string>
     <string name="menu_buttons">Buttons</string>
     <string name="menu_group_buttons">Top buttons</string>

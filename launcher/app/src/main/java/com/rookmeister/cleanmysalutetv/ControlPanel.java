@@ -1,6 +1,6 @@
 package com.rookmeister.cleanmysalutetv;
 
-/** CleanMySaluteTV control panel (QuickSettingsActivity): the arithmetic of its status lines, for the JVM tests. */
+/** CleanMySaluteTV: the arithmetic behind the status lines (MemoryClean), for the JVM tests. */
 final class ControlPanel {
     private ControlPanel() {}
 
