@@ -1,0 +1,16 @@
+# файлы конкретного ТВ: бэкапы, список отключённого, скриншоты, config.json
+state/
+cleanmysalutetv.conf
+config.extra.json
+debloat-list.txt
+
+# сборка
+launcher/.gradle/
+launcher/build/
+launcher/app/build/
+launcher/local.properties
+launcher/.idea/
+*.iml
+*.apk
+*.aab
+.DS_Store

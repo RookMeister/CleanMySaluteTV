@@ -1,0 +1,61 @@
+# Packages that must NEVER be disabled. scripts/debloat.sh and lib.sh dis() refuse them.
+# One package per line; text after '#' is the reason (shown by scripts/inspect.sh).
+android                                     # the OS
+com.android.systemui                        # status/volume UI
+com.android.settings                        # phone-style settings host
+com.android.tv.settings                     # TV Settings
+com.android.providers.settings              # settings storage
+com.android.providers.tv                    # TV channel database (tuner, inputs)
+com.android.bluetooth                       # remote pairing
+com.android.inputdevices                    # remote/keyboard layouts
+com.android.packageinstaller                # installs apps
+com.google.android.packageinstaller         # installs apps
+com.google.android.permissioncontroller     # permission prompts
+com.android.vending                         # Google Play Store
+com.google.android.gms                      # Play Services (also delivers system updates on Google TV)
+com.google.android.gsf                      # Google services framework
+com.google.android.inputmethod.latin        # Gboard: on-screen keyboard
+com.google.android.tv.remote.service        # Android TV Remote Service (remote/phone remote)
+com.google.android.tvrecommendations        # needed by some launchers' channels API
+com.android.providers.media                 # media storage
+com.android.providers.media.module          # media storage
+com.android.providers.downloads             # downloads (app updates)
+com.android.externalstorage                 # USB storage
+com.android.networkstack.inprocess          # networking
+com.android.wifi.resources                  # Wi-Fi
+com.android.shell                           # adb itself
+# --- TV input stacks (HDMI, tuner, source menu) ---
+com.mediatek.tvinput                        # MediaTek HDMI/AV/tuner inputs
+com.mediatek.tv.service                     # MediaTek TV service
+com.mediatek.wwtv.tvcenter                  # MediaTek TV app: plays HDMI/tuner, draws the Inputs panel
+com.mediatek.wwtv.setupwizard               # MediaTek tuner setup
+com.droidlogic.tvinput                      # Amlogic inputs
+com.droidlogic.tvsource                     # Amlogic source menu
+com.realtek.tv                              # Realtek TV service
+com.android.tv                              # AOSP Live Channels / input hub
+com.google.android.tv                       # Google Live Channels
+# --- Skyworth / Coocaa / Prism+ (MediaTek) remote key handling ---
+com.smartdevice.bleconnectservice           # Skyworth: BLE remote pairing + remote battery
+com.smartdevice.global.service              # Skyworth: global remote keys, one-key menu
+com.smartdevice.dailyshortcut               # Skyworth: GLOBAL_BUTTON receiver + input-source list
+com.smartdevice.service                     # Skyworth: TV platform provider used by other services
+com.smartdevice.factory                     # Skyworth: factory/panel data (CheckAndBurnPanelService)
+com.smartdevice.aftersale                   # Skyworth: service menu
+mediatek.factorymenu.ui                     # factory menu
+org.liskovsoft.androidtv.rukeyboard         # extra on-screen keyboard shipped on some sets
+# --- Sber / Салют ТВ (StarOS), из examples/sber-salute-tv-* в Gathin23/cleanyourtv ---
+ru.sberdevices.services                     # платформа Sber: OTA, голосовой ассистент; отключить нельзя
+ru.sberdevices.services.core                # ядро платформы, включает services обратно
+ru.sberdevices.assistant                    # ассистент Салют
+ru.sberdevices.tvinputs                     # HDMI/AV и меню источников
+ru.sberdevices.app.starkeyboard             # единственная экранная клавиатура
+ru.sberdevices.webview                      # WebView
+ru.sberdevices.systemui                     # системный интерфейс Sber
+ru.sberdevices.SberDevicesServiceSystem     # системный сервис Sber
+ru.sberdevices.location.provider            # местоположение
+ru.sberdevices.app.setup                    # мастер настройки
+ru.sberdevices.settings                     # «Центр управления»
+com.sberbank.settings                       # настройки Sber
+com.cvte.tv.setting                         # LiveTvGlobal, ТВ-настройки CVTE
+com.cvte.tv.media                           # «Файлы», USB-медиа
+com.mediatek.tvinput                        # входы на платах MediaTek

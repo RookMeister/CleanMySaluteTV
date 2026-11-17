@@ -1,0 +1,44 @@
+# Sber / Салют ТВ (StarOS на Android 11 и 13, платы CVTE). Источник: examples/sber-salute-tv-pb766 и
+# sber-salute-tv-at30a6 в Gathin23/cleanyourtv (MIT). Твой SDX-55UQ5231 пока не проверен.
+# Сервис ru.sberdevices.services включает часть приложений обратно после перезагрузки — их прячет config.json.
+# package	action	category	note
+ru.sberdevices.survey	disable	telemetry	опросы
+ru.sberdevices.bugreporter	disable	telemetry	StarBugReporter
+ru.sberdevices.starcleaner	disable	preloaded	экран «Очистка памяти»
+ru.sberdevices.openbeta	disable	preloaded	бета-программа
+ru.sberdevices.gamepad.service	disable	background	заглушка сервиса геймпада
+ru.sberdevices.rcfupdater	ask	background	обновление прошивки пульта; пульт работает и без него
+ru.sberdevices.starprofile	ask	preloaded	профили пользователей
+ru.sberdevices.tv	ask	preloaded	«Настройка провайдеров»; HDMI не затрагивает
+ru.sberdevices.starscreensaver	disable	screensaver	заставка Sber (~220 МБ кэша); сначала поставить свою заставку
+ru.sberdevices.music	ask	streaming	Звук
+ru.sberdevices.videos	ask	streaming	каталог «Видео»
+ru.sberdevices.starlivetv	ask	streaming	онлайн-каналы Sber
+ru.sberdevices.startube	ask	streaming	«YouTube» от Sber
+ru.sberdevices.sberplay	ask	streaming	игры SberPlay
+ru.sberdevices.subscriptions	ask	ads/content	СберПрайм
+ru.sberdevices.starbrowser	ask	preloaded	браузер Салют
+ru.sberdevices.starkidsroom.prod	ask	preloaded	«Детская комната»
+ru.sberdevices.parentcontrol	ask	preloaded	родительский контроль
+ru.sberdevices.smarthome.promo	disable	ads/content	промо умного дома
+com.salute.star	ask	preloaded	приложение «Умный дом» (~45 МБ в памяти)
+ru.sberdevices.starmarket	keep	store	каталог приложений Sber: единственный способ обновлять приложения
+ru.sberdevices.huaweicast	ask	casting	Huawei Cast+
+com.maxhub.screenshare.server.tv	ask	casting	MHshare
+com.screenshare.platform	ask	casting	платформа ScreenShare для MHshare
+com.cvte.dssshare.dlna	ask	casting	DLNA-приёмник
+com.mediatek.androidbox	ask	casting	Miracast
+ru.more.play	ask	streaming	Okko; Sber включает обратно после перезагрузки
+ru.mts.mtstv	ask	streaming	KION
+ru.ivi.client	ask	streaming	Иви
+com.vgtrk.smotrim	ask	streaming	Смотрим
+ru.tv1.android.tv	ask	streaming	Первый канал
+tv.lfstrm.smotreshka_stb	ask	streaming	Смотрёшка
+com.yandex.browser.tv	ask	preloaded	Яндекс Браузер
+org.videolan.vlc	ask	preloaded	VLC; USB-видео играет и в com.cvte.tv.media
+ru.kinopoisk.tv	ask	streaming	Кинопоиск
+ru.rt.video.app.tv	ask	streaming	Wink
+com.vk.tv	ask	streaming	VK Видео
+ru.rutube.app	ask	streaming	Rutube
+ru.sberdevices.updater	keep	updates	обновления прошивки; отключать только по явной просьбе
+ru.sberdevices.starlauncher	keep	launcher	штатный лаунчер; install.sh отключает только при DISABLE_STOCK_LAUNCHER=yes
