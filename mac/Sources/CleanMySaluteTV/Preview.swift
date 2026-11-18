@@ -125,9 +125,10 @@ struct TVPreview: View {
             .padding(.horizontal, 28 * k)
             .padding(.vertical, 22 * k)
             .background(
+                // couch-tv's glass, as DockDecoration.glassAlpha draws it on the TV
                 RoundedRectangle(cornerRadius: 46 * k)
-                    .fill(Color(red: 0.12, green: 0.08, blue: 0.11).opacity(0.32 * Double(d.dockOpacity) / 100))
-                    .overlay(RoundedRectangle(cornerRadius: 46 * k).strokeBorder(.white.opacity(0.16 * Double(d.dockOpacity) / 100), lineWidth: max(0.5, 2 * k)))
+                    .fill(Color(red: 30 / 255, green: 20 / 255, blue: 28 / 255).opacity(min(1, Double(100 - d.dockTransparency) / 100 * 1.07)))
+                    .overlay(RoundedRectangle(cornerRadius: 46 * k).strokeBorder(Color(red: 1, green: 210 / 255, blue: 220 / 255).opacity(0.16), lineWidth: max(0.5, 2 * k)))
             )
             .padding(.bottom, 46 * k)
         }

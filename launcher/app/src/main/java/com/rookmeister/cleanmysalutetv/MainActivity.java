@@ -534,7 +534,21 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 if (!all.isEmpty()) scenePlayer.setHeader(all.left, all.right, all.bottom);
             };
             for (View line : lines) line.addOnLayoutChangeListener(header);
-            findViewById(R.id.topButtons).addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> v.post(() -> {
+            View topBar = findViewById(R.id.topButtons);
+            // The bar hangs from the header's top, not from the date block's bottom: that moved it whenever the block
+            // grew or shrank (the weather coming in, a line wrapping next to more buttons).
+            RelativeLayout.LayoutParams barLp = (RelativeLayout.LayoutParams) topBar.getLayoutParams();
+            barLp.removeRule(RelativeLayout.ALIGN_BOTTOM);
+            barLp.removeRule(RelativeLayout.ALIGN_TOP);
+            barLp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+            barLp.bottomMargin = 0;
+            topBar.setLayoutParams(barLp);
+            // And it is put back in its place after every layout of the window, not only when its own bounds change:
+            // a button that only changes inside the bar left the old translation on it.
+            root.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+                if (pinTopBar()) header.onLayoutChange(topBar, 0, 0, 0, 0, 0, 0, 0, 0);
+            });
+            topBar.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> v.post(() -> {
                 pinTopBar();
                 header.onLayoutChange(v, l, t, r, b, ol, ot, or, ob);
             }));
@@ -701,7 +715,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         });
         DockDecoration dockBand = dockRow ? new DockDecoration(COLUMNS, density, cinematic, cfg.alwaysShowNames,
                 cfg.dockOpacity, cfg.dockGlass, cfg.dockEvenPadding, cfg.dockBand, singleRow,
-                cfg.dockBandAll || (singleRow && AppAdapter.smallDock)) : null;
+                cfg.dockBandAll || (singleRow && AppAdapter.smallDock),
+                OnTvChoices.prefs(this).getInt(OnTvChoices.DOCK_TRANSPARENCY, OnTvChoices.DOCK_TRANSPARENCY_DEFAULT)) : null;
         if (dockBand != null) grid.addItemDecoration(dockBand);
         // The small dock is the whole bottom of the screen, as in couch-tv: the other apps wait below it.
         // CleanMySaluteTV: a small gap, not 160dp: Down to the apps below scrolled the dock up by the whole gap, high
@@ -3097,13 +3112,17 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      * Scenes: the top buttons where couch-tv has its quick buttons, 60 px from the top and 80 px in from the right
      * at 1080 lines, whatever the header around them does.
      */
-    private void pinTopBar() {
+    /** @return true when the bar had to move (it was off its place). */
+    private boolean pinTopBar() {
         View bar = findViewById(R.id.topButtons);
         Rect r = topButtonsRect();
-        if (r == null || root.getHeight() == 0) return;
+        if (r == null || root.getHeight() == 0) return false;
         float unit = root.getHeight() / 1080f;
-        bar.setTranslationX(root.getWidth() - 80 * unit - r.right);
-        bar.setTranslationY(60 * unit - r.top);
+        float x = root.getWidth() - 80 * unit - r.right, y = 60 * unit - r.top;
+        if (Math.abs(bar.getTranslationX() - x) < 0.5f && Math.abs(bar.getTranslationY() - y) < 0.5f) return false;
+        bar.setTranslationX(x);
+        bar.setTranslationY(y);
+        return true;
     }
 
     /** Every top button's own icon at couch-tv's size, whatever size its drawable has. */

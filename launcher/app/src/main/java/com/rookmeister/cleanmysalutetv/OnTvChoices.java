@@ -28,9 +28,12 @@ final class OnTvChoices {
     static final String GLASS_ICONS = "glass_icons";
     /** The "App library" tile after Home's apps; on by default (the settings menu's Apps). */
     static final String LIBRARY_TILE = "library_tile";
+    /** How see-through the dock's glass band is, in percent (DockDecoration.glassAlpha); 70 is couch-tv's look. */
+    static final String DOCK_TRANSPARENCY = "dock_transparency";
+    static final int DOCK_TRANSPARENCY_DEFAULT = 70;
     /** Every key above plus the dock's: what a theme push or "follow the theme" removes. */
     static final String[] ALL = {SCENES, SCENE_SECONDS, SCENE_LIST, CLOCK_POSITION, WEATHER, WEATHER_LAT, WEATHER_LON, WEATHER_PLACE,
-            DockStyle.KEY, AirPlayGuard.KEY, TopButtons.KEY, VPN_APP, GLASS_ICONS, LIBRARY_TILE};
+            DockStyle.KEY, AirPlayGuard.KEY, TopButtons.KEY, VPN_APP, GLASS_ICONS, LIBRARY_TILE, DOCK_TRANSPARENCY};
 
     static SharedPreferences prefs(Context context) {
         return context.getSharedPreferences(Config.SETTINGS_NAME, Context.MODE_PRIVATE);

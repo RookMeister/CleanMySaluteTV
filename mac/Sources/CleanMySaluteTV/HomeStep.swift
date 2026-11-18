@@ -150,8 +150,8 @@ struct LayoutTab: View {
                     }
                 }
                 GlassDivider()
-                GlassRow("Непрозрачность панели") {
-                    Picker("", selection: d.dockOpacity) { ForEach([100, 70, 50, 30], id: \.self) { Text("\($0)%").tag($0) } }
+                GlassRow("Прозрачность панели", detail: "70% — как в couch-tv, 100% — только рамка") {
+                    Picker("", selection: d.dockTransparency) { ForEach([0, 25, 50, 70, 100], id: \.self) { Text("\($0)%").tag($0) } }
                         .labelsHidden().pickerStyle(.segmented).fixedSize()
                 }
                 GlassDivider()

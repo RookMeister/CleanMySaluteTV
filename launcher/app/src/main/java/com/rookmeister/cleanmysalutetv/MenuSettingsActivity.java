@@ -58,7 +58,7 @@ public final class MenuSettingsActivity extends Activity {
     private static final int[] SCENE_NAMES = {R.string.menu_scene_night, R.string.menu_scene_golden,
             R.string.menu_scene_water, R.string.menu_scene_fog, R.string.menu_scene_dawn,
             R.string.scene_pavement, R.string.scene_valley, R.string.scene_storm, R.string.scene_beach, R.string.scene_paddy};
-    private static final int[] OPACITIES = {100, 70, 50, 30};
+    private static final int[] TRANSPARENCIES = {0, 25, 50, 70, 100};
     private static final int[] SCENE_SECONDS = {10, 20, 30, 60, 120, 300};
     private static final String[] CLOCKS = {"system", "12", "24"};
 
@@ -217,8 +217,9 @@ public final class MenuSettingsActivity extends Activity {
         group(R.string.menu_group_dock);
         row(getString(R.string.menu_dock_size), null, getString(small ? R.string.dock_small : R.string.dock_large), null, null,
                 () -> choices.edit().putString(DockStyle.KEY, small ? DockStyle.LARGE : DockStyle.SMALL).apply());
-        row(getString(R.string.menu_dock_opacity), null, cfg.dockOpacity + "%", null, null,
-                () -> choices.edit().putInt(Config.DOCK_OPACITY_KEY, next(OPACITIES, cfg.dockOpacity)).apply());
+        int transparency = choices.getInt(OnTvChoices.DOCK_TRANSPARENCY, OnTvChoices.DOCK_TRANSPARENCY_DEFAULT);
+        row(getString(R.string.menu_dock_opacity), null, transparency + "%", null, null,
+                () -> choices.edit().putInt(OnTvChoices.DOCK_TRANSPARENCY, next(TRANSPARENCIES, transparency)).apply());
         boolean glass = choices.getBoolean(OnTvChoices.GLASS_ICONS, false);
         row(getString(R.string.menu_glass_icons), getString(R.string.menu_glass_icons_sub), onOff(glass), null, null,
                 () -> choices.edit().putBoolean(OnTvChoices.GLASS_ICONS, !glass).apply());

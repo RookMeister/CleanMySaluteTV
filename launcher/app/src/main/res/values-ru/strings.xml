@@ -147,7 +147,7 @@
     <string name="menu_group_clock">ЧАСЫ</string>
     <string name="menu_group_place">МЕСТО</string>
     <string name="menu_dock_size">Размер дока</string>
-    <string name="menu_dock_opacity">Непрозрачность панели дока</string>
+    <string name="menu_dock_opacity">Прозрачность панели дока</string>
     <string name="menu_scenes">Сцены на главном экране</string>
     <string name="menu_scenes_sub">Картинки за большими часами; выключены — часы на обычном фоне</string>
     <string name="menu_scene_seconds">Смена сцены</string>
