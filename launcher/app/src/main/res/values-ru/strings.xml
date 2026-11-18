@@ -243,4 +243,6 @@
     <string name="menu_buttons_note">OK ставит кнопку на панель или убирает. Удерживайте OK на показанной, чтобы переместить.</string>
     <string name="menu_buttons_moving">Вверх и вниз — переместить кнопку по панели, OK или Назад — готово.</string>
     <string name="menu_library_tile">Плитка «Библиотека приложений»</string>
+    <string name="menu_group_scenes_behind">ЧАСЫ ЗА ФОТО</string>
+    <string name="menu_group_scenes_over">ЧАСЫ ПОВЕРХ ФОТО</string>
 </resources>

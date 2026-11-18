@@ -5,6 +5,8 @@ struct LauncherState: Decodable {
     var version: String
     var choices: Choices
     var scenes: [String]
+    /// Scenes whose clock goes behind the picture's hills and trees (a cut-out over it); the rest are on top.
+    var scenesBehind: [String]?
     var buttons: [TopButton]
     var apps: Apps
     var dockMin: Int

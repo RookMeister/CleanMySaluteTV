@@ -228,18 +228,24 @@ public final class MenuSettingsActivity extends Activity {
         group(R.string.menu_group_scenes);
         row(getString(R.string.menu_scenes), getString(R.string.menu_scenes_sub), onOff(sc.on), null, null,
                 () -> choices.edit().putBoolean(OnTvChoices.SCENES, !sc.on).apply());
-        List<String> chosen = ids(Scenes.select(sc.ids));
-        for (int i = 0; i < Scenes.ALL.size(); i++) {
-            String id = Scenes.ALL.get(i).id;
-            boolean in = chosen.contains(id);
-            row(getString(SCENE_NAMES[i]), null, null, thumbnail(id),
-                    getDrawable(in ? R.drawable.ic_menu_check_on : R.drawable.ic_menu_check_off), () -> {
-                        List<String> next = MenuChoices.toggleScene(ids(Scenes.ALL), chosen, id);
-                        choices.edit().putString(OnTvChoices.SCENE_LIST, OnTvChoices.joinList(next)).apply();
-                    });
-        }
         row(getString(R.string.menu_scene_seconds), null, duration(sc.seconds), null, null,
                 () -> choices.edit().putInt(OnTvChoices.SCENE_SECONDS, next(SCENE_SECONDS, sc.seconds)).apply());
+        // The scenes in two groups: the clock behind the picture's hills and trees (a cut-out over it), or on top.
+        List<String> chosen = ids(Scenes.select(sc.ids));
+        for (boolean behind : new boolean[] {true, false}) {
+            group(behind ? R.string.menu_group_scenes_behind : R.string.menu_group_scenes_over);
+            for (int i = 0; i < Scenes.ALL.size(); i++) {
+                Scenes.Scene scene = Scenes.ALL.get(i);
+                if (scene.cutout != behind) continue;
+                String id = scene.id;
+                boolean in = chosen.contains(id);
+                row(getString(SCENE_NAMES[i]), null, null, thumbnail(id),
+                        getDrawable(in ? R.drawable.ic_menu_check_on : R.drawable.ic_menu_check_off), () -> {
+                            List<String> next = MenuChoices.toggleScene(ids(Scenes.ALL), chosen, id);
+                            choices.edit().putString(OnTvChoices.SCENE_LIST, OnTvChoices.joinList(next)).apply();
+                        });
+            }
+        }
 
         group(R.string.menu_group_clock);
         int clock = Math.max(0, java.util.Arrays.asList(CLOCKS).indexOf(cfg.clockFormat));

@@ -89,8 +89,11 @@ final class RemoteSettings {
         choices.put(OnTvChoices.VPN_APP, cfg.vpnApp);
         choices.put(Config.CLOCK_FORMAT_KEY, cfg.clockFormat);
 
-        JSONArray sceneIds = new JSONArray();
-        for (Scenes.Scene s : Scenes.ALL) sceneIds.put(s.id);
+        JSONArray sceneIds = new JSONArray(), behind = new JSONArray();
+        for (Scenes.Scene s : Scenes.ALL) {
+            sceneIds.put(s.id);
+            if (s.cutout) behind.put(s.id);   // the clock goes behind the picture's hills and trees
+        }
         JSONArray buttons = new JSONArray();
         for (String kind : TopButtons.ALL) {
             buttons.put(new JSONObject().put("kind", kind).put("label", c.getString(TopButtons.label(kind))));
@@ -112,6 +115,7 @@ final class RemoteSettings {
                 .put("version", version)
                 .put("choices", choices)
                 .put("scenes", sceneIds)
+                .put("scenesBehind", behind)
                 .put("buttons", buttons)
                 .put("apps", apps)
                 .put("dockMin", Config.DOCK_MIN)

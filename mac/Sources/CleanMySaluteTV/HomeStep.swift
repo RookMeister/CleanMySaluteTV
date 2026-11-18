@@ -349,8 +349,17 @@ struct LookTab: View {
                         }.labelsHidden().fixedSize()
                     }
                     if let all = tv.state?.scenes {
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 10)], spacing: 10) {
-                            ForEach(all, id: \.self) { id in sceneTile(id, all, d) }
+                        let behind = tv.state?.scenesBehind ?? []
+                        ForEach([true, false], id: \.self) { inBack in
+                            let group = all.filter { behind.contains($0) == inBack }
+                            if !group.isEmpty {
+                                Label(inBack ? "Часы за фото — прячутся за горами и деревьями" : "Часы поверх фото",
+                                      systemImage: inBack ? "square.2.layers.3d.bottom.filled" : "square.2.layers.3d.top.filled")
+                                    .font(.subheadline).foregroundStyle(.secondary).padding(.top, 4)
+                                LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 10)], spacing: 10) {
+                                    ForEach(group, id: \.self) { id in sceneTile(id, all, d) }
+                                }
+                            }
                         }
                     }
                 } else {

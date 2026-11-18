@@ -246,4 +246,6 @@
     <string name="menu_buttons_note">OK puts a button on the bar or takes it off. Hold OK on a shown one to move it.</string>
     <string name="menu_buttons_moving">Up and down move the button along the bar, OK or Back when done.</string>
     <string name="menu_library_tile">"App library" tile</string>
+    <string name="menu_group_scenes_behind">Clock behind the picture</string>
+    <string name="menu_group_scenes_over">Clock over the picture</string>
 </resources>
