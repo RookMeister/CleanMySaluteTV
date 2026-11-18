@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import CoreImage
 
 // MARK: - 1. Очистка и запуск
 
@@ -76,14 +77,73 @@ struct QuickStartView: View {
 
 // MARK: - 2. Подключение
 
+/// How to turn ADB on: from a phone in Sber Studio (docs/SBER.md), with a QR code that opens it there.
+struct EnableADBCard: View {
+    @EnvironmentObject var tv: TVStore
+    static let studio = URL(string: "https://developers.sber.ru/studio/")!
+    @State private var open = false
+
+    private static let steps = [
+        "На ТВ: «Настройки → Об устройстве» — найдите серийный номер. Он нужен только вам, никому его не отправляйте.",
+        "На телефоне откройте Сбер Studio (QR-код справа) и войдите под тем же Сбер ID, что и на ТВ.",
+        "Значок меню слева вверху → «Настройки» → снова значок меню → «Настройки сервисов» → SmartApp. Если SmartApp нет: на главной «Создать проект» → «Мини-приложения Салют» → NativeApp → любое название → «Создать проект» (публиковать и загружать APK не нужно), затем снова «Настройки сервисов».",
+        "Вкладка «Мои устройства» вверху (если не видно — проведите по вкладкам влево).",
+        "Если ТВ нет в списке — «Добавить»: серийный номер в «Идентификатор устройства» с точным регистром букв, «Тип устройства» — TV.",
+        "В строке ТВ включите «Функция ADB» (таблицу можно провести влево). Подождите минуту и перезагрузите ТВ.",
+        "Введите ниже IP-адрес ТВ. После установки выключите ADB в Studio — шаг «Завершение» напомнит.",
+    ]
+
+    var body: some View {
+        GlassCard("Сначала включите на ТВ отладку", footer: "Если у вашей модели открывается меню разработчика: Настройки → Настройки устройства → Об устройстве → 7 раз OK на «Сборка» → назад → Для разработчиков → Отладка по USB.") {
+            DisclosureGroup(isExpanded: $open) {
+                HStack(alignment: .top, spacing: 18) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(Array(Self.steps.enumerated()), id: \.offset) { i, step in
+                            Label(step, systemImage: "\(i + 1).circle").fixedSize(horizontal: false, vertical: true)
+                        }
+                        Link("Открыть Сбер Studio на этом Mac", destination: Self.studio).padding(.top, 4)
+                    }
+                    VStack(spacing: 6) {
+                        if let qr = QRCode.image(Self.studio.absoluteString) {
+                            Image(nsImage: qr).interpolation(.none).resizable()
+                                .frame(width: 132, height: 132)
+                                .padding(8).background(.white, in: RoundedRectangle(cornerRadius: 12))
+                        }
+                        Text("Сбер Studio").font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.top, 8)
+            } label: {
+                Text("С телефона через Сбер Studio — 7 шагов, около 5 минут").font(.headline)
+            }
+            .onAppear { open = !tv.connected }
+        }
+    }
+}
+
+/// A QR code for a link, drawn by Core Image.
+enum QRCode {
+    static func image(_ text: String) -> NSImage? {
+        guard let f = CIFilter(name: "CIQRCodeGenerator") else { return nil }
+        f.setValue(Data(text.utf8), forKey: "inputMessage")
+        f.setValue("M", forKey: "inputCorrectionLevel")
+        guard let out = f.outputImage else { return nil }
+        let rep = NSCIImageRep(ciImage: out.transformed(by: CGAffineTransform(scaleX: 8, y: 8)))
+        let img = NSImage(size: rep.size)
+        img.addRepresentation(rep)
+        return img
+    }
+}
+
 struct ConnectView: View {
     @EnvironmentObject var tv: TVStore
     @State private var confirmRestore = false
 
     var body: some View {
         GlassPage {
+            EnableADBCard()
             GlassCard("Телевизор в сети",
-                      footer: "На ТВ: Настройки → Настройки устройства → Об устройстве → 7 раз OK на «Сборка», затем назад → Для разработчиков → Отладка по USB. При первом подключении ТВ спросит «Разрешить отладку?» — отметьте «Всегда» и нажмите OK.") {
+                      footer: "IP-адрес на ТВ: Настройки → Об устройстве → Статус системы → IP-адрес. Если ТВ спросит «Разрешить отладку?», отметьте «Всегда» и нажмите OK.") {
                 HStack(spacing: 10) {
                     TextField("IP-адрес телевизора", text: $tv.host, prompt: Text("192.168.1.20"))
                         .textFieldStyle(.plain)
@@ -352,7 +412,7 @@ struct FinishView: View {
                 }
             }
             GlassCard("2. На телевизоре") {
-                Label("Настройки → Для разработчиков → выключите «Отладка по USB».", systemImage: "1.circle")
+                Label("Сбер Studio → Мои устройства → выключите «Функция ADB» (или на ТВ: Для разработчиков → «Отладка по USB»).", systemImage: "1.circle")
                 Label("По желанию: «Отозвать авторизацию отладки», чтобы ТВ больше не доверял этому Mac.", systemImage: "2.circle")
                 Label("Перезагрузите ТВ.", systemImage: "3.circle")
                 Text("Чтобы потом что-то поменять: включите отладку снова и откройте это приложение — оно само подключится и откроет «Главный экран».")
