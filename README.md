@@ -118,7 +118,8 @@ bash mac/build.sh --open
 - **Только отключение.** `pm disable-user`, никаких удалений. Всё отключённое записывается, и «Вернуть
   всё как было» включает его обратно.
 - **Бэкап до изменений**: лаунчер, заставка, DNS и списки приложений.
-- **Не трогает нужное**: платформа Sber, ассистент, входы HDMI, клавиатура, WebView, заводские меню CVTE
+- **Не трогает нужное**: платформа Sber, лаунчер Салют ТВ (без него ТВ уходит в recovery), «Эфир и входы»,
+  ассистент, входы HDMI, клавиатура, WebView, заводские меню CVTE
   перечислены в [`profiles/never.txt`](profiles/never.txt) и не отключаются, даже если окажутся в списке.
 - **Проверка на самом ТВ перед отключением** ([`profiles/guard.sh`](profiles/guard.sh), защиты из
   cleanyourtv): не даст отключить ядро Android, последний лаунчер, службы входов HDMI, то, чем открываются
@@ -204,6 +205,7 @@ bash scripts/install.sh                                # собрать, пос�
 | [sridathballeda/cleantv](https://github.com/sridathballeda/cleantv) | Скрипты установки: бэкап, классификация пакетов, откат |
 | [Seagey/couch-tv](https://github.com/Seagey/couch-tv) | Дизайн и вдохновение для обоев Night Scenes, гигантских стеклянных часов и glassmorphic Home Settings UI |
 | [wingedpanther/cleanmytv](https://github.com/wingedpanther/cleanmytv) | Дизайн и вдохновение для приложения на Mac |
+| [by-sonic/chistytv](https://github.com/by-sonic/chistytv) | Какие пакеты Салют ТВ нельзя отключать: лаунчер и «Эфир и входы» |
 
 Фото сцен «поверх фото» — Wikimedia Commons (CC BY-SA), авторы подписаны на экране и в [NOTICE](NOTICE).
 Погода — [Open-Meteo](https://open-meteo.com), запасной источник — MET Norway.

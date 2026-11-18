@@ -67,7 +67,7 @@
 
 `bash scripts/install.sh`. Он собирает APK, ставит его через `pm install -r`, пишет `config.json`
 в папку лаунчера, запускает лаунчер и только после успешного запуска делает его Home. Штатный
-`ru.sberdevices.starlauncher` по умолчанию не отключается.
+`ru.sberdevices.starlauncher` не отключается никогда (без него ТВ уходит в recovery; он в never.txt).
 
 ## 7. Проверка (скриншот после каждого шага)
 
@@ -76,7 +76,8 @@
 - Входы: меню показывает HDMI, переключение работает (картинка HDMI на скриншоте чёрная — проверяй
   через `adb shell dumpsys tv_input | grep inputId`).
 - Перезагрузка (`adb reboot`, только с согласия владельца): после неё Home всё ещё CleanMySaluteTV?
-  Если нет — `DISABLE_STOCK_LAUNCHER=yes` и `bash scripts/install.sh --config-only`.
+  Если нет: на Салют ТВ снова `cmd package set-home-activity`, лаунчер Sber не отключать; на других ТВ —
+  `DISABLE_STOCK_LAUNCHER=yes` и `bash scripts/install.sh --config-only`.
 - Попроси владельца нажать настоящие кнопки Home, Input и Салют на пульте.
 
 ## 7а. Что показать владельцу

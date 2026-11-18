@@ -92,6 +92,8 @@ $st" ;; esac
 sh_ cmd package set-home-activity --user 0 $HOME_ACT >/dev/null
 if yes_ "${DISABLE_STOCK_LAUNCHER:-no}"; then
   for p in $KNOWN_STOCK_LAUNCHERS; do
+    # Лаунчер Салют ТВ в never.txt: без него ТВ уходит в recovery даже со сторонним лаунчером.
+    is_never "$p" && continue
     sh_ pm list packages -e "$p" | tr -d '\r' | grep -qx "package:$p" && dis "$p"
   done
 fi

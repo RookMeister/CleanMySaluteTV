@@ -66,6 +66,10 @@
 
 ## Главный экран
 
-Сначала `set-home-activity` без отключения штатного лаунчера (`DISABLE_STOCK_LAUNCHER=no`). На pb766
-этого хватило, и после перезагрузки Home остался за новым лаунчером. Если Home открывает Салют ТВ,
-поставь `DISABLE_STOCK_LAUNCHER=yes` и запусти `bash scripts/install.sh --config-only`.
+Только `set-home-activity`, штатный лаунчер остаётся включённым. На pb766 и SDX-55UQ5231 этого хватило, и
+после перезагрузки Home остался за новым лаунчером.
+
+**`ru.sberdevices.starlauncher` не отключать никогда:** по данным [chistytv](https://github.com/by-sonic/chistytv)
+ТВ после этого уходит в recovery, даже когда главный экран — сторонний лаунчер. Так же нельзя трогать
+`ru.sberdevices.starlivetv` («Эфир и входы»). Оба в `profiles/never.txt`, и `DISABLE_STOCK_LAUNCHER=yes`
+их пропускает.

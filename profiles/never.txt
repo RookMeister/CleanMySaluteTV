@@ -55,6 +55,8 @@ ru.sberdevices.SberDevicesServiceSystem     # системный сервис Sb
 ru.sberdevices.location.provider            # местоположение
 ru.sberdevices.app.setup                    # мастер настройки
 ru.sberdevices.settings                     # «Центр управления»
+ru.sberdevices.starlauncher                 # лаунчер Салют ТВ: без него ТВ уходит в recovery, даже со сторонним лаунчером (chistytv)
+ru.sberdevices.starlivetv                   # «Эфир и входы»: эфир и переключение входов (chistytv)
 com.sberbank.settings                       # настройки Sber
 com.cvte.tv.setting                         # LiveTvGlobal, ТВ-настройки CVTE
 com.cvte.tv.media                           # «Файлы», USB-медиа
