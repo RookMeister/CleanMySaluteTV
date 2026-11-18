@@ -7,6 +7,8 @@ struct LauncherState: Decodable {
     var scenes: [String]
     /// Scenes whose clock goes behind the picture's hills and trees (a cut-out over it); the rest are on top.
     var scenesBehind: [String]?
+    /// Where those scenes keep their clock (couch-tv's place, 1080-line pixels): the position choice moves only photos.
+    var sceneClocks: [String: SceneClock]?
     var buttons: [TopButton]
     var apps: Apps
     var dockMin: Int
@@ -14,6 +16,12 @@ struct LauncherState: Decodable {
     /// The most apps for each dock size (6 large, 9 small); older launchers send only dockMax.
     var dockMaxSmall: Int?
     var dockMaxLarge: Int?
+
+    struct SceneClock: Decodable, Hashable {
+        var top: Double
+        var size: Double
+        var align: String
+    }
 
     struct TopButton: Decodable, Hashable {
         var kind: String

@@ -92,13 +92,25 @@ public class ScenesTest {
     }
 
     @Test
-    public void placementFollowsTheChoiceElseTheMiddle() {
-        Scenes.Scene fog = Scenes.byId("fog"), night = Scenes.byId("night");
-        assertEquals("center", Scenes.placement(fog, "auto"));   // CleanMySaluteTV: one place in every scene
-        assertEquals("center", Scenes.placement(night, "auto"));
-        assertEquals("right", Scenes.placement(fog, "right"));
-        assertEquals("center", Scenes.placement(fog, "center"));
-        assertEquals("center", Scenes.placement(night, "bogus"));
+    public void theChoiceMovesThePhotosOnlyTheCutOutScenesKeepTheirPlace() {
+        Scenes.Scene fog = Scenes.byId("fog"), night = Scenes.byId("night"), valley = Scenes.byId("valley");
+        // with a cut-out: couch-tv's own place, whatever the choice
+        assertEquals("left", Scenes.placement(fog, "auto"));
+        assertEquals("left", Scenes.placement(fog, "right"));
+        assertEquals("center", Scenes.placement(night, "left"));
+        // a photo: the owner's choice, auto (or anything unknown) in the middle
+        assertEquals("right", Scenes.placement(valley, "right"));
+        assertEquals("center", Scenes.placement(valley, "auto"));
+        assertEquals("center", Scenes.placement(valley, "bogus"));
+    }
+
+    @Test
+    public void theCutOutScenesKeepCouchTvsClockThePhotosShareOne() {
+        assertEquals(150f / 1080f, Scenes.byId("night").top, 1e-6);
+        assertEquals(400f / 1080f, Scenes.byId("night").size, 1e-6);
+        assertEquals(230f / 1080f, Scenes.byId("dawn").top, 1e-6);
+        assertEquals(Scenes.CLOCK_TOP, Scenes.byId("valley").top, 0f);
+        assertEquals(Scenes.CLOCK_SIZE, Scenes.byId("water").size, 0f);
     }
 
     @Test
@@ -113,5 +125,17 @@ public class ScenesTest {
         String[] out = new String[scenes.size()];
         for (int i = 0; i < out.length; i++) out[i] = scenes.get(i).id;
         return Arrays.asList(out);
+    }
+
+    @Test
+    public void theClockShrinksUntilNoMoreThanAThirdHidesBehindTheHills() {
+        // ink 240..616 under a top of 220; hills from 437 hide (616 - 437) / 376 = 48% of it
+        float k = Scenes.behindScale(220, 240, 616, 437, 0.3f, 0.6f);
+        float inkTop = 220 + 20 * k, inkBottom = 220 + 396 * k;
+        assertEquals(0.3f, (inkBottom - 437) / (inkBottom - inkTop), 1e-3);
+        // little hidden already: left as it is
+        assertEquals(1f, Scenes.behindScale(220, 240, 616, 560, 0.3f, 0.6f), 0f);
+        // hills far up: no smaller than 60%
+        assertEquals(0.6f, Scenes.behindScale(220, 240, 616, 250, 0.3f, 0.6f), 0f);
     }
 }

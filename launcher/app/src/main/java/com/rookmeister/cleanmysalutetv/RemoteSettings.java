@@ -90,9 +90,16 @@ final class RemoteSettings {
         choices.put(Config.CLOCK_FORMAT_KEY, cfg.clockFormat);
 
         JSONArray sceneIds = new JSONArray(), behind = new JSONArray();
+        JSONObject clocks = new JSONObject();
         for (Scenes.Scene s : Scenes.ALL) {
             sceneIds.put(s.id);
-            if (s.cutout) behind.put(s.id);   // the clock goes behind the picture's hills and trees
+            if (!s.cutout) continue;
+            behind.put(s.id);   // the clock goes behind the picture's hills and trees
+            // couch-tv's own place for it, in 1080-line pixels; the position choice does not move it
+            clocks.put(s.id, new JSONObject()
+                    .put("top", Math.round(s.top * 1080f))
+                    .put("size", Math.round(s.size * 1080f))
+                    .put("align", Scenes.placement(s, Scenes.POS_CENTER)));
         }
         JSONArray buttons = new JSONArray();
         for (String kind : TopButtons.ALL) {
@@ -116,6 +123,7 @@ final class RemoteSettings {
                 .put("choices", choices)
                 .put("scenes", sceneIds)
                 .put("scenesBehind", behind)
+                .put("sceneClocks", clocks)
                 .put("buttons", buttons)
                 .put("apps", apps)
                 .put("dockMin", Config.DOCK_MIN)

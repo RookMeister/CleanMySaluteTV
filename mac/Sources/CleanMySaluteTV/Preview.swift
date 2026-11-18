@@ -34,7 +34,7 @@ struct TVPreview: View {
     // MARK: parts
 
     @ViewBuilder private func background(_ d: Choices) -> some View {
-        let scene = (d.sceneIds.first ?? tv.state?.scenes.first) ?? "night"
+        let scene = sceneId(d)
         Group {
             if !d.scenes, let photo = tv.wallpaper {
                 Image(nsImage: photo).resizable().aspectRatio(contentMode: .fill)
@@ -49,8 +49,19 @@ struct TVPreview: View {
         .overlay(LinearGradient(colors: [.clear, .black.opacity(0.45)], startPoint: UnitPoint(x: 0.5, y: 0.6), endPoint: .bottom))
     }
 
+    private func sceneId(_ d: Choices) -> String {
+        (d.sceneIds.first ?? tv.state?.scenes.first) ?? "night"
+    }
+
+    /// A behind-the-picture scene keeps couch-tv's clock (sent by the launcher); photos share one place.
+    private func sceneClock(_ d: Choices) -> LauncherState.SceneClock? {
+        d.scenes ? tv.state?.sceneClocks?[sceneId(d)] : nil
+    }
+
+    private func clockTop(_ d: Choices) -> CGFloat { CGFloat(sceneClock(d)?.top ?? 220) }
+
     private func clockX(_ d: Choices, _ k: CGFloat) -> (CGFloat, Alignment) {
-        switch d.clockPosition {
+        switch sceneClock(d)?.align ?? d.clockPosition {
         case "left": return (96 * k, .leading)
         case "right": return (Self.W * k - 96 * k, .trailing)
         default: return (Self.W * k / 2, .center)
@@ -67,7 +78,7 @@ struct TVPreview: View {
             .foregroundStyle(.white.opacity(0.92))
             .fixedSize()
             .frame(width: 1400 * k, alignment: a)
-            .position(x: a == .center ? x : a == .leading ? x + 700 * k : x - 700 * k, y: (220 - 54 + 20) * k)
+            .position(x: a == .center ? x : a == .leading ? x + 700 * k : x - 700 * k, y: (clockTop(d) - 54 + 20) * k)
     }
 
     private func clock(_ d: Choices, _ k: CGFloat) -> some View {
@@ -75,9 +86,10 @@ struct TVPreview: View {
         let h24 = d.clockFormat == "24" || (d.clockFormat == "system")
         let f = DateFormatter()
         f.dateFormat = h24 ? "HH:mm" : "h:mm"
-        // as large as the dock lets it be (Scenes.fitSize), from its fixed top
+        // as large as the dock lets it be (Scenes.fitSize), from its top
         let dockTop = dockTopY(d)
-        let size = min(430, max(110, (dockTop - 40 - 220) / 0.92))
+        let top = clockTop(d)
+        let size = min(CGFloat(sceneClock(d)?.size ?? 430), max(110, (dockTop - 40 - top) / 0.92))
         let (x, a) = clockX(d, k)
         return Text(f.string(from: now))
             .font(.custom(SceneArt.clockFont, size: size * k))
@@ -85,7 +97,7 @@ struct TVPreview: View {
             .shadow(color: .black.opacity(0.18), radius: 12 * k)
             .fixedSize()
             .frame(width: 1600 * k, alignment: a)
-            .position(x: a == .center ? x : a == .leading ? x + 800 * k : x - 800 * k, y: (220 + size * 0.46) * k)
+            .position(x: a == .center ? x : a == .leading ? x + 800 * k : x - 800 * k, y: (top + size * 0.46) * k)
     }
 
     private func topButtons(_ d: Choices, _ k: CGFloat) -> some View {

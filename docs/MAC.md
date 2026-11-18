@@ -39,7 +39,7 @@ swift run --package-path mac  # для разработки: adb и APK ищут
 ```bash
 U=content://com.rookmeister.cleanmysalutetv.theme
 adb shell content call --uri $U --method export       # пишет remote/state.json и remote/icons/<пакет>.png
-adb shell content read --uri $U/remote/state.json      # что сейчас на ТВ: настройки, сцены, кнопки, приложения
+adb shell content read --uri $U/remote/state.json      # что сейчас на ТВ: настройки, сцены, места часов, кнопки, приложения
 adb shell "content write --uri $U/remote/apply.json < /data/local/tmp/apply.json"
 adb shell content call --uri $U --method apply         # применяет apply.json; главный экран перестраивается
 ```

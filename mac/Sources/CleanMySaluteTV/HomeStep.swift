@@ -161,7 +161,7 @@ struct LayoutTab: View {
             }
             TopButtonsCard(d: d)
             GlassCard("Часы") {
-                GlassRow("Положение") {
+                GlassRow("Положение", detail: "Для фото. В сценах «за фото» у часов своё место, как в couch-tv") {
                     Picker("", selection: d.clockPosition) {
                         Text("Авто").tag("auto"); Text("Слева").tag("left"); Text("По центру").tag("center"); Text("Справа").tag("right")
                     }.labelsHidden().pickerStyle(.segmented).fixedSize()

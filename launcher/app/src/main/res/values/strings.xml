@@ -208,7 +208,7 @@
     <string name="menu_airplay_check">Check now</string>
     <string name="menu_airplay_checking">Checking AirPlay in the background</string>
     <string name="menu_clock_position">Clock position</string>
-    <string name="menu_clock_position_sub">Where the big clock stands in the scenes</string>
+    <string name="menu_clock_position_sub">Where the big clock stands on the photos; behind-the-picture scenes keep their own place</string>
     <string name="menu_pos_auto">As the scene</string>
     <string name="menu_pos_left">Left</string>
     <string name="menu_pos_center">Centre</string>

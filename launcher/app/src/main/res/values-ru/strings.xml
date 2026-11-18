@@ -205,7 +205,7 @@
     <string name="menu_airplay_check">Проверить сейчас</string>
     <string name="menu_airplay_checking">Проверяю AirPlay в фоне</string>
     <string name="menu_clock_position">Положение часов</string>
-    <string name="menu_clock_position_sub">Где стоят большие часы в сценах</string>
+    <string name="menu_clock_position_sub">Где стоят часы на фото; в сценах «за фото» у часов своё место</string>
     <string name="menu_pos_auto">Как в сцене</string>
     <string name="menu_pos_left">Слева</string>
     <string name="menu_pos_center">По центру</string>

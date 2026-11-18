@@ -76,7 +76,7 @@ final class SceneRenderer {
                 // The clock alone on a transparent layer, over the wallpaper or the background colour.
                 out = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
                 Canvas c = new Canvas(out);
-                float[] clock = drawClock(c, s, null, time, width, height, limit, header, where, captionWidth(caption, height));
+                float[] clock = drawClock(c, s, null, null, time, width, height, limit, header, where, captionWidth(caption, height));
                 if (caption != null) drawCaption(c, s, caption, clock[0], clock[1], clock[2], where, width, height);
                 return out;
             }
@@ -91,11 +91,12 @@ final class SceneRenderer {
 
             // The glass is a blur: half size is plenty, and a quarter of the memory.
             glass = decode(s.id + "-glass.jpg", 2, Bitmap.Config.RGB_565);
-            float[] clock = drawClock(c, s, glass, time, width, height, limit, header, where, captionWidth(caption, height));
+            // the cut-out first: the clock reads from it how far its hills and trees come up (behindScale)
+            if (s.cutout) cutout = decode(s.id + "-fg.webp", 1, Bitmap.Config.ARGB_8888);
+            float[] clock = drawClock(c, s, glass, cutout, time, width, height, limit, header, where, captionWidth(caption, height));
             if (glass != null) { glass.recycle(); glass = null; }
 
             if (s.cutout) {
-                cutout = decode(s.id + "-fg.webp", 1, Bitmap.Config.ARGB_8888);
                 if (cutout != null) {
                     Paint p = new Paint(Paint.FILTER_BITMAP_FLAG);
                     p.setColorFilter(brightness(s.photoBrightness));
@@ -123,8 +124,8 @@ final class SceneRenderer {
     }
 
     /** @return the clock's line-box top and the left and right edges of its ink, for the date line over it */
-    private float[] drawClock(Canvas c, Scenes.Scene s, Bitmap glass, String time, int width, int height, float limit,
-                              float[] header, String where, float captionW) {
+    private float[] drawClock(Canvas c, Scenes.Scene s, Bitmap glass, Bitmap cutout, String time, int width, int height,
+                              float limit, float[] header, String where, float captionW) {
         Paint text = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
         text.setTypeface(font);
         text.setLetterSpacing(Scenes.LETTER_SPACING);
@@ -139,9 +140,9 @@ final class SceneRenderer {
             text.setTextAlign(Paint.Align.CENTER);
             x = width / 2f;
         }
-        float top = Scenes.CLOCK_TOP * height;
+        float top = s.top * height;
         // The digits' ink ends about 0.92 of the font size under the top of the line box (Antonio, line-height 0.82).
-        float size = Scenes.fitSize(Scenes.CLOCK_TOP, Scenes.CLOCK_SIZE, 0.92f, limit) * height;
+        float size = Scenes.fitSize(s.top, s.size, 0.92f, limit) * height;
         RectF box = new RectF();
         float baseline = place(text, time, x, top, size, box);
         if (header != null) {
@@ -149,7 +150,7 @@ final class SceneRenderer {
                     header[0] * width, header[1] * width, header[2] * height, 14f * height / 1080f);
             if (moved != top) {
                 top = moved;
-                size = Scenes.fitSize(top / height, Scenes.CLOCK_SIZE, 0.92f, limit) * height;
+                size = Scenes.fitSize(top / height, s.size, 0.92f, limit) * height;
                 baseline = place(text, time, x, top, size, box);
             }
             // CleanMySaluteTV: the date line over the digits too, placed as drawCaption places it; a long weather
@@ -163,9 +164,20 @@ final class SceneRenderer {
                         header[0] * width, header[1] * width, header[2] * height, 8f * unit);
                 if (lowered != top) {
                     top = lowered;
-                    size = Scenes.fitSize(top / height, Scenes.CLOCK_SIZE, 0.92f, limit) * height;
+                    size = Scenes.fitSize(top / height, s.size, 0.92f, limit) * height;
                     baseline = place(text, time, x, top, size, box);
                 }
+            }
+        }
+
+        // CleanMySaluteTV: the clock has one place in every scene, so a cut-out's hills can come up over much of the
+        // digits (Night hid about half). Smaller, from the same top, until no more than Scenes.MAX_HIDDEN is behind.
+        if (cutout != null) {
+            float horizon = horizon(cutout, width, height, box.left, box.right);
+            float k = Scenes.behindScale(top, box.top, box.bottom, horizon, Scenes.MAX_HIDDEN, Scenes.MIN_BEHIND_SCALE);
+            if (k < 1f) {
+                size *= k;
+                baseline = place(text, time, x, top, size, box);
             }
         }
 
@@ -344,6 +356,30 @@ final class SceneRenderer {
     }
 
     /** The part of the picture that covers the target's shape, centred (object-fit: cover). */
+    /**
+     * Where a cut-out starts over the span {@code x0..x1} of the screen: for columns across it, the first row from the
+     * top that is mostly opaque, and the median of those (screen pixels; {@code height} where it never is).
+     */
+    static float horizon(Bitmap cut, int width, int height, float x0, float x1) {
+        Rect src = coverRect(cut, width, height);
+        float sx = src.width() / (float) width, sy = src.height() / (float) height;
+        int n = 32;
+        float[] ys = new float[n];
+        int[] col = new int[src.height()];
+        for (int i = 0; i < n; i++) {
+            float x = x0 + (x1 - x0) * (i + 0.5f) / n;
+            int bx = Math.max(0, Math.min(cut.getWidth() - 1, Math.round(src.left + x * sx)));
+            cut.getPixels(col, 0, 1, bx, src.top, 1, src.height());
+            int y = src.height();
+            for (int j = 0; j < col.length; j++) {
+                if ((col[j] >>> 24) > 128) { y = j; break; }
+            }
+            ys[i] = y / sy;
+        }
+        java.util.Arrays.sort(ys);
+        return ys[n / 2];
+    }
+
     private static Rect coverRect(Bitmap b, int width, int height) {
         float scale = Math.max(width / (float) b.getWidth(), height / (float) b.getHeight());
         int w = Math.round(width / scale), h = Math.round(height / scale);

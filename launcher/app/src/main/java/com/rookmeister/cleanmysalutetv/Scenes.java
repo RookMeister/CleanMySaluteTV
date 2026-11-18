@@ -25,10 +25,23 @@ final class Scenes {
     /** letter-spacing -0.02em. */
     static final float LETTER_SPACING = -0.02f;
 
+    /**
+     * CleanMySaluteTV: the clock's place on the photos (the scenes without a cut-out), the same in each: the date line
+     * starts 166 px down, clear of the 88 px top buttons that end at 148. Declared before the scenes are built, which
+     * read it. The scenes with a cut-out keep couch-tv's own (Builder.clock).
+     */
+    static final float CLOCK_TOP = 220f / 1080f, CLOCK_SIZE = 430f / 1080f;
+
     static final class Scene {
         final String id;
         /** assets/scenes/scene-<id>.jpg, -glass.jpg and, when {@link #cutout}, -fg.webp. */
         final boolean cutout;
+        /**
+         * Top of the clock's line box and its font size, as shares of the screen height. The scenes with a cut-out
+         * keep couch-tv's own (the hills cross the digits just so); the photos share {@link #CLOCK_TOP} and
+         * {@link #CLOCK_SIZE}.
+         */
+        final float top, size;
         /** 0 centres the clock; otherwise its left edge as a share of the screen width. */
         final float left;
         /** Picture and cut-out brightness (couch-tv .s-night .sbg: 0.86). */
@@ -56,7 +69,7 @@ final class Scenes {
         final String author;
 
         Scene(Builder b) {
-            id = b.id; cutout = b.cutout; left = b.left;
+            id = b.id; cutout = b.cutout; top = b.top; size = b.size; left = b.left;
             photoBrightness = b.photoBrightness;
             fillBrightness = b.fillBrightness; fillSaturation = b.fillSaturation; fillContrast = b.fillContrast;
             fillAlpha = b.fillAlpha; rimFill = b.rimFill; rimStroke = b.rimStroke; sheen = b.sheen;
@@ -70,7 +83,7 @@ final class Scenes {
     static final class Builder {
         final String id;
         boolean cutout = true;
-        float left = 0f;
+        float top = CLOCK_TOP, size = CLOCK_SIZE, left = 0f;
         float photoBrightness = 1f;
         float fillBrightness = 1f, fillSaturation = 1f, fillContrast = 1f, fillAlpha = 1f;
         int rimFill = 0x1AFFFFFF, rimStroke = 0x8CFFFFFF;
@@ -87,6 +100,9 @@ final class Scenes {
 
         Builder(String id) { this.id = id; }
         /** couch-tv's Classic photos: no cut-out, the glass clock over the photo, credited in a corner. */
+        /** couch-tv's clock for this scene: its line box's top and its size, px at 1080 lines. */
+        Builder clock(float topPx, float sizePx) { top = px(topPx); size = px(sizePx); return this; }
+
         Builder photo(int place, String by) {
             cutout = false; placeRes = place; author = by;
             // a soft shade at the top keeps the date and the buttons readable on bright skies
@@ -117,12 +133,12 @@ final class Scenes {
     static {
         List<Scene> all = new ArrayList<>();
         // Night: the clock behind the peak, pink glass.
-        Builder night = new Builder("night").fill(1.15f, 1.2f, 1f, 0.9f).rim(0x0FFFC8D7, 0x80FFD7E1)
+        Builder night = new Builder("night").clock(150, 400).fill(1.15f, 1.2f, 1f, 0.9f).rim(0x0FFFC8D7, 0x80FFD7E1)
                 .caption(0xEBFFE8EE, 0xC7FFE8EE, true);
         night.photoBrightness = 0.86f;
         all.add(night.build());
         // Golden hour: a little smaller, low enough for the volcano's tip to rise into the digits.
-        all.add(new Builder("golden").build());
+        all.add(new Builder("golden").clock(152, 390).build());
         // Waterline: the clock sits on the water; under the surface it shows as a softer reflection.
         Builder water = new Builder("water").shadow(0x59001428, 8, 30)
                 .shade(new int[] {0x6B000C18, 0x1F000C18, 0x00000000, 0x80001428}, new float[] {0f, 0.40f, 0.52f, 1f});
@@ -130,13 +146,13 @@ final class Scenes {
         water.water = 0.55f;
         all.add(water.build());
         // Fog: a big dark clock on the left, sinking into the misty hills.
-        Builder fog = new Builder("fog").fill(0.46f, 0.8f, 1.1f, 0.8f).rim(0x00000000, 0x99FFFFFF)
+        Builder fog = new Builder("fog").clock(172, 470).fill(0.46f, 0.8f, 1.1f, 0.8f).rim(0x00000000, 0x99FFFFFF)
                 .shadow(0, 0, 0).caption(0xFF16201D, 0xB816201D, false);
         fog.left = 96f / 1920f;
         fog.sheen = false;
         all.add(fog.build());
         // Rainforest dawn: warm light at the top.
-        all.add(new Builder("dawn").shadow(0x4D3C1E0A, 8, 34)
+        all.add(new Builder("dawn").clock(230, 400).shadow(0x4D3C1E0A, 8, 34)
                 .shade(new int[] {0x6B321C0C, 0x00321C0C}, new float[] {0f, 0.55f}).build());
         // couch-tv's free photos (tv-home/web/backgrounds/CREDITS.md), in its order: the clock in glass over them.
         all.add(new Builder("pavement").photo(R.string.scene_pavement, "JJ Harrison").build());
@@ -155,8 +171,10 @@ final class Scenes {
 
     /** "left", "center" or "right" for this scene: {@code position} unless it is auto or unknown. */
     static String placement(Scene s, String position) {
+        // CleanMySaluteTV: a scene with a cut-out keeps couch-tv's own place (the clock goes behind its hills just
+        // there; Fog's on the left); the owner's choice moves the clock on the photos only, auto being the middle.
+        if (s.cutout) return s.left > 0f ? POS_LEFT : POS_CENTER;
         if (POS_LEFT.equals(position) || POS_CENTER.equals(position) || POS_RIGHT.equals(position)) return position;
-        // CleanMySaluteTV: auto is the middle in every scene, so the clock never moves when the scene changes.
         return POS_CENTER;
     }
 
@@ -165,12 +183,6 @@ final class Scenes {
         return POS_LEFT;
     }
 
-    /**
-     * CleanMySaluteTV: one place for the clock in every scene, the owner's wish: the scenes' own heights (150 to
-     * 268 px) put the date line under the top buttons on some. The date line's top lands 166 px down, clear of the
-     * 88 px buttons that end at 148.
-     */
-    static final float CLOCK_TOP = px(220), CLOCK_SIZE = px(430);
 
     /** couch-tv's date line sits this far above the clock's line box (96 px over 150 at 1080 lines). */
     static final float CAPTION_ABOVE = px(54);
@@ -252,6 +264,24 @@ final class Scenes {
      * Keeps the clock's digits above the row that starts at {@code limit} (a share of the height): returns the
      * font size to use, never larger than the scene's own and never under a quarter of it.
      */
+    /** CleanMySaluteTV: at most this share of the digits may hide behind a scene's cut-out (its hills and trees). */
+    static final float MAX_HIDDEN = 0.3f;
+    /** ... and the clock shrinks for that to no less than this share of its size. */
+    static final float MIN_BEHIND_SCALE = 0.6f;
+
+    /**
+     * How much to shrink the clock, from its line-box top, so that at most {@code maxHidden} of its ink is below
+     * {@code horizon} (where the cut-out starts over the digits): 1 when it already is. The ink scales with the size
+     * from the top: {@code inkTop} and {@code inkBottom} are where it is now. Never under {@code minScale}.
+     */
+    static float behindScale(float top, float inkTop, float inkBottom, float horizon, float maxHidden, float minScale) {
+        float h = inkBottom - inkTop;
+        if (h <= 0f || inkBottom - horizon <= maxHidden * h) return 1f;
+        // top + (inkBottom - top) k  =  horizon + maxHidden (h k)
+        float k = (horizon - top) / ((inkBottom - top) - maxHidden * h);
+        return Math.max(minScale, Math.min(1f, k));
+    }
+
     static float fitSize(float top, float size, float inkBelowTop, float limit) {
         if (limit <= 0f || top + inkBelowTop * size <= limit) return size;
         float fitted = (limit - top) / inkBelowTop;
