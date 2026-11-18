@@ -90,8 +90,6 @@ CleanMySaluteTV отключает лишнее по проверенному с
 
 <p align="center"><img src="docs/screens/mac-home.jpg" alt="Приложение для Mac: шаги слева, превью экрана ТВ и вкладки настройки главного экрана" width="100%"></p>
 
-Семь шагов слева, как в [CleanMyTV](https://github.com/wingedpanther/cleanmytv):
-
 1. **Очистка и запуск** — всё одной кнопкой: бэкап, отключение лишнего, установка лаунчера.
 2. **Подключение** — найдёт ТВ в сети, покажет модель и свободную память, снимет экран.
 3. **Очистка** — приложения Sber с советом и переключателем «Работает / Отключено».
@@ -190,7 +188,8 @@ bash scripts/install.sh                                # собрать, пос�
 
 | Проект | Что взято |
 |---|---|
-| [Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv) | Основа всего: лаунчер, скрипты установки (бэкап, классификация пакетов, откат) и списки для Sber |
+| [Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv) | Основа лаунчера и списки для Sber |
+| [sridathballeda/cleantv](https://github.com/sridathballeda/cleantv) | Скрипты установки: бэкап, классификация пакетов, откат |
 | [Seagey/couch-tv](https://github.com/Seagey/couch-tv) | Дизайн и вдохновение для обоев Night Scenes, гигантских стеклянных часов и glassmorphic Home Settings UI |
 | [wingedpanther/cleanmytv](https://github.com/wingedpanther/cleanmytv) | Дизайн и вдохновение для приложения на Mac: шаги и вкладка «Главный экран» с живым превью |
 

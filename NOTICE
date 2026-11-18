@@ -4,11 +4,10 @@ Copyright 2026 RookMeister
 Licensed under the MIT License (see LICENSE).
 
 Credits and acknowledgements:
-- CleanYourTV (https://github.com/Gathin23/cleanyourtv) — the base of the project: the launcher,
-  the install scripts (backup, package classification, rollback), the never-touch list, the Sber
-  debloat lists and the launcher docs; MIT License (licenses/cleanyourtv-LICENSE.txt)
-- CleanTV (https://github.com/sridathballeda/cleantv) — the copy of CleanYourTV's install scripts
-  they were first taken from; MIT License (licenses/cleantv-LICENSE.txt)
+- CleanYourTV (https://github.com/Gathin23/cleanyourtv) — the launcher, the Sber debloat lists
+  and the launcher docs; MIT License (licenses/cleanyourtv-LICENSE.txt)
+- CleanTV (https://github.com/sridathballeda/cleantv) — the install scripts (backup, package
+  classification, rollback) and the never-touch list; MIT License (licenses/cleantv-LICENSE.txt)
 - Couch TV (https://github.com/Seagey/couch-tv) — the scenes, the glass clock, the weather line,
   the look of the settings menu and the clear (glass) app icons (ClearIcon, from clearicon.js),
   rewritten natively; MIT License (licenses/couch-tv-LICENSE.txt)
@@ -38,5 +37,5 @@ This product includes third-party components under their own licences:
 - adb (Android SDK Platform-Tools) — bundled inside the Mac app (mac/build.sh); Apache License 2.0,
   https://developer.android.com/tools/releases/platform-tools
 - The Mac app follows CleanMyTV's desktop app (https://github.com/wingedpanther/cleanmytv, MIT,
-  © wingedpanther): its seven steps, the Home screen step's tabs and live preview, and much of its wording,
+  © wingedpanther): its steps, the Home screen step's tabs and live preview, and much of its wording,
   rewritten in SwiftUI for this launcher
