@@ -17,7 +17,7 @@ public class TopButtonsTest {
 
     @Test
     public void moveSwapsWithANeighbourAndStopsAtTheEnds() {
-        assertEquals(Arrays.asList("network", "inputs", "vpn", "settings"),
+        assertEquals(Arrays.asList("vpn", "inputs", "settings"),
                 TopButtons.move(TopButtons.DEFAULT, "inputs", 1));
         assertEquals(TopButtons.DEFAULT, TopButtons.move(TopButtons.DEFAULT, "inputs", -1));
         assertEquals(TopButtons.DEFAULT, TopButtons.move(TopButtons.DEFAULT, "settings", 1));
@@ -25,9 +25,9 @@ public class TopButtonsTest {
 
     @Test
     public void toggleAddsBeforeTheGearAndRemoves() {
-        assertEquals(Arrays.asList("inputs", "network", "vpn", "sleep", "settings"),
+        assertEquals(Arrays.asList("inputs", "vpn", "sleep", "settings"),
                 TopButtons.toggle(TopButtons.DEFAULT, "sleep"));
-        assertEquals(Arrays.asList("inputs", "network", "settings"),
+        assertEquals(Arrays.asList("inputs", "settings"),
                 TopButtons.toggle(TopButtons.DEFAULT, "vpn"));
     }
 
@@ -37,6 +37,13 @@ public class TopButtonsTest {
             TopButtons.icon(k);
             TopButtons.label(k);
         }
-        assertEquals(13, TopButtons.ALL.size());
+        assertEquals(8, TopButtons.ALL.size());
+    }
+
+    @Test
+    public void picturesSoundWifiBluetoothAndScreensaverAreGone() {
+        for (String gone : new String[] {"picture", "sound", "network", "bluetooth", "screensaver"}) {
+            assertEquals(Collections.emptyList(), TopButtons.parse(gone));
+        }
     }
 }

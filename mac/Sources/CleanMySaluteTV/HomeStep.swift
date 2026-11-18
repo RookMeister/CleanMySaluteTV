@@ -244,9 +244,9 @@ struct TopButtonsCard: View {
 /// The top bar's SF Symbols, close to the launcher's own glyphs.
 enum ButtonsView {
     static let symbols: [String: String] = [
-        "sleep": "timer", "picture": "tv", "sound": "speaker.wave.2", "screensaver": "clock",
-        "screen_off": "power", "bluetooth": "dot.radiowaves.left.and.right", "memory": "memorychip",
-        "inputs": "cable.connector", "network": "wifi", "vpn": "lock.shield", "apps": "square.grid.3x3",
+        "sleep": "timer",
+        "screen_off": "power", "memory": "memorychip",
+        "inputs": "cable.connector", "vpn": "lock.shield", "apps": "square.grid.3x3",
         "tv_settings": "slider.horizontal.3", "settings": "gearshape",
     ]
 }

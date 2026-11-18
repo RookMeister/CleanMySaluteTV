@@ -2959,7 +2959,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private void applyTopButtons() {
         LinearLayout bar = findViewById(R.id.topButtons);
         java.util.List<String> chosen = TopButtons.chosen(this);
-        if (chosen.equals(TopButtons.DEFAULT)) return;   // the bar as it always was
         bar.setBaselineAligned(false);   // empty-text circles: a baseline would shift the row
         parkedButtons = new FrameLayout(this);
         parkedButtons.setVisibility(View.GONE);
@@ -2978,6 +2977,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         for (String kind : known.keySet()) {
             if (!chosen.contains(kind)) parkedButtons.addView(known.get(kind));
         }
+        // The network pill is not a choice any more: parked always, and out of focus.
+        btnWifi.setVisibility(View.GONE);
     }
 
     /** A round button for one of the bar's extra kinds, styled like the others. */
@@ -3000,10 +3001,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private void onExtraButton(String kind, View button) {
         switch (kind) {
             case TopButtons.SLEEP: showSleepMenu(button); break;
-            case TopButtons.PICTURE: open(SystemSettings.displayIntent(this)); break;
-            case TopButtons.SOUND: open(systemIntent(Settings.ACTION_SOUND_SETTINGS)); break;
-            case TopButtons.SCREENSAVER: open(new Intent(this, ClockActivity.class)); break;
-            case TopButtons.BLUETOOTH: open(systemIntent(Settings.ACTION_BLUETOOTH_SETTINGS)); break;
             case TopButtons.MEMORY: {
                 int before = MemoryClean.used(this);
                 MemoryClean.clean(this);
