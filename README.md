@@ -191,7 +191,7 @@ bash scripts/install.sh                                # собрать, пос�
 | [Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv) | Основа лаунчера и списки для Sber |
 | [sridathballeda/cleantv](https://github.com/sridathballeda/cleantv) | Скрипты установки: бэкап, классификация пакетов, откат |
 | [Seagey/couch-tv](https://github.com/Seagey/couch-tv) | Дизайн и вдохновение для обоев Night Scenes, гигантских стеклянных часов и glassmorphic Home Settings UI |
-| [wingedpanther/cleanmytv](https://github.com/wingedpanther/cleanmytv) | Дизайн и вдохновение для приложения на Mac: шаги и вкладка «Главный экран» с живым превью |
+| [wingedpanther/cleanmytv](https://github.com/wingedpanther/cleanmytv) | Дизайн и вдохновение для приложения на Mac |
 
 Фото сцен «поверх фото» — Wikimedia Commons (CC BY-SA), авторы подписаны на экране и в [NOTICE](NOTICE).
 Погода — [Open-Meteo](https://open-meteo.com), запасной источник — MET Norway.
