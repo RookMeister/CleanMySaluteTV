@@ -36,6 +36,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleShortVersionString</key><string>${VERSION}</string>
   <key>CFBundleVersion</key><string>${VERSION}</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
+  <key>CFBundleIconName</key><string>AppIcon</string>
   <key>CFBundleDevelopmentRegion</key><string>ru</string>
   <key>LSMinimumSystemVersion</key><string>26.0</string>
   <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
@@ -69,7 +70,11 @@ if [ ! -f "$APK" ]; then
 fi
 cp "$APK" "$APP/Contents/Resources/CleanMySaluteTV.apk"
 
-[ -f "$MAC/AppIcon.icns" ] && cp "$MAC/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
+# the icon: mac/AppIcon.icon (Icon Composer's format: a gradient and a glass TV), made into Liquid Glass by actool:
+# Assets.car for macOS 26, AppIcon.icns for anything that reads the old way
+xcrun actool "$MAC/AppIcon.icon" --compile "$APP/Contents/Resources" --app-icon AppIcon \
+  --output-partial-info-plist "$MAC/build/icon-partial.plist" --platform macosx --minimum-deployment-target 26.0 \
+  --target-device mac >/dev/null || die "actool не собрал иконку"
 
 # ad hoc signature: enough to run on this Mac (the bundled adb is signed with it too)
 codesign --force --deep --sign - "$APP" >/dev/null 2>&1 || die "codesign не прошёл"

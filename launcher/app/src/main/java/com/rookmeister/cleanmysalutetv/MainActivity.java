@@ -3099,11 +3099,17 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         for (int k = 0; k < bar.getChildCount(); k++) {
             View pill = bar.getChildAt(k);
             if (pill.getVisibility() != View.VISIBLE || pill.getWidth() == 0) continue;
-            one.set(0, 0, pill.getWidth(), pill.getHeight());
-            root.offsetDescendantRectToMyCoords(pill, one);
-            one.offset(0, Math.round(pill.getTranslationY()));
-            // only what is on the screen (a parked view sits far off to the side)
-            if (one.intersect(0, 0, root.getWidth(), root.getHeight())) all.union(one);
+            // Layout positions only, summed up the parents: offsetDescendantRectToMyCoords counts the views'
+            // translation on this firmware, so pinTopBar's own shift came back into the measure and every other
+            // layout pass undid it (the bar slid off to the right).
+            int x = 0, y = 0;
+            for (View v = pill; v != null && v != root; v = v.getParent() instanceof View ? (View) v.getParent() : null) {
+                x += v.getLeft() - (v == pill ? 0 : v.getScrollX());
+                y += v.getTop() - (v == pill ? 0 : v.getScrollY());
+            }
+            one.set(x, y, x + pill.getWidth(), y + pill.getHeight());
+            // a parked view sits far off to the side, out of the window
+            if (one.right > 0 && one.left < root.getWidth()) all.union(one);
         }
         return all.isEmpty() ? null : all;
     }
