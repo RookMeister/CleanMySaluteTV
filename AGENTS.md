@@ -29,6 +29,8 @@
 2. `cp cleanmysalutetv.conf.example cleanmysalutetv.conf`, впиши `TV_IP`.
 3. `bash scripts/preflight.sh` — пройди с владельцем каждый ✗, пока всё не будет ✓.
 4. `bash scripts/connect.sh`. Запиши в ответе модель, версию Android и плату (`getprop ro.board.platform`).
+5. Если ADB включали через Сбер Studio — сразу после подключения попроси владельца выключить там
+   «Функция ADB»: подключение остаётся, новые порт не принимает.
 
 ## 3. Бэкап — всегда до любых изменений
 
