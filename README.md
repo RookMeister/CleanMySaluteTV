@@ -33,6 +33,8 @@
 - телеметрия, опросы и сервисы, которые вы не просили.
 
 CleanMySaluteTV отключает лишнее по проверенному списку для Sber и ставит лёгкий главный экран (около 5 МБ).
+Есть списки и для телевизоров Xiaomi и Redmi, приставок Mi Box и любых Android TV / Google TV:
+приложение для Mac само показывает только то, что стоит на вашем ТВ.
 
 ## С чего начать
 
@@ -114,6 +116,9 @@ bash mac/build.sh --open
 - **Бэкап до изменений**: лаунчер, заставка, DNS и списки приложений.
 - **Не трогает нужное**: платформа Sber, ассистент, входы HDMI, клавиатура, WebView, заводские меню CVTE
   перечислены в [`profiles/never.txt`](profiles/never.txt) и не отключаются, даже если окажутся в списке.
+- **Проверка на самом ТВ перед отключением** ([`profiles/guard.sh`](profiles/guard.sh), защиты из
+  cleanyourtv): не даст отключить ядро Android, последний лаунчер, службы входов HDMI, то, чем открываются
+  входы и Настройки, и мастер настройки, если Wi-Fi сохранён им.
 - **Лаунчер Sber остаётся на ТВ**: вернуть его можно одной кнопкой.
 - **Ничего не отправляет наружу.** Настройки ходят только между вашим Mac и ТВ. В сеть уходят лишь запросы
   погоды и поиска города в Open-Meteo.
@@ -131,6 +136,9 @@ bash mac/build.sh --open
 |---|---|---|
 | Sber SDX-55UQ5231 | StarOS, Android 13 | Очистка, лаунчер, сцены, док, кнопки, входы HDMI 1–3 и AV, настройка с Mac |
 | Sber Салют ТВ pb766, at30a6 | StarOS, Android 11 и 13 | Списки отключения — из [cleanyourtv](https://github.com/Gathin23/cleanyourtv) |
+| Телевизоры Xiaomi и Redmi (PatchWall) | Android TV 9–14 | Список [`xiaomi-tv.tsv`](profiles/xiaomi-tv.tsv) — из 40 проверенных в cleanyourtv; с CleanMySaluteTV не проверялось |
+| Xiaomi Mi Box 3, S, S 2nd gen, 4S | Android TV 9–12 | Список [`xiaomi-mibox.tsv`](profiles/xiaomi-mibox.tsv) — из 5 проверенных в cleanyourtv; с CleanMySaluteTV не проверялось |
+| Любой Android TV / Google TV | Android TV 9–14 | Список [`android-tv.tsv`](profiles/android-tv.tsv): общие пакеты Google из 48 проверенных в cleanyourtv; с CleanMySaluteTV не проверялось |
 
 ## Вопросы
 
@@ -188,7 +196,7 @@ bash scripts/install.sh                                # собрать, пос�
 
 | Проект | Что взято |
 |---|---|
-| [Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv) | Основа лаунчера и списки для Sber |
+| [Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv) | Основа лаунчера, списки для Sber, Xiaomi, Mi Box и Android TV, проверки перед отключением |
 | [sridathballeda/cleantv](https://github.com/sridathballeda/cleantv) | Скрипты установки: бэкап, классификация пакетов, откат |
 | [Seagey/couch-tv](https://github.com/Seagey/couch-tv) | Дизайн и вдохновение для обоев Night Scenes, гигантских стеклянных часов и glassmorphic Home Settings UI |
 | [wingedpanther/cleanmytv](https://github.com/wingedpanther/cleanmytv) | Дизайн и вдохновение для приложения на Mac |

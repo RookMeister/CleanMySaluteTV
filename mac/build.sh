@@ -55,7 +55,7 @@ done
 [ -n "$ADB_SRC" ] || die "Нет adb: brew install android-platform-tools"
 cp "$ADB_SRC" "$APP/Contents/Resources/adb"
 
-cp "$ROOT/profiles/sber-staros.tsv" "$ROOT/profiles/never.txt" "$APP/Contents/Resources/"
+cp "$ROOT"/profiles/*.tsv "$ROOT/profiles/never.txt" "$ROOT/profiles/guard.sh" "$APP/Contents/Resources/"
 # the window's backdrop: one of the launcher's scenes (Liquid Glass floats over it)
 cp "$ROOT/launcher/app/src/main/assets/scenes/scene-valley.jpg" "$APP/Contents/Resources/Backdrop.jpg"
 # the Home screen step's preview: the scenes (not their -glass blur or cut-outs) and the clock's font

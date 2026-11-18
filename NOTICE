@@ -4,8 +4,9 @@ Copyright 2026 RookMeister
 Licensed under the MIT License (see LICENSE).
 
 Credits and acknowledgements:
-- CleanYourTV (https://github.com/Gathin23/cleanyourtv) — the launcher, the Sber debloat lists
-  and the launcher docs; MIT License (licenses/cleanyourtv-LICENSE.txt)
+- CleanYourTV (https://github.com/Gathin23/cleanyourtv) — the launcher, the Sber debloat lists,
+  the launcher docs, the safety checks in profiles/guard.sh (from tools/disable.sh) and the Xiaomi TV,
+  Mi Box and Android TV profiles (built from its examples/); MIT License (licenses/cleanyourtv-LICENSE.txt)
 - CleanTV (https://github.com/sridathballeda/cleantv) — the install scripts (backup, package
   classification, rollback) and the never-touch list; MIT License (licenses/cleantv-LICENSE.txt)
 - Couch TV (https://github.com/Seagey/couch-tv) — the scenes, the glass clock, the weather line,

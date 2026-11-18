@@ -10,8 +10,8 @@ PKG=com.rookmeister.cleanmysalutetv
 HOME_ACT=$PKG/.MainActivity
 DREAM=$PKG/.ClockDream
 DISABLED_LOG="$STATE/disabled_by_us.txt"
-# Штатные лаунчеры, которые install.sh умеет узнавать (Sber первым).
-KNOWN_STOCK_LAUNCHERS="ru.sberdevices.starlauncher com.google.android.apps.tv.launcherx com.google.android.tvlauncher com.google.android.leanbacklauncher com.android.tv.launcher"
+# Штатные лаунчеры, которые install.sh умеет узнавать: Sber, PatchWall Xiaomi, Google TV и Android TV.
+KNOWN_STOCK_LAUNCHERS="ru.sberdevices.starlauncher com.mitv.tvhome.atv com.mitv.tvhome com.google.android.apps.tv.launcherx com.google.android.tvlauncher com.google.android.leanbacklauncher com.android.tv.launcher"
 
 say()  { printf '\033[1m== %s\033[0m\n' "$*"; }
 warn() { printf '\033[33m!! %s\033[0m\n' "$*" >&2; }
@@ -59,11 +59,23 @@ key() { local k; for k in "$@"; do sh_ input keyevent "$k"; sleep 0.4; done; }
 # Пакеты, которые нельзя отключать никогда (profiles/never.txt). Проверяется в dis().
 is_never() { grep -qxF "$1" <(grep -vE '^\s*(#|$)' "$ROOT/profiles/never.txt" | awk '{print $1}'); }
 
+# Проверка перед отключением: profiles/guard.sh на самом ТВ (защиты из Gathin23/cleanyourtv: ядро Android,
+# последний лаунчер, входы HDMI, Настройки, Wi-Fi мастера настройки). По строке на пакет: "OK пакет" или
+# "NO пакет причина".
+guard_check() {
+  a push "$ROOT/profiles/guard.sh" /data/local/tmp/cmst_guard.sh >/dev/null 2>&1 || return 1
+  sh_ sh /data/local/tmp/cmst_guard.sh "$@" | tr -d '\r'
+}
+
 # Отключить ОДИН пакет (один pm на вызов adb shell: цепочка pm может молча остановиться после первого)
-# и записать его, чтобы restore.sh мог вернуть.
+# и записать его, чтобы restore.sh мог вернуть. Второй аргумент "checked" — guard_check уже пройден.
 dis() {
   local p="$1" out
   if is_never "$p"; then warn "отказ: $p в profiles/never.txt"; return 1; fi
+  if [ "${2:-}" != checked ]; then
+    out=$(guard_check "$p") || { warn "отказ: $p — не удалось проверить его на ТВ"; return 1; }
+    case "$out" in NO\ *) warn "отказ: ${out#NO }"; return 1 ;; esac
+  fi
   out=$(sh_ pm disable-user --user 0 "$p" 2>&1)
   echo "$p: $out"
   case "$out" in

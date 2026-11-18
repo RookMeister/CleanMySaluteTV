@@ -47,9 +47,14 @@ final class TVStore: ObservableObject {
     let adb = ADB.locate()
 
     init() {
-        profile = ProfileEntry.parse(Bundled.text("sber-staros.tsv"))
+        // Sber first; the same package in a later profile is skipped. Only what is on the TV is shown.
+        var seen = Set<String>()
+        profile = Self.profiles.flatMap { ProfileEntry.parse(Bundled.text($0)) }.filter { seen.insert($0.package).inserted }
         never = ProfileEntry.parseNever(Bundled.text("never.txt"))
     }
+
+    /// profiles/*.tsv shipped with the app (mac/build.sh): Sber, Xiaomi TVs, Mi Box, any Android TV / Google TV.
+    static let profiles = ["sber-staros.tsv", "xiaomi-tv.tsv", "xiaomi-mibox.tsv", "android-tv.tsv"]
 
     var connected: Bool { device != nil }
     var dirty: Bool {
@@ -204,9 +209,32 @@ final class TVStore: ObservableObject {
         disabled = await list("-d")
     }
 
-    func setDisabled(_ pkg: String, _ off: Bool) async {
+    /// profiles/guard.sh run on the TV (cleanyourtv's safety checks: core Android, the last launcher, HDMI inputs,
+    /// Settings, the setup wizard's Wi-Fi). Returns the refused packages with the reason, or nil if the TV did not answer.
+    func guardCheck(_ pkgs: [String]) async -> [String: String]? {
+        guard let d = device, let script = Bundled.url("guard.sh") else { return nil }
+        let names = pkgs.filter { $0.range(of: #"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+$"#, options: .regularExpression) != nil }
+        guard !names.isEmpty else { return [:] }
+        guard (await d.push(script, to: "/data/local/tmp/cmst_guard.sh")).ok else { return nil }
+        let out = await d.shell("sh /data/local/tmp/cmst_guard.sh " + names.joined(separator: " "))
+        var refused: [String: String] = [:], answered = Set<String>()
+        for line in out.text.split(separator: "\n") {
+            let f = line.trimmingCharacters(in: .whitespacesAndNewlines).split(separator: " ", maxSplits: 2).map(String.init)
+            guard f.count >= 2 else { continue }
+            answered.insert(f[1])
+            if f[0] == "NO" { refused[f[1]] = f.count > 2 ? f[2] : "" }
+        }
+        for p in names where !answered.contains(p) { refused[p] = "проверка на ТВ не ответила" }
+        return refused
+    }
+
+    func setDisabled(_ pkg: String, _ off: Bool, checked: Bool = false) async {
         guard let d = device else { return }
         if off && never.contains(pkg) { message = "\(pkg) нужен системе, его не отключаю"; return }
+        if off && !checked {
+            guard let refused = await guardCheck([pkg]) else { message = "Не удалось проверить \(pkg) на ТВ, не отключаю"; return }
+            if let why = refused[pkg] { message = "\(pkg) не отключаю: \(why)"; return }
+        }
         busy = off ? "Отключаю \(pkg)…" : "Включаю \(pkg)…"
         defer { busy = nil }
         if off { await backup() }
@@ -221,10 +249,13 @@ final class TVStore: ObservableObject {
 
     /// Switches off every package the profile marks "disable" that is on the TV and still on.
     func disableRecommended() async {
-        for e in profile where e.action == .disable && installed.contains(e.package) && !disabled.contains(e.package) {
-            await setDisabled(e.package, true)
+        let todo = profile.filter { $0.action == .disable && installed.contains($0.package) && !disabled.contains($0.package) && !never.contains($0.package) }
+        guard let refused = await guardCheck(todo.map(\.package)) else {
+            message = "Не удалось проверить список на ТВ: ничего не отключено"; return
         }
-        message = "Рекомендуемые приложения отключены"
+        for e in todo where refused[e.package] == nil { await setDisabled(e.package, true, checked: true) }
+        message = refused.isEmpty ? "Рекомендуемые приложения отключены"
+            : "Отключено, кроме \(refused.count): " + refused.map { "\($0.key) — \($0.value)" }.sorted().joined(separator: "; ")
     }
 
     /// Switches back on every profile package that is off.

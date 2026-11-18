@@ -1,0 +1,75 @@
+# Телевизоры Xiaomi и Redmi (Mi TV 4A/4S/P1/Q1/A/A Pro, PatchWall, Android TV 9–14). Источник: 40 проверенных
+# списков examples/xiaomi-mitv-*, xiaomi-mi-tv-4a, xiaomi-tv-a*, redmi-mitv-* в Gathin23/cleanyourtv (MIT).
+# Здесь пакеты, которые встречались хотя бы в четырёх списках. На CleanMySaluteTV не проверялось.
+# Не трогать: mitv.service, com.xiaomi.android.tvsetup.partnercustomizer, службы входов MediaTek/MStar.
+# package	action	category	note
+com.miui.tv.analytics	disable	telemetry	статистика использования ТВ
+com.xiaomi.statistic	disable	telemetry	отправка статистики Xiaomi
+com.miui.analytics	disable	telemetry	аналитика OneTrack
+com.xiaomi.tvqs	disable	telemetry	загрузка журналов, сбоев и производительности
+com.xiaomi.tvqs.overseas	disable	telemetry	загрузка журналов и сбоев (глобальная прошивка)
+com.xiaomi.tvqs.overseas.y24	disable	telemetry	загрузка статистики качества
+com.google.android.feedback	disable	telemetry	отзывы и отчёты о сбоях Google
+com.google.android.tv.bugreportsender	disable	telemetry	автоотправка отчётов об ошибках
+com.android.tv.feedbackconsent	disable	telemetry	согласие на отправку диагностики
+com.google.android.partnersetup	disable	telemetry	отметки партнёров Google (RLZ)
+co.sensara.tv.mitv	disable	ads/content	спонсорская программа передач Sensara
+com.xm.webcontent	disable	ads/content	рекламный контейнер Xiaomi, грузит и рекламу в заставке
+com.mitv.tvhome.michannel	disable	ads/content	рекомендательные ряды Mi
+com.mitv.tvhome.oemtab	disable	ads/content	рекламный ряд Xiaomi
+com.xiaomi.floatingframe	disable	ads/content	всплывающая реклама поверх экрана
+com.xiaomi.mitv.tvpush.tvpushservice	disable	ads/content	рекламные уведомления
+com.duokan.videodaily	disable	ads/content	промо-видео
+android.autoinstalls.config.xiaomi.amelie	disable	ads/content	автоустановка партнёрских приложений
+android.autoinstalls.config.xioami.dangal	disable	ads/content	автоустановка партнёрских приложений
+fusion.android.tv.demo	disable	preloaded	демо-ролик для магазина
+com.mitv.shoplugin	disable	ads/content	плагин покупок Taobao, два процесса в памяти
+com.android.printspooler	disable	background	печать, на ТВ не нужна
+com.android.smspush	disable	background	SMS-push, на ТВ не нужен
+com.android.adservices.api	ask	telemetry	рекламные службы Android (Topics, атрибуция)
+com.android.ondevicepersonalization.services	ask	telemetry	персональные рекомендации на устройстве
+com.android.federatedcompute.services	ask	telemetry	федеративное обучение
+com.xiaomi.mitv.tvmanager	ask	preloaded	«Диспетчер ТВ», чистильщик
+com.mitv.cloudcontrol	ask	background	облачное управление: может ставить приложения
+com.mitv.tvhome.atv	ask	launcher	PatchWall; отключать, когда главный экран — CleanMySaluteTV
+com.google.android.tvlauncher	ask	launcher	штатный главный экран Android TV; отключать, когда главный экран — CleanMySaluteTV
+com.google.android.leanbacklauncher.recommendations	ask	ads/content	рекомендации старого главного экрана
+com.mitv.tvhome.mitvplus	ask	streaming	бесплатные каналы Xiaomi TV+ с рекламой
+com.xiaomi.mimusic2	ask	streaming	Mi Музыка
+com.mitv.gallery	ask	preloaded	фотоальбом; USB-файлы откроет медиапроводник
+com.xiaomi.tv.gallery	ask	preloaded	фотоальбом Mi
+com.mitv.videoplayer	ask	preloaded	видеоплеер Mi; оставьте, если пользуетесь
+com.xiaomi.mitv.mediaexplorer	ask	preloaded	проигрыватель с USB
+com.xiaomi.mitv.smartshare	ask	casting	приём Miracast и MiPlay
+com.xiaomi.wfdsinkhelperservice	ask	casting	помощник Miracast
+com.mitv.milinkservice	ask	casting	трансляция Mi; Chromecast работает отдельно
+com.google.android.katniss	ask	voice	Ассистент и голосовой поиск: кнопка микрофона перестанет работать
+com.xiaomi.amazon.alexa	ask	voice	мост Alexa
+com.xiaomi.smarthome.tv	ask	preloaded	Mi Home; голосовая кнопка работает и без него
+com.xiaomi.mitv.smartpanel	ask	preloaded	панель умного дома
+com.xiaomi.mitv.updateservice	ask	updates	включите, чтобы проверить обновление прошивки
+com.xiaomi.mitv.upgrade	ask	updates	обновления прошивки: включите, чтобы проверить
+com.google.android.backdrop	ask	screensaver	заставка Ambient Mode
+com.mitv.dream	ask	screensaver	заставка Mi; сначала поставьте свою
+com.mitv.screensaver	ask	screensaver	заставка Xiaomi; её заменит заставка-часы лаунчера
+com.android.dreams.basic	ask	screensaver	простая заставка
+com.google.android.play.games	ask	preloaded	Play Игры
+com.google.android.videos	ask	streaming	Google TV / Play Фильмы
+com.google.android.youtube.tvmusic	ask	streaming	YouTube Music
+com.amazon.amazonvideo.livingroom	ask	streaming	Prime Video; может вернуться после обновления
+com.google.android.marvin.talkback	ask	preloaded	экранный диктор
+com.xiaomo.tv.milegal	ask	preloaded	юридические экраны и политика Xiaomi
+com.xiaomi.mitv.shop	ask	ads/content	магазин Xiaomi
+com.xiaomi.gamecenter.sdk.service.mibox	ask	background	игровой SDK Xiaomi
+com.xiaomi.mitv.handbook	ask	preloaded	руководство пользователя
+com.xiaomi.mitv.manualhelp	ask	preloaded	руководство на экране
+com.mitv.toolhouse	ask	preloaded	набор утилит Xiaomi
+com.xiaomi.screenrecorder	ask	preloaded	запись экрана
+com.xiaomi.mitv.calendar	ask	preloaded	календарь
+com.xiaomi.tweather	ask	preloaded	погода Xiaomi
+com.xiaomi.mitv.karaoke.service	ask	preloaded	караоке
+com.xiaomi.mitv.health	ask	preloaded	MiHealth
+com.xiaomi.mitv.healthdiagnosis	ask	preloaded	самодиагностика ТВ
+com.mitv.tvlock	ask	preloaded	блокировка и родительский пароль
+com.mediatek.wwtv.webview	ask	preloaded	оболочка веб-страниц производителя
+com.google.android.tungsten.setupwraith	ask	setup	мастер настройки; без него может не работать трансляция; проверка не даст отключить, если Wi-Fi сохранён им

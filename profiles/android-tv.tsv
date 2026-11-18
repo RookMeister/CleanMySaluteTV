@@ -1,0 +1,31 @@
+# Любой Android TV и Google TV (Chromecast, NVIDIA Shield, onn, Philips, TCL, Toshiba, JVC и другие):
+# общие пакеты Google и Android. Источник: 48 проверенных списков в Gathin23/cleanyourtv (MIT), здесь пакеты
+# из шести и более. Приложения марок (TCL, Philips…) не входят. На CleanMySaluteTV не проверялось.
+# package	action	category	note
+com.google.android.feedback	disable	telemetry	отзывы и отчёты о сбоях Google
+com.android.tv.feedbackconsent	disable	telemetry	согласие на отправку диагностики
+com.google.android.tv.bugreportsender	disable	telemetry	автоотправка отчётов об ошибках
+com.google.android.partnersetup	disable	telemetry	отметки партнёров Google (RLZ)
+android.autoinstalls.config.google.gtvpai	disable	ads/content	автоустановка партнёрских приложений, читается только при настройке
+fusion.android.tv.demo	disable	preloaded	демо-ролик для магазина
+com.android.printspooler	disable	background	печать, на ТВ не нужна
+com.google.android.syncadapters.calendar	disable	background	синхронизация Google Календаря
+com.google.android.onetimeinitializer	disable	setup	запускается один раз при первой загрузке
+com.android.adservices.api	ask	telemetry	рекламные службы Android (Topics, атрибуция)
+com.android.federatedcompute.services	ask	telemetry	федеративное обучение
+com.android.ondevicepersonalization.services	ask	telemetry	персональные рекомендации на устройстве
+com.google.android.apps.tv.launcherx	ask	launcher	штатный главный экран Google TV; отключать, когда главный экран — CleanMySaluteTV
+com.google.android.tvlauncher	ask	launcher	штатный главный экран Android TV; отключать, когда главный экран — CleanMySaluteTV
+com.google.android.leanbacklauncher	ask	launcher	старый главный экран Android TV; отключать, когда главный экран — CleanMySaluteTV
+com.google.android.apps.tv.dreamx	ask	screensaver	заставка Ambient с рекомендациями
+com.google.android.backdrop	ask	screensaver	заставка Ambient Mode
+com.google.android.katniss	ask	voice	Ассистент и голосовой поиск: кнопка микрофона перестанет работать
+com.google.android.apps.mediashell	ask	casting	Chromecast built-in
+com.google.android.play.games	ask	preloaded	Play Игры
+com.google.android.videos	ask	streaming	Google TV / Play Фильмы
+com.google.android.youtube.tvmusic	ask	streaming	YouTube Music
+com.amazon.amazonvideo.livingroom	ask	streaming	Prime Video
+com.netflix.ninja	ask	streaming	Netflix: кнопка Netflix на пульте перестанет работать
+com.google.android.marvin.talkback	ask	preloaded	экранный диктор
+com.mstar.android.tv.disclaimercustomization	ask	setup	экран предупреждения при настройке
+com.google.android.tungsten.setupwraith	ask	setup	мастер настройки; проверка не даст отключить, если Wi-Fi сохранён им
