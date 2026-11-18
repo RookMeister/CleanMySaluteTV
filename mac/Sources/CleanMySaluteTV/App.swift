@@ -56,7 +56,7 @@ struct RootView: View {
             ScrollView {
                 VStack(spacing: 6) {
                     ForEach(Step.allCases) { s in
-                        StepRow(step: s, selected: step == s, done: isDone(s)) { step = s }
+                        StepRow(step: s, selected: step == s) { step = s }
                     }
                 }
                 .padding(10)
@@ -94,38 +94,21 @@ struct RootView: View {
             if tv.connected && tv.homeIsOurs { step = .home }
         }
     }
-
-    private func isDone(_ s: Step) -> Bool {
-        switch s {
-        case .quick: tv.connected && tv.homeIsOurs && !tv.disabledByUs.isEmpty
-        case .connect: tv.connected
-        case .cleanup: tv.connected && !tv.disabledByUs.isEmpty
-        case .home: tv.connected && tv.homeIsOurs
-        case .extras, .sideload: false
-        case .finish: finished
-        }
-    }
 }
 
-/// One step: its number in a ring (a tick once done), the name, what it is for.
+/// One step: its number in a ring, the name, what it is for.
 struct StepRow: View {
     var step: Step
     var selected: Bool
-    var done: Bool
     var action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
                 ZStack {
-                    if done {
-                        Circle().fill(.white)
-                        Image(systemName: "checkmark").font(.system(size: 12, weight: .bold)).foregroundStyle(.black)
-                    } else {
-                        Circle().strokeBorder(selected ? Color.accentColor : .secondary, lineWidth: 1.5)
-                        Text("\(step.rawValue)").font(.system(size: 13, weight: .semibold, design: .rounded))
-                            .foregroundStyle(selected ? Color.accentColor : .primary)
-                    }
+                    Circle().strokeBorder(selected ? Color.accentColor : .secondary, lineWidth: 1.5)
+                    Text("\(step.rawValue)").font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(selected ? Color.accentColor : .primary)
                 }
                 .frame(width: 30, height: 30)
                 VStack(alignment: .leading, spacing: 2) {
