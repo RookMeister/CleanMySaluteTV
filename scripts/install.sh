@@ -48,13 +48,6 @@ sh_ pm list packages "$PKG" | grep -q "$PKG" || die "CleanMySaluteTV не уст
 # ---------------------------------------------------------------- 3. разрешения
 sh_ pm grant $PKG android.permission.ACCESS_FINE_LOCATION 2>/dev/null   # имя Wi-Fi в кнопке сети
 
-# AirPlay: полный перезапуск приёмника AirPlay Server требует DUMP (его просит приёмник настроек приложения).
-# DUMP открывает служебные дампы системы, поэтому выдаётся только по явному AIRPLAY=yes; иначе отзывается.
-if yes_ "${AIRPLAY:-no}"; then
-  sh_ pm grant $PKG android.permission.DUMP 2>/dev/null && echo "AirPlay: полный перезапуск включён (DUMP выдан)"
-else
-  sh_ pm revoke $PKG android.permission.DUMP 2>/dev/null || true
-fi
 
 # Таймер сна и «Выключить экран»: лаунчер — администратор устройства только с политикой force-lock (гасить экран).
 if yes_ "${POWER:-yes}"; then

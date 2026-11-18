@@ -85,7 +85,6 @@ CleanMySaluteTV отключает лишнее по проверенному с
 - **Приложения**: в доке, «ещё» под доком или скрыты — в меню на ТВ или перетаскиванием в приложении для Mac.
 - **Стеклянные значки**: символ приложения белым на стекле, как в tvOS.
 - **Погода** из Open-Meteo, город ищется прямо в меню.
-- **AirPlay**: если стоит AirPlay Server, лаунчер держит ТВ видимым для iPhone и Mac ([docs/AIRPLAY.md](docs/AIRPLAY.md)).
 
 ## Приложение для Mac
 
@@ -185,18 +184,15 @@ bash scripts/install.sh                                # собрать, пос�
 | Установка | Использование | Устройство |
 |---|---|---|
 | [Салют ТВ: ADB, что возвращает Sber](docs/SBER.md) | [Приложение для Mac](docs/MAC.md) | [Все настройки config.json](docs/CONFIG.md) |
-| [Для ИИ-ассистента](AGENTS.md) | [AirPlay](docs/AIRPLAY.md) | [Что дальше](docs/ROADMAP.md) |
+| [Для ИИ-ассистента](AGENTS.md) | | [Что дальше](docs/ROADMAP.md) |
 
 ## Спасибо
 
 | Проект | Что взято |
 |---|---|
-| [Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv) | Основа лаунчера и списки для Sber |
-| [Seagey/couch-tv](https://github.com/Seagey/couch-tv) | Сцены со стеклянными часами, вид дока и кнопок, стеклянные значки, сцены-картинки |
-| [wingedpanther/cleanmytv](https://github.com/wingedpanther/cleanmytv) | Шаги приложения для Mac и вкладка «Главный экран» с превью |
-| [sridathballeda/cleantv](https://github.com/sridathballeda/cleantv) | Скрипты установки: бэкап, классификация пакетов, откат |
-| [techgenius1/tvOS-Launcher](https://github.com/techgenius1/tvOS-Launcher) | Образец раскладки меню |
-| [petrobot-admin/hume-launcher](https://github.com/petrobot-admin/hume-launcher) | Слежение за AirPlay (Apache 2.0) |
+| [Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv) | Основа всего: лаунчер, скрипты установки (бэкап, классификация пакетов, откат) и списки для Sber |
+| [Seagey/couch-tv](https://github.com/Seagey/couch-tv) | Дизайн и вдохновение для обоев Night Scenes, гигантских стеклянных часов и glassmorphic Home Settings UI |
+| [wingedpanther/cleanmytv](https://github.com/wingedpanther/cleanmytv) | Дизайн и вдохновение для приложения на Mac: шаги и вкладка «Главный экран» с живым превью |
 
 Фото сцен «поверх фото» — Wikimedia Commons (CC BY-SA), авторы подписаны на экране и в [NOTICE](NOTICE).
 Погода — [Open-Meteo](https://open-meteo.com), запасной источник — MET Norway.

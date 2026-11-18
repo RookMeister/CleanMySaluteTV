@@ -33,7 +33,7 @@ final class OnTvChoices {
     static final int DOCK_TRANSPARENCY_DEFAULT = 70;
     /** Every key above plus the dock's: what a theme push or "follow the theme" removes. */
     static final String[] ALL = {SCENES, SCENE_SECONDS, SCENE_LIST, CLOCK_POSITION, WEATHER, WEATHER_LAT, WEATHER_LON, WEATHER_PLACE,
-            DockStyle.KEY, AirPlayGuard.KEY, TopButtons.KEY, VPN_APP, GLASS_ICONS, LIBRARY_TILE, DOCK_TRANSPARENCY};
+            DockStyle.KEY, TopButtons.KEY, VPN_APP, GLASS_ICONS, LIBRARY_TILE, DOCK_TRANSPARENCY};
 
     static SharedPreferences prefs(Context context) {
         return context.getSharedPreferences(Config.SETTINGS_NAME, Context.MODE_PRIVATE);

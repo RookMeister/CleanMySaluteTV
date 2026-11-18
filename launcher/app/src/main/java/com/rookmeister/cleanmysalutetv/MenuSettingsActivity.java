@@ -493,20 +493,6 @@ public final class MenuSettingsActivity extends Activity {
         rowAction(getString(R.string.menu_default_home), null, null, () -> open(new Intent(this, HomeSettingsActivity.class)));
         rowAction(getString(R.string.menu_tv_settings), null, null,
                 () -> open(SystemSettings.intent(this, Settings.ACTION_SETTINGS)));
-        group(R.string.menu_group_airplay);
-        if (!AirPlayGuard.installed(this)) {
-            info(getString(R.string.menu_airplay_missing), getString(R.string.menu_airplay_missing_sub), null);
-        } else {
-            boolean on = AirPlayGuard.enabled(this);
-            row(getString(R.string.menu_airplay_guard), getString(R.string.menu_airplay_guard_sub), onOff(on), null, null,
-                    () -> choices.edit().putBoolean(AirPlayGuard.KEY, !on).apply());
-            info(getString(R.string.menu_airplay_restart), null, getString(AirPlayGuard.canRestart(this)
-                    ? R.string.menu_airplay_restart_full : R.string.menu_airplay_restart_start_only));
-            if (on) rowAction(getString(R.string.menu_airplay_check), null, null, () -> {
-                AirPlayGuard.check(this, true);
-                Toast.makeText(this, R.string.menu_airplay_checking, Toast.LENGTH_SHORT).show();
-            });
-        }
         group(R.string.menu_group_reset);
         row(getString(R.string.menu_follow_theme), getString(R.string.menu_follow_theme_sub), null, null, null, () ->
                 OnTvChoices.clear(choices.edit().remove("columns").remove(Config.ROWS_BELOW_DOCK_KEY)

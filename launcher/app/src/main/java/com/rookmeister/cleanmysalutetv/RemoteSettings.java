@@ -44,7 +44,7 @@ final class RemoteSettings {
     static final String STATE = "state.json", APPLY = "apply.json", ICONS = "icons";
 
     static final Set<String> BOOLS = new HashSet<>(Arrays.asList(OnTvChoices.SCENES, OnTvChoices.WEATHER,
-            OnTvChoices.GLASS_ICONS, OnTvChoices.LIBRARY_TILE, AirPlayGuard.KEY));
+            OnTvChoices.GLASS_ICONS, OnTvChoices.LIBRARY_TILE));
     static final Set<String> INTS = new HashSet<>(Arrays.asList(OnTvChoices.SCENE_SECONDS, "columns",
             Config.DOCK_OPACITY_KEY, OnTvChoices.DOCK_TRANSPARENCY));
     static final Set<String> STRINGS = new HashSet<>(Arrays.asList(OnTvChoices.SCENE_LIST, OnTvChoices.CLOCK_POSITION,
@@ -84,7 +84,6 @@ final class RemoteSettings {
         choices.put(OnTvChoices.DOCK_TRANSPARENCY, tv.getInt(OnTvChoices.DOCK_TRANSPARENCY, OnTvChoices.DOCK_TRANSPARENCY_DEFAULT));
         choices.put(OnTvChoices.GLASS_ICONS, tv.getBoolean(OnTvChoices.GLASS_ICONS, false));
         choices.put(OnTvChoices.LIBRARY_TILE, tv.getBoolean(OnTvChoices.LIBRARY_TILE, true));
-        choices.put(AirPlayGuard.KEY, AirPlayGuard.enabled(c));
         choices.put(TopButtons.KEY, OnTvChoices.joinList(TopButtons.chosen(c)));
         choices.put(OnTvChoices.VPN_APP, cfg.vpnApp);
         choices.put(Config.CLOCK_FORMAT_KEY, cfg.clockFormat);

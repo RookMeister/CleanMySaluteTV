@@ -58,7 +58,6 @@ struct Choices: Codable, Equatable {
     var dockTransparency: Int
     var glassIcons: Bool
     var libraryTile: Bool
-    var airplayGuard: Bool
     var topButtons: String
     var vpnApp: String
     var clockFormat: String
@@ -68,7 +67,7 @@ struct Choices: Codable, Equatable {
         case sceneSeconds = "scene_seconds", sceneList = "scene_list", clockPosition = "clock_position"
         case weatherPlace = "weather_place", weatherLat = "weather_lat", weatherLon = "weather_lon"
         case dockStyle = "dock_style", dockOpacity = "dock_opacity", dockTransparency = "dock_transparency", glassIcons = "glass_icons"
-        case libraryTile = "library_tile", airplayGuard = "airplay_guard", topButtons = "top_buttons"
+        case libraryTile = "library_tile", topButtons = "top_buttons"
         case vpnApp = "vpn_app", clockFormat = "clock_format"
     }
 

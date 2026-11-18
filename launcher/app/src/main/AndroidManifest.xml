@@ -14,15 +14,9 @@
     <!-- CleanMySaluteTV: the Memory top button (MemoryClean) closes other apps' background processes; a normal
          permission, granted at install. -->
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
-    <!-- CleanMySaluteTV AirPlay guard (AirPlayGuard, after Hume Launcher): an mDNS query to see the AirPlay receiver
-         is still announced. DUMP is what AirPlay Server's settings receiver asks of callers; Android never grants
-         it at install, only install.sh with AIRPLAY=yes does (pm grant), and without it the guard only starts a
-         stopped receiver. -->
-    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <!-- CleanMySaluteTV sleep timer (PowerControl): on time rather than in Android's loose window. Not granted at
          install from Android 13; install.sh allows it with POWER=yes (appops). -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.DUMP" tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <!-- Needed since Android 10 to read the Wi-Fi network name for the network pill. Never requested at
@@ -68,8 +62,6 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="com.rookmeister.cleanmysalutetv.category.DOCK_CARD" />
         </intent>
-        <!-- The AirPlay receiver the AirPlay guard looks after (AirPlayGuard). -->
-        <package android:name="io.github.jqssun.airplay" />
         <!-- stock_home_redirect: HomeKeyService looks up the stock launcher's HOME activity. -->
         <intent>
             <action android:name="android.intent.action.MAIN" />

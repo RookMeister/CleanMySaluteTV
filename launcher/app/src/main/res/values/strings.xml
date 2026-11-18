@@ -195,18 +195,7 @@
     <string name="cp_memory_cleaned">Background apps closed · memory %1$d%% → %2$d%%</string>
     <string name="cp_screensaver">Screensaver</string>
     <string name="cp_all_apps">All apps</string>
-    <!-- CleanMySaluteTV settings menu: AirPlay guard (AirPlayGuard). -->
-    <string name="menu_group_airplay">AIRPLAY</string>
     <string name="menu_group_reset">RESET</string>
-    <string name="menu_airplay_missing">AirPlay Server is not installed</string>
-    <string name="menu_airplay_missing_sub">Install it from github.com/jqssun/android-airplay-server, see docs/AIRPLAY.md</string>
-    <string name="menu_airplay_guard">Keep AirPlay visible</string>
-    <string name="menu_airplay_guard_sub">Checked on wake, when the network returns and every 15 minutes</string>
-    <string name="menu_airplay_restart">Restarting the receiver</string>
-    <string name="menu_airplay_restart_full">Full</string>
-    <string name="menu_airplay_restart_start_only">Start only (AIRPLAY=yes for more)</string>
-    <string name="menu_airplay_check">Check now</string>
-    <string name="menu_airplay_checking">Checking AirPlay in the background</string>
     <string name="menu_clock_position">Clock position</string>
     <string name="menu_clock_position_sub">Where the big clock stands on the photos; behind-the-picture scenes keep their own place</string>
     <string name="menu_pos_auto">As the scene</string>

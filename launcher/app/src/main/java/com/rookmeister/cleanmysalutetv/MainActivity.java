@@ -279,15 +279,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             open(i);
         }
     };
-    /** CleanMySaluteTV: the TV woke up, so check the AirPlay receiver is still visible (AirPlayGuard). */
-    private final BroadcastReceiver airplayWakeReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            AirPlayGuard.check(context, true);
-        }
-    };
-    /** Minutes since Home started ticking, for the AirPlay check every 15 of them. */
-    private int minuteCount;
     private final BroadcastReceiver wakeReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -358,7 +349,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         @Override
         public void onAvailable(@NonNull Network network) {
             handler.post(MainActivity.this::updateWifiLabel);
-            handler.post(() -> AirPlayGuard.check(MainActivity.this, false));
         }
 
         @Override
@@ -431,7 +421,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         @Override
         public void run() {
             updateGreeting();
-            if (++minuteCount % 15 == 0) AirPlayGuard.check(MainActivity.this, false);
             sky.update();
             wallpaperPlayer.update();
             weather.update();
@@ -986,11 +975,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         } else {
             registerReceiver(packageReceiver, packageFilter);
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(airplayWakeReceiver, new IntentFilter(Intent.ACTION_SCREEN_ON), Context.RECEIVER_NOT_EXPORTED);
-        } else {
-            registerReceiver(airplayWakeReceiver, new IntentFilter(Intent.ACTION_SCREEN_ON));
-        }
         if (openOnStartOnWake) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 registerReceiver(wakeReceiver, new IntentFilter(Intent.ACTION_SCREEN_ON), Context.RECEIVER_NOT_EXPORTED);
@@ -1425,7 +1409,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         cancelHoldOk();
         unregisterReceiver(packageReceiver);
         if (openOnStartOnWake) unregisterReceiver(wakeReceiver);
-        unregisterReceiver(airplayWakeReceiver);
         wallpaperPlayer.close();
         scenePlayer.close();
         weather.close();

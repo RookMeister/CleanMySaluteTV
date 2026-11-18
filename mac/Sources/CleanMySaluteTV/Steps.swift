@@ -311,14 +311,6 @@ struct ExtrasView: View {
                     Button("Выключить") { set("off") }.buttonStyle(.glass)
                 }
             }
-            if let d = Binding($tv.draft) {
-                GlassCard("AirPlay", footer: "Лаунчер перезапускает приёмник AirPlay, если тот завис.") {
-                    GlassRow("Следить за приёмником AirPlay") {
-                        Toggle("", isOn: d.airplayGuard).labelsHidden().toggleStyle(.switch)
-                            .onChange(of: d.wrappedValue.airplayGuard) { tv.scheduleApply(after: 0.1) }
-                    }
-                }
-            }
         }
         .task {
             guard !loaded else { return }
