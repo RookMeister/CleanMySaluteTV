@@ -94,7 +94,7 @@ struct EnableADBCard: View {
     ]
 
     var body: some View {
-        GlassCard("Сначала включите на ТВ отладку", footer: "Если у вашей модели открывается меню разработчика: Настройки → Настройки устройства → Об устройстве → 7 раз OK на «Сборка» → назад → Для разработчиков → Отладка по USB.") {
+        GlassCard("Сначала включите на ТВ отладку", footer: "Xiaomi, Mi Box и другие Android TV / Google TV, а также Салют ТВ с открытым меню разработчика: Настройки → Настройки устройства (на Google TV — Система) → Об устройстве → 7 раз OK на «Сборка» → назад → Для разработчиков → Отладка по USB (и «Отладка по сети», если есть).") {
             DisclosureGroup(isExpanded: $open) {
                 HStack(alignment: .top, spacing: 18) {
                     VStack(alignment: .leading, spacing: 8) {
@@ -114,7 +114,7 @@ struct EnableADBCard: View {
                 }
                 .padding(.top, 8)
             } label: {
-                Text("С телефона через Сбер Studio — 7 шагов, около 5 минут").font(.headline)
+                Text("Салют ТВ: с телефона через Сбер Studio — 7 шагов, около 5 минут").font(.headline)
             }
             .onAppear { open = !tv.connected }
         }
